@@ -40,10 +40,8 @@ spec:
   version: "1.0.0"           # Optional: Package version
 
 provenance:                   # Optional: Supply chain information
-  repository: "https://..."   # Package source repository
-  packageRegistry: "https://..." # Package registry URL
-  builder: "dockyard"        # Builder identifier
-  buildTime: ""              # Build timestamp (auto-generated)
+  repository_uri: "https://..." # Package source repository URI
+  repository_ref: "refs/tags/v1.0.0" # Git reference (tag, branch, or commit)
 ```
 
 ## Usage
@@ -102,9 +100,8 @@ spec:
   version: "1.0.14"
 
 provenance:
-  repository: "https://github.com/upstash/context7-mcp"
-  builder: "dockyard"
-  buildTime: ""
+  repository_uri: "https://github.com/upstash/context7-mcp"
+  repository_ref: "refs/tags/v1.0.14"
 ```
 
 This would build a container tagged as `ghcr.io/stacklok/dockyard/npx/context7:1.0.14`.
