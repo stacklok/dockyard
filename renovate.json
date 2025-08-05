@@ -1,0 +1,38 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    "helpers:pinGitHubActionDigests"
+  ],
+  "labels": ["dependencies"],
+  "postUpdateOptions": ["gomodTidy"],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Update npm package versions in npx YAML configurations",
+      "managerFilePatterns": ["npx/*.yaml"],
+      "matchStrings": [
+        "package:\\s*[\"']?(?<depName>[^\"'\\s]+)[\"']?.*\\n\\s*version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "datasourceTemplate": "npm"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Python package versions in uvx YAML configurations",
+      "managerFilePatterns": ["uvx/*.yaml"],
+      "matchStrings": [
+        "package:\\s*[\"']?(?<depName>[^\"'\\s]+)[\"']?.*\\n\\s*version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "datasourceTemplate": "pypi"
+    },
+    {
+      "customType": "regex",
+      "description": "Update Go package versions in go YAML configurations",
+      "managerFilePatterns": ["go/*.yaml"],
+      "matchStrings": [
+        "package:\\s*[\"']?(?<depName>[^\"'\\s]+)[\"']?.*\\n\\s*version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+      ],
+      "datasourceTemplate": "go"
+    }
+  ]
+}
