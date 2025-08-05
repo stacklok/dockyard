@@ -1,0 +1,203 @@
+name: Build MCP Server Containers
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'npx/**/*.yaml'
+      - 'uvx/**/*.yaml'
+      - 'go/**/*.yaml'
+      - 'main.go'
+      - 'go.mod'
+      - 'go.sum'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'npx/**/*.yaml'
+      - 'uvx/**/*.yaml'
+      - 'go/**/*.yaml'
+      - 'main.go'
+      - 'go.mod'
+      - 'go.sum'
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  discover-configs:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.find-configs.outputs.configs }}
+      changed-configs: ${{ steps.find-configs.outputs.changed-configs }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Need full history for change detection
+
+      - name: Find configuration files to build
+        id: find-configs
+        run: |
+          # Find all YAML files in protocol directories
+          all_configs=$(find npx uvx go -name "*.yaml" -type f 2>/dev/null | sort)
+          
+          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+            # For manual triggers, build all configs
+            configs_to_build="$all_configs"
+            echo "Manual trigger - building all configurations"
+          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+            # For PRs, build configs that changed compared to target branch
+            changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+            configs_to_build=""
+            
+            # Check if main.go, go.mod, or go.sum changed (rebuild all)
+            if echo "$changed_files" | grep -E "(main\.go|go\.mod|go\.sum)"; then
+              echo "Core files changed - building all configurations"
+              configs_to_build="$all_configs"
+            else
+              # Only build configs whose YAML files changed
+              for config in $all_configs; do
+                if echo "$changed_files" | grep -q "^$config$"; then
+                  configs_to_build="$configs_to_build$config"$'\n'
+                fi
+              done
+            fi
+          else
+            # For pushes to main, build configs that changed in this push
+            changed_files=$(git diff --name-only HEAD~1..HEAD)
+            configs_to_build=""
+            
+            # Check if main.go, go.mod, or go.sum changed (rebuild all)
+            if echo "$changed_files" | grep -E "(main\.go|go\.mod|go\.sum)"; then
+              echo "Core files changed - building all configurations"
+              configs_to_build="$all_configs"
+            else
+              # Only build configs whose YAML files changed
+              for config in $all_configs; do
+                if echo "$changed_files" | grep -q "^$config$"; then
+                  configs_to_build="$configs_to_build$config"$'\n'
+                fi
+              done
+            fi
+          fi
+          
+          # Convert to JSON array, filtering out empty lines
+          configs_json=$(echo "$configs_to_build" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
+          all_configs_json=$(echo "$all_configs" | jq -R -s -c 'split("\n")[:-1]')
+          
+          echo "configs=$all_configs_json" >> $GITHUB_OUTPUT
+          echo "changed-configs=$configs_json" >> $GITHUB_OUTPUT
+          
+          echo "All configurations: $all_configs_json"
+          echo "Configurations to build: $configs_json"
+
+  build-containers:
+    needs: discover-configs
+    runs-on: ubuntu-latest
+    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
+      fail-fast: false
+    
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata from config
+        id: meta
+        run: |
+          config_file="${{ matrix.config }}"
+          echo "config_file=$config_file" >> $GITHUB_OUTPUT
+          
+          # Extract protocol from directory name
+          protocol=$(dirname "$config_file")
+          echo "protocol=$protocol" >> $GITHUB_OUTPUT
+          
+          # Extract server name from filename (without .yaml extension)
+          server_name=$(basename "$config_file" .yaml)
+          echo "server_name=$server_name" >> $GITHUB_OUTPUT
+
+      - name: Build and capture container info
+        id: build
+        run: |
+          echo "Building container for ${{ steps.meta.outputs.config_file }}"
+          
+          # Capture the output which includes the built image name
+          output=$(go run main.go -config "${{ steps.meta.outputs.config_file }}" 2>&1)
+          echo "$output"
+          
+          # Extract the image name from the last line of output
+          image_name=$(echo "$output" | grep "Successfully built container image:" | sed 's/Successfully built container image: //')
+          echo "image_name=$image_name" >> $GITHUB_OUTPUT
+          echo "Captured built image: $image_name"
+
+      - name: Push container image
+        if: github.event_name != 'pull_request' && steps.build.outputs.image_name != ''
+        run: |
+          image_name="${{ steps.build.outputs.image_name }}"
+          echo "Pushing image: $image_name"
+          docker push "$image_name"
+
+      - name: Generate image summary
+        run: |
+          echo "## Container Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Config**: ${{ steps.meta.outputs.config_file }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Protocol**: ${{ steps.meta.outputs.protocol }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Server**: ${{ steps.meta.outputs.server_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image**: ${{ steps.build.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" != "pull_request" ]; then
+            echo "- **Status**: ✅ Built and pushed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Status**: ✅ Built (not pushed - PR)" >> $GITHUB_STEP_SUMMARY
+          fi
+
+  summary:
+    needs: [discover-configs, build-containers]
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Build Summary
+        run: |
+          echo "## Dockyard Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ref**: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Configs**: ${{ needs.discover-configs.outputs.configs }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Changed Configs**: ${{ needs.discover-configs.outputs.changed-configs }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.build-containers.result }}" == "success" ]; then
+            echo "- **Build Status**: ✅ All changed containers built successfully" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.build-containers.result }}" == "failure" ]; then
+            echo "- **Build Status**: ❌ Some containers failed to build" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.build-containers.result }}" == "skipped" ]; then
+            echo "- **Build Status**: ⏭️ No configuration changes detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- **Build Status**: ⚠️ Build status unknown" >> $GITHUB_STEP_SUMMARY
+          fi
+          
+          # Add efficiency note
+          changed_count=$(echo '${{ needs.discover-configs.outputs.changed-configs }}' | jq length)
+          total_count=$(echo '${{ needs.discover-configs.outputs.configs }}' | jq length)
+          echo "- **Efficiency**: Built $changed_count out of $total_count configurations" >> $GITHUB_STEP_SUMMARY

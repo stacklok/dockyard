@@ -1,0 +1,13 @@
+metadata:
+  name: aws-documentation-mcp-server
+  description: "An AWS Labs Model Context Protocol (MCP) server for AWS Documentation"
+  version: "1.1.2"
+  protocol: uvx
+
+spec:
+  package: "awslabs.aws-documentation-mcp-server"
+  version: "1.1.2"
+
+provenance:
+  repository_uri: "https://github.com/awslabs/mcp"
+  repository_ref: "refs/tags/v1.1.2"

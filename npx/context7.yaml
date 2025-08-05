@@ -1,0 +1,13 @@
+metadata:
+  name: context7
+  description: "Upstash Context7 MCP server for vector search and context management"
+  version: "1.0.14"
+  protocol: npx
+
+spec:
+  package: "@upstash/context7-mcp"
+  version: "1.0.14"
+
+provenance:
+  repository_uri: "https://github.com/upstash/context7-mcp"
+  repository_ref: "refs/tags/v1.0.14"
