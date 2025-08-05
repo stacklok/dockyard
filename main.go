@@ -1,3 +1,6 @@
+// Package main implements the Dockyard MCP server containerization tool.
+// It reads YAML configuration files and uses ToolHive to build container images
+// from protocol schemes (npx://, uvx://, go://).
 package main
 
 import (
@@ -6,6 +9,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"strings"
 
 	"github.com/stacklok/toolhive/pkg/container/images"
@@ -34,7 +38,7 @@ type MCPServerMetadata struct {
 
 // MCPServerPackageSpec defines the package to be containerized
 type MCPServerPackageSpec struct {
-	Package string `yaml:"package"` // e.g., "@upstash/context7-mcp"
+	Package string `yaml:"package"`           // e.g., "@upstash/context7-mcp"
 	Version string `yaml:"version,omitempty"` // e.g., "1.0.14"
 }
 
@@ -78,8 +82,35 @@ func main() {
 	fmt.Printf("Successfully built container image: %s\n", imageName)
 }
 
+// validateConfigPath ensures the config path is safe and within expected directories
+func validateConfigPath(configPath string) error {
+	// Clean the path to prevent directory traversal
+	cleanPath := filepath.Clean(configPath)
+
+	// Ensure it's a .yaml file
+	if !strings.HasSuffix(cleanPath, ".yaml") {
+		return fmt.Errorf("config file must have .yaml extension")
+	}
+
+	// Ensure it's in one of the expected protocol directories
+	validPrefixes := []string{"npx/", "uvx/", "go/"}
+	for _, prefix := range validPrefixes {
+		if strings.HasPrefix(cleanPath, prefix) {
+			return nil
+		}
+	}
+
+	return fmt.Errorf("config file must be in npx/, uvx/, or go/ directory")
+}
+
 // loadMCPServerSpec reads and parses a YAML configuration file
 func loadMCPServerSpec(configPath string) (*MCPServerSpec, error) {
+	// Validate the config path for security
+	if err := validateConfigPath(configPath); err != nil {
+		return nil, fmt.Errorf("invalid config path: %w", err)
+	}
+
+	// #nosec G304 - Path is validated above to prevent directory traversal
 	data, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read config file: %w", err)
@@ -155,10 +186,10 @@ func buildMCPServerContainer(ctx context.Context, spec *MCPServerSpec, customTag
 func generateImageTag(spec *MCPServerSpec) string {
 	// Base registry path
 	registry := "ghcr.io/stacklok/dockyard"
-	
+
 	// Clean the package name to create a valid image name
 	name := cleanPackageName(spec.Metadata.Name)
-	
+
 	// Use version from spec or metadata, fallback to "latest"
 	version := spec.Spec.Version
 	if version == "" {
@@ -167,7 +198,7 @@ func generateImageTag(spec *MCPServerSpec) string {
 	if version == "" {
 		version = "latest"
 	}
-	
+
 	return fmt.Sprintf("%s/%s/%s:%s", registry, spec.Metadata.Protocol, name, version)
 }
 
@@ -179,13 +210,13 @@ func cleanPackageName(packageName string) string {
 	name = strings.ReplaceAll(name, "/", "-")
 	name = strings.ReplaceAll(name, "_", "-")
 	name = strings.ToLower(name)
-	
+
 	// Ensure it doesn't start with a dash
 	name = strings.TrimPrefix(name, "-")
-	
+
 	if name == "" {
 		name = "mcp-server"
 	}
-	
+
 	return name
 }
