@@ -2,7 +2,7 @@ module github.com/stacklok/dockyard
 
 go 1.24.1
 
-toolchain go1.24.5
+toolchain go1.24.6
 
 require (
 	github.com/stacklok/toolhive v0.2.3
