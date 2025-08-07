@@ -83,7 +83,7 @@ func main() {
 	// Output Dockerfile
 	if *output != "" {
 		// Write to file
-		if err := os.WriteFile(*output, []byte(dockerfile), 0644); err != nil {
+		if err := os.WriteFile(*output, []byte(dockerfile), 0600); err != nil {
 			log.Fatalf("Failed to write Dockerfile to %s: %v", *output, err)
 		}
 		fmt.Printf("Dockerfile written to: %s\n", *output)
