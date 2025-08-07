@@ -122,6 +122,9 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
 
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3
+
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3
@@ -182,6 +185,7 @@ jobs:
           cat "${dockerfile_path}"
 
       - name: Build and push Docker image
+        id: build
         uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6
         with:
           context: ${{ steps.dockerfile.outputs.dockerfile_dir }}
@@ -203,6 +207,20 @@ jobs:
           sbom: true
           provenance: true
 
+      - name: Sign container images with Cosign
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          echo "Signing image ${{ steps.meta.outputs.image_name }}@${DIGEST}"
+          cosign sign --yes ${{ steps.meta.outputs.image_name }}@${DIGEST}
+          
+          # Also sign the tagged versions for better UX
+          cosign sign --yes ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
+          cosign sign --yes ${{ steps.meta.outputs.image_name }}:latest
+          
+          echo "✅ Images signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
+
       - name: Generate image summary
         run: |
           echo "## Container Build Summary" >> $GITHUB_STEP_SUMMARY
@@ -214,11 +232,13 @@ jobs:
           echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
           echo "- **SBOM**: ✅ Included" >> $GITHUB_STEP_SUMMARY
           echo "- **Provenance**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
+          echo "- **Signatures**: ✅ Signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "- **Status**: ✅ Built and pushed" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status**: ✅ Built, pushed, and signed" >> $GITHUB_STEP_SUMMARY
             echo "- **Tags**:" >> $GITHUB_STEP_SUMMARY
             echo "  - ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
             echo "  - ${{ steps.meta.outputs.image_name }}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "- **Digest**: ${{ steps.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
           else
             echo "- **Status**: ✅ Built (not pushed - PR)" >> $GITHUB_STEP_SUMMARY
           fi
@@ -242,6 +262,7 @@ jobs:
             echo "  - 🏗️ Multi-architecture support (amd64, arm64)" >> $GITHUB_STEP_SUMMARY
             echo "  - 📦 SBOM (Software Bill of Materials) included" >> $GITHUB_STEP_SUMMARY
             echo "  - 🔐 Provenance attestation for supply chain security" >> $GITHUB_STEP_SUMMARY
+            echo "  - ✍️ Sigstore/Cosign signatures for image verification" >> $GITHUB_STEP_SUMMARY
             echo "  - 🚀 GitHub Actions cache for faster builds" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ needs.build-containers.result }}" == "failure" ]; then
             echo "- **Build Status**: ❌ Some containers failed to build" >> $GITHUB_STEP_SUMMARY
