@@ -5,7 +5,7 @@ go 1.24.1
 toolchain go1.24.6
 
 require (
-	github.com/stacklok/toolhive v0.2.3
+	github.com/stacklok/toolhive v0.2.4
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -18,7 +18,7 @@ require (
 	github.com/bahlo/generic-list-go v0.2.0 // indirect
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/cedar-policy/cedar-go v1.2.5 // indirect
+	github.com/cedar-policy/cedar-go v1.2.6 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/containerd/errdefs v1.0.0 // indirect

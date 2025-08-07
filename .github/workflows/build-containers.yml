@@ -105,6 +105,7 @@ jobs:
     permissions:
       contents: read
       packages: write
+      id-token: write  # Needed for provenance attestation
 
     steps:
       - name: Checkout repository
@@ -114,6 +115,9 @@ jobs:
         uses: actions/setup-go@d35c59abb061a4a6fb18e82ac0862c26744d6ab5 # v5
         with:
           go-version: '1.24'
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@e468171a9de216ec08956ac3ada2f0791b6bd435 # v3
@@ -139,27 +143,62 @@ jobs:
           # Extract server name from filename (without .yaml extension)
           server_name=$(basename "$config_file" .yaml)
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
-
-      - name: Build and capture container info
-        id: build
-        run: |
-          echo "Building container for ${{ steps.meta.outputs.config_file }}"
           
-          # Capture the output which includes the built image name
-          output=$(go run main.go -config "${{ steps.meta.outputs.config_file }}" 2>&1)
-          echo "$output"
-          
-          # Extract the image name from the last line of output
-          image_name=$(echo "$output" | grep "Successfully built container image:" | sed 's/Successfully built container image: //')
+          # Generate image name
+          image_name="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${protocol}/${server_name}"
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
-          echo "Captured built image: $image_name"
 
-      - name: Push container image
-        if: github.event_name != 'pull_request' && steps.build.outputs.image_name != ''
+      - name: Generate Dockerfile
+        id: dockerfile
         run: |
-          image_name="${{ steps.build.outputs.image_name }}"
-          echo "Pushing image: $image_name"
-          docker push "$image_name"
+          echo "Generating Dockerfile for ${{ steps.meta.outputs.config_file }}"
+          
+          # Create a temporary directory for the Dockerfile
+          dockerfile_dir=$(mktemp -d)
+          dockerfile_path="${dockerfile_dir}/Dockerfile"
+          
+          # Generate the Dockerfile using our tool
+          go run main.go -config "${{ steps.meta.outputs.config_file }}" -output "${dockerfile_path}"
+          
+          echo "dockerfile_dir=$dockerfile_dir" >> $GITHUB_OUTPUT
+          echo "dockerfile_path=$dockerfile_path" >> $GITHUB_OUTPUT
+          
+          # Display the generated Dockerfile for debugging
+          echo "Generated Dockerfile:"
+          cat "${dockerfile_path}"
+
+      - name: Extract metadata for Docker
+        id: docker-meta
+        uses: docker/metadata-action@8e5442c4ef9f78752691e2d8f8d19755c6f78e81 # v5
+        with:
+          images: ${{ steps.meta.outputs.image_name }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha,prefix={{branch}}-
+            type=raw,value=latest,enable={{is_default_branch}}
+
+      - name: Build and push Docker image
+        uses: docker/build-push-action@4f58ea79222b3b9dc2c8bbdd6debcef730109a75 # v6
+        with:
+          context: ${{ steps.dockerfile.outputs.dockerfile_dir }}
+          file: ${{ steps.dockerfile.outputs.dockerfile_path }}
+          platforms: linux/amd64,linux/arm64
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.docker-meta.outputs.tags }}
+          labels: ${{ steps.docker-meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
+          sbom: true
+          provenance: true
+          annotations: |
+            org.opencontainers.image.title=${{ steps.meta.outputs.server_name }}
+            org.opencontainers.image.description=MCP server for ${{ steps.meta.outputs.server_name }}
+            org.opencontainers.image.vendor=Stacklok
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
 
       - name: Generate image summary
         run: |
@@ -167,9 +206,14 @@ jobs:
           echo "- **Config**: ${{ steps.meta.outputs.config_file }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Protocol**: ${{ steps.meta.outputs.protocol }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Server**: ${{ steps.meta.outputs.server_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image**: ${{ steps.build.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image**: ${{ steps.meta.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
+          echo "- **SBOM**: ✅ Included" >> $GITHUB_STEP_SUMMARY
+          echo "- **Provenance**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "- **Status**: ✅ Built and pushed" >> $GITHUB_STEP_SUMMARY
+            echo "- **Tags**:" >> $GITHUB_STEP_SUMMARY
+            echo "${{ steps.docker-meta.outputs.tags }}" | sed 's/^/  - /' >> $GITHUB_STEP_SUMMARY
           else
             echo "- **Status**: ✅ Built (not pushed - PR)" >> $GITHUB_STEP_SUMMARY
           fi
@@ -189,6 +233,11 @@ jobs:
           
           if [ "${{ needs.build-containers.result }}" == "success" ]; then
             echo "- **Build Status**: ✅ All changed containers built successfully" >> $GITHUB_STEP_SUMMARY
+            echo "- **Features**:" >> $GITHUB_STEP_SUMMARY
+            echo "  - 🏗️ Multi-architecture support (amd64, arm64)" >> $GITHUB_STEP_SUMMARY
+            echo "  - 📦 SBOM (Software Bill of Materials) included" >> $GITHUB_STEP_SUMMARY
+            echo "  - 🔐 Provenance attestation for supply chain security" >> $GITHUB_STEP_SUMMARY
+            echo "  - 🚀 GitHub Actions cache for faster builds" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ needs.build-containers.result }}" == "failure" ]; then
             echo "- **Build Status**: ❌ Some containers failed to build" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ needs.build-containers.result }}" == "skipped" ]; then

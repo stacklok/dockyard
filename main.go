@@ -59,6 +59,7 @@ func main() {
 	var (
 		configFile = flag.String("config", "", "Path to the YAML configuration file")
 		outputTag  = flag.String("tag", "", "Custom container image tag (optional)")
+		output     = flag.String("output", "", "Output file for Dockerfile (optional, defaults to stdout)")
 	)
 	flag.Parse()
 
@@ -72,14 +73,24 @@ func main() {
 		log.Fatalf("Failed to load configuration: %v", err)
 	}
 
-	// Build the container image
+	// Generate Dockerfile
 	ctx := context.Background()
-	imageName, err := buildMCPServerContainer(ctx, spec, *outputTag)
+	dockerfile, err := generateDockerfile(ctx, spec, *outputTag)
 	if err != nil {
-		log.Fatalf("Failed to build container: %v", err)
+		log.Fatalf("Failed to generate Dockerfile: %v", err)
 	}
 
-	fmt.Printf("Successfully built container image: %s\n", imageName)
+	// Output Dockerfile
+	if *output != "" {
+		// Write to file
+		if err := os.WriteFile(*output, []byte(dockerfile), 0644); err != nil {
+			log.Fatalf("Failed to write Dockerfile to %s: %v", *output, err)
+		}
+		fmt.Printf("Dockerfile written to: %s\n", *output)
+	} else {
+		// Output to stdout
+		fmt.Print(dockerfile)
+	}
 }
 
 // validateConfigPath ensures the config path is safe and within expected directories
@@ -148,8 +159,8 @@ func loadMCPServerSpec(configPath string) (*MCPServerSpec, error) {
 	return &spec, nil
 }
 
-// buildMCPServerContainer builds a container image using toolhive's library
-func buildMCPServerContainer(ctx context.Context, spec *MCPServerSpec, customTag string) (string, error) {
+// generateDockerfile generates a Dockerfile using toolhive's library
+func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag string) (string, error) {
 	// Create the protocol scheme string
 	packageRef := spec.Spec.Package
 	if spec.Spec.Version != "" {
@@ -166,19 +177,20 @@ func buildMCPServerContainer(ctx context.Context, spec *MCPServerSpec, customTag
 	// Create image manager
 	imageManager := images.NewImageManager(ctx)
 
-	// Build the image using toolhive's BuildFromProtocolSchemeWithName function
-	imageName, err := runner.BuildFromProtocolSchemeWithName(
+	// Generate Dockerfile using toolhive's BuildFromProtocolSchemeWithName function with dryRun=true
+	dockerfile, err := runner.BuildFromProtocolSchemeWithName(
 		ctx,
 		imageManager,
 		protocolScheme,
 		"", // caCertPath - empty for now
 		imageTag,
+		true, // always dryRun to generate Dockerfile
 	)
 	if err != nil {
-		return "", fmt.Errorf("failed to build from protocol scheme %s: %w", protocolScheme, err)
+		return "", fmt.Errorf("failed to generate Dockerfile for protocol scheme %s: %w", protocolScheme, err)
 	}
 
-	return imageName, nil
+	return dockerfile, nil
 }
 
 // generateImageTag creates a container image tag based on the repository structure
