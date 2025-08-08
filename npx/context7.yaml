@@ -1,7 +1,7 @@
 # Upstash Context7 MCP Server Configuration
 # This server provides vector search and context management capabilities
 # Package: https://www.npmjs.com/package/@upstash/context7-mcp
-# Repository: https://github.com/upstash/context7-mcp
+# Repository: https://github.com/upstash/context7
 # Will build as: ghcr.io/stacklok/dockyard/npx/context7:1.0.14
 
 metadata:
@@ -15,5 +15,7 @@ spec:
   version: "1.0.14"                # Specific version to install
 
 provenance:
-  repository_uri: "https://github.com/upstash/context7-mcp"
-  repository_ref: "refs/tags/v1.0.14"  # Git tag reference for this version
+  # Note: This package does not have npm provenance attestations (Sigstore signatures)
+  # The repository information below is verified from npm metadata and GitHub
+  repository_uri: "https://github.com/upstash/context7"
+  repository_ref: "refs/tags/v1.0.14"
