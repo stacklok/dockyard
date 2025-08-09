@@ -1,0 +1,21 @@
+# AWS Diagram MCP Server Configuration
+# Official AWS Labs MCP server for creating AWS architecture diagrams
+# Package: https://pypi.org/project/awslabs.aws-diagram-mcp-server/
+# Repository: https://github.com/awslabs/mcp/tree/main/src/aws-diagram-mcp-server
+# Will build as: ghcr.io/stacklok/dockyard/uvx/aws-diagram-mcp-server:1.0.5
+
+metadata:
+  name: aws-diagram-mcp-server
+  description: "An AWS Labs Model Context Protocol (MCP) server that creates diagrams using the Python diagrams package DSL"
+  version: "1.0.5"
+  protocol: uvx  # Uses Python with uv package manager
+
+spec:
+  package: "awslabs.aws-diagram-mcp-server"  # PyPI package name
+  version: "1.0.5"                           # Latest version from PyPI
+
+provenance:
+  # Note: The AWS Labs MCP repository uses a monorepo structure
+  # This server is located in src/aws-diagram-mcp-server
+  repository_uri: "https://github.com/awslabs/mcp"
+  repository_ref: "refs/heads/main"  # Using main branch as specific tags are not available for this package

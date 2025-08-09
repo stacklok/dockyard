@@ -31,9 +31,18 @@ Adding your MCP server to Dockyard is simple! Follow these steps:
 - **`uvx/`** - For Python packages published to PyPI
 - **`go/`** - For Go modules and packages
 
-### Step 2: Create Your YAML Configuration
+### Step 2: Create Your MCP Server Directory and Configuration
 
-Create a new `.yaml` file in the appropriate directory with this structure:
+Create a new directory for your MCP server in the appropriate protocol folder, then add a `spec.yaml` file:
+
+```bash
+# Create directory structure
+mkdir -p {protocol}/{your-server-name}
+
+# Create spec.yaml file
+```
+
+The `spec.yaml` file should have this structure:
 
 ```yaml
 # Comments are encouraged! Describe what your MCP server does
@@ -59,6 +68,15 @@ provenance:                       # Optional but recommended
 ### Step 3: Protocol-Specific Examples
 
 #### NPX (Node.js) Example
+
+Directory structure:
+```
+npx/
+└── my-node-server/
+    └── spec.yaml
+```
+
+Content of `npx/my-node-server/spec.yaml`:
 ```yaml
 # NPM package: https://www.npmjs.com/package/@your-org/mcp-server
 metadata:
@@ -77,6 +95,15 @@ provenance:
 ```
 
 #### UVX (Python) Example
+
+Directory structure:
+```
+uvx/
+└── my-python-server/
+    └── spec.yaml
+```
+
+Content of `uvx/my-python-server/spec.yaml`:
 ```yaml
 # PyPI package: https://pypi.org/project/your-mcp-server/
 metadata:
@@ -95,6 +122,15 @@ provenance:
 ```
 
 #### Go Example
+
+Directory structure:
+```
+go/
+└── my-go-server/
+    └── spec.yaml
+```
+
+Content of `go/my-go-server/spec.yaml`:
 ```yaml
 # Go module: go get github.com/your-org/go-mcp-server
 metadata:
@@ -115,7 +151,7 @@ provenance:
 ### Step 4: Submit Your Pull Request
 
 1. Fork this repository
-2. Create your YAML file in the appropriate directory
+2. Create your server directory and `spec.yaml` file in the appropriate protocol directory
 3. Submit a pull request with:
    - Clear title: "Add [Your Server Name] MCP server"
    - Description of what your server does
@@ -200,13 +236,13 @@ Examples:
 ### Build a container locally:
 
 ```bash
-go run main.go -config npx/context7.yaml
+go run main.go -config npx/context7/spec.yaml
 ```
 
 ### Build with custom tag:
 
 ```bash
-go run main.go -config npx/context7.yaml -tag my-custom-tag:latest
+go run main.go -config npx/context7/spec.yaml -tag my-custom-tag:latest
 ```
 
 ## 🏗️ Project Structure
@@ -224,11 +260,14 @@ dockyard/
 │       ├── process_scan_results.py   # Processes scan results
 │       └── README.md                  # Scanning documentation
 ├── npx/                       # Node.js (NPX) configurations
-│   └── *.yaml                # YAML files for npm packages
+│   └── {server-name}/        # Each server in its own directory
+│       └── spec.yaml         # Server specification
 ├── uvx/                       # Python (UVX) configurations
-│   └── *.yaml                # YAML files for PyPI packages
+│   └── {server-name}/        # Each server in its own directory
+│       └── spec.yaml         # Server specification
 └── go/                        # Go configurations
-    └── *.yaml                # YAML files for Go modules
+    └── {server-name}/        # Each server in its own directory
+        └── spec.yaml         # Server specification
 ```
 
 ## 🔧 Dependencies

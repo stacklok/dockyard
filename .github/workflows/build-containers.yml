@@ -40,8 +40,8 @@ jobs:
       - name: Find configuration files to build
         id: find-configs
         run: |
-          # Find all YAML files in protocol directories
-          all_configs=$(find npx uvx go -name "*.yaml" -type f 2>/dev/null | sort)
+          # Find all spec.yaml files in protocol directories
+          all_configs=$(find npx uvx go -name "spec.yaml" -type f 2>/dev/null | sort)
           
           if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
             # For manual triggers, build all configs
@@ -57,9 +57,11 @@ jobs:
               echo "Core files changed - building all configurations"
               configs_to_build="$all_configs"
             else
-              # Only build configs whose YAML files changed
+              # Only build configs whose spec.yaml files changed or their parent directories changed
               for config in $all_configs; do
-                if echo "$changed_files" | grep -q "^$config$"; then
+                config_dir=$(dirname "$config")
+                # Check if spec.yaml itself changed or any file in its directory changed
+                if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
                   configs_to_build="$configs_to_build$config"$'\n'
                 fi
               done
@@ -74,9 +76,11 @@ jobs:
               echo "Core files changed - building all configurations"
               configs_to_build="$all_configs"
             else
-              # Only build configs whose YAML files changed
+              # Only build configs whose spec.yaml files changed or their parent directories changed
               for config in $all_configs; do
-                if echo "$changed_files" | grep -q "^$config$"; then
+                config_dir=$(dirname "$config")
+                # Check if spec.yaml itself changed or any file in its directory changed
+                if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
                   configs_to_build="$configs_to_build$config"$'\n'
                 fi
               done
@@ -135,8 +139,9 @@ jobs:
         id: meta
         run: |
           config_file="${{ matrix.config }}"
-          protocol=$(dirname "$config_file")
-          server_name=$(basename "$config_file" .yaml)
+          # Extract protocol and server name from path like "npx/context7/spec.yaml"
+          protocol=$(echo "$config_file" | cut -d'/' -f1)
+          server_name=$(echo "$config_file" | cut -d'/' -f2)
           
           echo "config_file=$config_file" >> $GITHUB_OUTPUT
           echo "protocol=$protocol" >> $GITHUB_OUTPUT
@@ -237,8 +242,8 @@ jobs:
           protocol=$(dirname "$config_file")
           echo "protocol=$protocol" >> $GITHUB_OUTPUT
           
-          # Extract server name from filename (without .yaml extension)
-          server_name=$(basename "$config_file" .yaml)
+          # Extract server name from directory name (parent of spec.yaml)
+          server_name=$(echo "$config_file" | cut -d'/' -f2)
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
           
           # Extract version from YAML file (prefer spec.version, fallback to metadata.version)

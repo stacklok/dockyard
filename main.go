@@ -98,20 +98,24 @@ func validateConfigPath(configPath string) error {
 	// Clean the path to prevent directory traversal
 	cleanPath := filepath.Clean(configPath)
 
-	// Ensure it's a .yaml file
-	if !strings.HasSuffix(cleanPath, ".yaml") {
-		return fmt.Errorf("config file must have .yaml extension")
+	// Check if it follows the new structure: protocol/name/spec.yaml
+	if !strings.HasSuffix(cleanPath, "/spec.yaml") && !strings.HasSuffix(cleanPath, "spec.yaml") {
+		return fmt.Errorf("config file must be named 'spec.yaml'")
 	}
 
 	// Ensure it's in one of the expected protocol directories
 	validPrefixes := []string{"npx/", "uvx/", "go/"}
 	for _, prefix := range validPrefixes {
 		if strings.HasPrefix(cleanPath, prefix) {
-			return nil
+			// Validate the structure: protocol/name/spec.yaml
+			parts := strings.Split(cleanPath, "/")
+			if len(parts) == 3 && parts[2] == "spec.yaml" {
+				return nil
+			}
 		}
 	}
 
-	return fmt.Errorf("config file must be in npx/, uvx/, or go/ directory")
+	return fmt.Errorf("config file must follow the structure: {protocol}/{name}/spec.yaml where protocol is npx/, uvx/, or go/")
 }
 
 // loadMCPServerSpec reads and parses a YAML configuration file
