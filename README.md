@@ -257,50 +257,48 @@ cosign verify \
 
 ### Verifying Attestations
 
-#### Build Provenance & SBOM Attestations
+#### Build Provenance & SBOM Attestations (OCI Artifacts)
 
-Docker buildx automatically creates and pushes SBOM (SPDX format) and provenance attestations when building multi-platform images. These can be verified using:
+Docker buildx automatically creates and pushes SBOM (SPDX format) and provenance attestations as OCI artifacts. These are stored alongside the image and can be inspected using Docker buildx:
 
 ```bash
-# Verify and view the SBOM attestation (SPDX format)
-cosign verify-attestation \
-  --type https://spdx.dev/Document \
-  --certificate-identity-regexp "https://github.com/stacklok/dockyard/.github/workflows/build-containers.yml@refs/heads/.*" \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 | jq '.payload | @base64d | fromjson'
+# View SBOM attestation for all platforms
+docker buildx imagetools inspect \
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 \
+  --format "{{ json .SBOM }}"
 
-# Verify and view the build provenance attestation
-cosign verify-attestation \
-  --type https://slsa.dev/provenance/v0.2 \
-  --certificate-identity-regexp "https://github.com/stacklok/dockyard/.github/workflows/build-containers.yml@refs/heads/.*" \
-  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 | jq '.payload | @base64d | fromjson'
+# View Provenance attestation for all platforms
+docker buildx imagetools inspect \
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 \
+  --format "{{ json .Provenance }}"
+
+# Get the raw SBOM for a specific platform
+docker buildx imagetools inspect \
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 \
+  --format '{{ range .SBOM }}{{ if eq .Platform "linux/amd64" }}{{ .Data }}{{ end }}{{ end }}' | base64 -d | jq
+
+# Get the raw Provenance for a specific platform
+docker buildx imagetools inspect \
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 \
+  --format '{{ range .Provenance }}{{ if eq .Platform "linux/amd64" }}{{ .Data }}{{ end }}{{ end }}' | base64 -d | jq
 ```
 
-#### Security Scan Attestation
+Note: These attestations are stored as OCI artifacts in the registry, not as Sigstore attestations. They provide supply chain transparency but are verified differently than cosign attestations.
 
-Verify and view the MCP security scan results:
+#### Security Scan Attestation (Sigstore)
+
+Our custom security scan attestations are created using cosign and can be verified when they exist:
 
 ```bash
-# Verify and retrieve security scan attestation
+# Verify and retrieve security scan attestation (if available)
 cosign verify-attestation \
   --type https://github.com/stacklok/dockyard/mcp-security-scan/v1 \
   --certificate-identity-regexp "https://github.com/stacklok/dockyard/.github/workflows/build-containers.yml@refs/heads/.*" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 | jq '.payload | @base64d | fromjson | .predicate.scanResult'
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 2>/dev/null | jq '.payload | @base64d | fromjson | .predicate.scanResult'
 ```
 
-#### Downloading Attestations
-
-You can also download attestations for offline analysis:
-
-```bash
-# Download all attestations for an image
-cosign download attestation ghcr.io/stacklok/dockyard/npx/context7:1.0.14 > attestations.json
-
-# Parse and view specific attestation types
-cat attestations.json | jq 'select(.predicateType == "https://spdx.dev/Document")'
-```
+Note: Security scan attestations are only created when the MCP security scan runs and produces results for that specific image build.
 
 ### Security Guarantees
 
