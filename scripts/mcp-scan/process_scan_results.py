@@ -2,19 +2,48 @@
 """
 Process mcp-scan results and generate a summary.
 
-Usage: process_scan_results.py <scan_output_file> <server_name>
+Usage: process_scan_results.py <scan_output_file> <server_name> [config_file]
 """
 
 import json
 import sys
+import yaml
+import os
+
+def load_allowed_issues(config_file=None):
+    """
+    Load allowed security issues from the YAML configuration file.
+    
+    Returns a dict mapping issue codes to their reasons for being allowed.
+    """
+    allowed_issues = {}
+    
+    if config_file and os.path.exists(config_file):
+        try:
+            with open(config_file, 'r') as f:
+                config = yaml.safe_load(f)
+                
+            # Check for security.allowed_issues in the config
+            if config and 'security' in config and 'allowed_issues' in config['security']:
+                for issue in config['security']['allowed_issues']:
+                    if 'code' in issue:
+                        allowed_issues[issue['code']] = issue.get('reason', 'Explicitly allowed')
+        except Exception as e:
+            print(f"Warning: Could not load security allowlist from {config_file}: {e}", file=sys.stderr)
+    
+    return allowed_issues
 
 def main():
-    if len(sys.argv) != 3:
-        print("Usage: process_scan_results.py <scan_output_file> <server_name>", file=sys.stderr)
+    if len(sys.argv) < 3:
+        print("Usage: process_scan_results.py <scan_output_file> <server_name> [config_file]", file=sys.stderr)
         sys.exit(1)
     
     scan_output_file = sys.argv[1]
     server_name = sys.argv[2]
+    config_file = sys.argv[3] if len(sys.argv) > 3 else None
+    
+    # Load allowed issues from config
+    allowed_issues = load_allowed_issues(config_file)
     
     try:
         with open(scan_output_file, 'r') as f:
@@ -36,8 +65,9 @@ def main():
         scan_data = json.loads(content[json_start:])
         
         # Check for vulnerabilities
-        has_vulnerabilities = False
-        vulnerability_details = []
+        has_blocking_issues = False
+        blocking_issues = []
+        allowed_issues_found = []
         tools_scanned = 0
         
         # The actual mcp-scan output structure has the config path as key
@@ -52,28 +82,43 @@ def main():
                 # Check for issues/vulnerabilities
                 if 'issues' in config_data and isinstance(config_data['issues'], list):
                     for issue in config_data['issues']:
-                        has_vulnerabilities = True
-                        vulnerability_details.append({
-                            'code': issue.get('code', 'unknown'),
+                        issue_code = issue.get('code', 'unknown')
+                        issue_detail = {
+                            'code': issue_code,
                             'message': issue.get('message', 'Unknown vulnerability'),
                             'reference': issue.get('reference'),
                             'extra_data': issue.get('extra_data')
-                        })
+                        }
+                        
+                        # Check if this issue is explicitly allowed
+                        if issue_code in allowed_issues:
+                            issue_detail['allowed_reason'] = allowed_issues[issue_code]
+                            allowed_issues_found.append(issue_detail)
+                        else:
+                            has_blocking_issues = True
+                            blocking_issues.append(issue_detail)
         
         # Generate summary
-        if has_vulnerabilities:
+        if has_blocking_issues:
             summary = {
                 'server': server_name,
                 'status': 'failed',
                 'tools_scanned': tools_scanned,
-                'vulnerabilities': vulnerability_details,
-                'vulnerability_count': len(vulnerability_details)
+                'blocking_issues': blocking_issues,
+                'blocking_count': len(blocking_issues),
+                'allowed_issues': allowed_issues_found,
+                'allowed_count': len(allowed_issues_found)
             }
             
             # Print human-readable output to stderr for CI logs
-            print(f"❌ Security vulnerabilities found in {server_name}:", file=sys.stderr)
-            for vuln in vulnerability_details:
-                print(f"  - [{vuln['code']}] {vuln['message']}", file=sys.stderr)
+            print(f"❌ Security issues found in {server_name} that are not allowlisted:", file=sys.stderr)
+            for issue in blocking_issues:
+                print(f"  - [{issue['code']}] {issue['message']}", file=sys.stderr)
+            
+            if allowed_issues_found:
+                print(f"ℹ️  Allowed issues (not blocking):", file=sys.stderr)
+                for issue in allowed_issues_found:
+                    print(f"  - [{issue['code']}] {issue['message']} (Allowed: {issue['allowed_reason']})", file=sys.stderr)
             
             # Exit with error code to fail the CI step
             print(json.dumps(summary, indent=2))
@@ -83,11 +128,22 @@ def main():
                 'server': server_name,
                 'status': 'passed',
                 'tools_scanned': tools_scanned,
-                'message': 'No security vulnerabilities detected'
+                'message': 'No blocking security issues detected'
             }
             
-            # Print success message to stderr for CI logs
-            print(f"✅ No security vulnerabilities found in {server_name} ({tools_scanned} tools scanned)", file=sys.stderr)
+            if allowed_issues_found:
+                summary['allowed_issues'] = allowed_issues_found
+                summary['allowed_count'] = len(allowed_issues_found)
+                
+                # Print info about allowed issues
+                print(f"ℹ️  Allowed security issues found in {server_name}:", file=sys.stderr)
+                for issue in allowed_issues_found:
+                    print(f"  - [{issue['code']}] {issue['message']}", file=sys.stderr)
+                    print(f"    Reason: {issue['allowed_reason']}", file=sys.stderr)
+                print(f"✅ All issues are allowlisted - build can proceed ({tools_scanned} tools scanned)", file=sys.stderr)
+            else:
+                # Print success message to stderr for CI logs
+                print(f"✅ No security issues found in {server_name} ({tools_scanned} tools scanned)", file=sys.stderr)
             
             print(json.dumps(summary, indent=2))
             

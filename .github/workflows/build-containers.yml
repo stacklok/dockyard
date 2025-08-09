@@ -173,10 +173,11 @@ jobs:
             echo "scan_passed=false" >> $GITHUB_OUTPUT
           fi
           
-          # Process results
+          # Process results (pass the config file to check for allowed issues)
           python3 scripts/mcp-scan/process_scan_results.py \
             "$scan_output" \
             "${{ steps.meta.outputs.server_name }}" \
+            "${{ matrix.config }}" \
             > scan-summary.json
           
           # Copy scan output to current directory for artifact upload

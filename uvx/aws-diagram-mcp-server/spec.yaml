@@ -19,3 +19,11 @@ provenance:
   # This server is located in src/aws-diagram-mcp-server
   repository_uri: "https://github.com/awslabs/mcp"
   repository_ref: "refs/heads/main"  # Using main branch as specific tags are not available for this package
+
+security:
+  # Security allowlist for known issues that are acceptable in this context
+  allowed_issues:
+    - code: "W001"
+      reason: "Tool description contains imperative instructions for AI agents which are necessary for proper operation"
+    - code: "TF002"
+      reason: "Destructive toxic flow is mitigated by container sandboxing - code execution is isolated from host system"
