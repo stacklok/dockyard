@@ -243,11 +243,11 @@ jobs:
           config_file="${{ matrix.config }}"
           echo "config_file=$config_file" >> $GITHUB_OUTPUT
           
-          # Extract protocol from directory name
-          protocol=$(dirname "$config_file")
+          # Extract protocol from directory name (first part of path)
+          protocol=$(echo "$config_file" | cut -d'/' -f1)
           echo "protocol=$protocol" >> $GITHUB_OUTPUT
           
-          # Extract server name from directory name (parent of spec.yaml)
+          # Extract server name from directory name (second part of path)
           server_name=$(echo "$config_file" | cut -d'/' -f2)
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
           
