@@ -345,7 +345,7 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           pattern: mcp-scan-*
-          merge-multiple: true
+          path: scan-artifacts
 
       - name: Comment PR with scan results
         uses: actions/github-script@v7
@@ -359,31 +359,33 @@ jobs:
             let totalServersScanned = 0;
             let totalVulnerabilities = 0;
             
-            // Find all scan summary files - check both direct files and in subdirectories
+            // Find all scan summary files in the scan-artifacts directory
             const summaryFiles = [];
+            const artifactsDir = 'scan-artifacts';
             
-            // Check for scan-summary.json directly in the current directory
-            if (fs.existsSync('scan-summary.json')) {
-              summaryFiles.push('scan-summary.json');
-            }
+            // Debug: List all files in current directory
+            console.log('Current directory contents:', fs.readdirSync('.'));
             
-            // Check for scan summary files in artifact directories
-            const items = fs.readdirSync('.');
-            for (const item of items) {
-              // Check if it's a directory
-              try {
-                if (fs.statSync(item).isDirectory()) {
-                  const summaryFile = path.join(item, 'scan-summary.json');
+            if (fs.existsSync(artifactsDir)) {
+              console.log('Artifacts directory exists');
+              const artifactDirs = fs.readdirSync(artifactsDir);
+              console.log('Artifact directories:', artifactDirs);
+              
+              for (const dir of artifactDirs) {
+                const dirPath = path.join(artifactsDir, dir);
+                if (fs.statSync(dirPath).isDirectory()) {
+                  const summaryFile = path.join(dirPath, 'scan-summary.json');
                   if (fs.existsSync(summaryFile)) {
                     summaryFiles.push(summaryFile);
+                    console.log('Found summary file:', summaryFile);
                   }
                 }
-              } catch (e) {
-                // Not a directory or can't access, skip
               }
+            } else {
+              console.log('Artifacts directory does not exist');
             }
             
-            console.log('Found summary files:', summaryFiles);
+            console.log('Total summary files found:', summaryFiles.length);
             
             if (summaryFiles.length === 0) {
               comment += '⚠️ No MCP servers were scanned in this PR.\n';
