@@ -93,8 +93,99 @@ jobs:
           echo "All configurations: $all_configs_json"
           echo "Configurations to build: $configs_json"
 
-  build-containers:
+  mcp-security-scan:
     needs: discover-configs
+    runs-on: ubuntu-latest
+    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
+      fail-fast: false
+    
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        run: |
+          # Install mcp-scan
+          uv tool install mcp-scan
+          
+          # Install Python dependencies for scripts
+          uv pip install --system pyyaml
+          
+          # Verify installation
+          uv run mcp-scan --version
+
+      - name: Extract metadata from config
+        id: meta
+        run: |
+          config_file="${{ matrix.config }}"
+          protocol=$(dirname "$config_file")
+          server_name=$(basename "$config_file" .yaml)
+          
+          echo "config_file=$config_file" >> $GITHUB_OUTPUT
+          echo "protocol=$protocol" >> $GITHUB_OUTPUT
+          echo "server_name=$server_name" >> $GITHUB_OUTPUT
+
+      - name: Run MCP Security Scan
+        id: scan
+        run: |
+          echo "🔍 Scanning MCP server: ${{ steps.meta.outputs.server_name }}"
+          
+          # Generate MCP configuration
+          python3 scripts/mcp-scan/generate_mcp_config.py \
+            "${{ matrix.config }}" \
+            "${{ steps.meta.outputs.protocol }}" \
+            "${{ steps.meta.outputs.server_name }}" \
+            > "/tmp/${{ steps.meta.outputs.server_name }}-mcp-config.json"
+          
+          # Run mcp-scan
+          scan_output="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.json"
+          
+          if uv run mcp-scan scan "/tmp/${{ steps.meta.outputs.server_name }}-mcp-config.json" \
+            --json \
+            --storage-file "/tmp/mcp-scan-storage" \
+            --server-timeout 30 \
+            --suppress-mcpserver-io true \
+            > "$scan_output" 2>&1; then
+            echo "scan_passed=true" >> $GITHUB_OUTPUT
+          else
+            echo "scan_passed=false" >> $GITHUB_OUTPUT
+          fi
+          
+          # Process results
+          python3 scripts/mcp-scan/process_scan_results.py \
+            "$scan_output" \
+            "${{ steps.meta.outputs.server_name }}" \
+            > scan-summary.json
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mcp-scan-${{ steps.meta.outputs.server_name }}
+          path: |
+            /tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.json
+            scan-summary.json
+          retention-days: 30
+
+  build-containers:
+    needs: [discover-configs, mcp-security-scan]
     runs-on: ubuntu-latest
     if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
     strategy:
@@ -243,8 +334,111 @@ jobs:
             echo "- **Status**: ✅ Built (not pushed - PR)" >> $GITHUB_STEP_SUMMARY
           fi
 
+  mcp-scan-report:
+    needs: mcp-security-scan
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request' && always()
+    permissions:
+      pull-requests: write
+    steps:
+      - name: Download all scan results
+        uses: actions/download-artifact@v4
+        with:
+          pattern: mcp-scan-*
+          merge-multiple: true
+
+      - name: Comment PR with scan results
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+            
+            let comment = '## 🔒 MCP Security Scan Results\n\n';
+            let hasAnyIssues = false;
+            
+            // Find all scan summary files
+            const summaryDirs = fs.readdirSync('.').filter(d => d.startsWith('mcp-scan-'));
+            const summaryFiles = [];
+            
+            for (const dir of summaryDirs) {
+              const summaryFile = path.join(dir, 'scan-summary.json');
+              if (fs.existsSync(summaryFile)) {
+                summaryFiles.push(summaryFile);
+              }
+            }
+            
+            if (summaryFiles.length === 0) {
+              comment += '⚠️ No MCP servers were scanned in this PR.\n';
+            } else {
+              for (const file of summaryFiles) {
+                try {
+                  const summary = JSON.parse(fs.readFileSync(file, 'utf8'));
+                  
+                  if (summary.status === 'passed') {
+                    comment += `### ✅ ${summary.server}\n`;
+                    comment += 'No security issues detected.\n\n';
+                  } else if (summary.status === 'failed') {
+                    hasAnyIssues = true;
+                    comment += `### ❌ ${summary.server}\n`;
+                    comment += 'Security issues detected:\n';
+                    
+                    if (summary.vulnerabilities) {
+                      summary.vulnerabilities.forEach(vuln => {
+                        comment += `- **${vuln.tool}**: ${vuln.error}\n`;
+                      });
+                    }
+                    comment += '\n';
+                  } else if (summary.status === 'warning') {
+                    comment += `### ⚠️ ${summary.server}\n`;
+                    comment += `Warning: ${summary.message}\n\n`;
+                  } else {
+                    comment += `### ⚠️ ${summary.server}\n`;
+                    comment += `Error: ${summary.message || 'Unknown error'}\n\n`;
+                  }
+                } catch (error) {
+                  console.error(`Error parsing ${file}:`, error);
+                }
+              }
+              
+              if (hasAnyIssues) {
+                comment += '---\n';
+                comment += '⚠️ **Action Required**: Please address the security issues before merging.\n';
+              } else {
+                comment += '---\n';
+                comment += '✅ **All MCP servers passed security scanning.**\n';
+              }
+            }
+            
+            // Find and update or create comment
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: context.issue.number,
+            });
+            
+            const botComment = comments.find(comment =>
+              comment.user.type === 'Bot' && comment.body.includes('MCP Security Scan Results')
+            );
+            
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: context.issue.number,
+                body: comment
+              });
+            }
+
   summary:
-    needs: [discover-configs, build-containers]
+    needs: [discover-configs, mcp-security-scan, build-containers]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -255,6 +449,14 @@ jobs:
           echo "- **Ref**: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Total Configs**: ${{ needs.discover-configs.outputs.configs }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Changed Configs**: ${{ needs.discover-configs.outputs.changed-configs }}" >> $GITHUB_STEP_SUMMARY
+          
+          if [ "${{ needs.mcp-security-scan.result }}" == "success" ]; then
+            echo "- **Security Scan**: ✅ All MCP servers passed security scanning" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.mcp-security-scan.result }}" == "failure" ]; then
+            echo "- **Security Scan**: ❌ Some MCP servers have security issues" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.mcp-security-scan.result }}" == "skipped" ]; then
+            echo "- **Security Scan**: ⏭️ Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
           
           if [ "${{ needs.build-containers.result }}" == "success" ]; then
             echo "- **Build Status**: ✅ All changed containers built successfully" >> $GITHUB_STEP_SUMMARY
