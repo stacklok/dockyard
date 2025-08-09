@@ -356,17 +356,34 @@ jobs:
             
             let comment = '## 🔒 MCP Security Scan Results\n\n';
             let hasAnyIssues = false;
+            let totalServersScanned = 0;
+            let totalVulnerabilities = 0;
             
-            // Find all scan summary files
-            const summaryDirs = fs.readdirSync('.').filter(d => d.startsWith('mcp-scan-'));
+            // Find all scan summary files - check both direct files and in subdirectories
             const summaryFiles = [];
             
-            for (const dir of summaryDirs) {
-              const summaryFile = path.join(dir, 'scan-summary.json');
-              if (fs.existsSync(summaryFile)) {
-                summaryFiles.push(summaryFile);
+            // Check for scan-summary.json directly in the current directory
+            if (fs.existsSync('scan-summary.json')) {
+              summaryFiles.push('scan-summary.json');
+            }
+            
+            // Check for scan summary files in artifact directories
+            const items = fs.readdirSync('.');
+            for (const item of items) {
+              // Check if it's a directory
+              try {
+                if (fs.statSync(item).isDirectory()) {
+                  const summaryFile = path.join(item, 'scan-summary.json');
+                  if (fs.existsSync(summaryFile)) {
+                    summaryFiles.push(summaryFile);
+                  }
+                }
+              } catch (e) {
+                // Not a directory or can't access, skip
               }
             }
+            
+            console.log('Found summary files:', summaryFiles);
             
             if (summaryFiles.length === 0) {
               comment += '⚠️ No MCP servers were scanned in this PR.\n';
@@ -374,39 +391,54 @@ jobs:
               for (const file of summaryFiles) {
                 try {
                   const summary = JSON.parse(fs.readFileSync(file, 'utf8'));
+                  totalServersScanned++;
                   
                   if (summary.status === 'passed') {
                     comment += `### ✅ ${summary.server}\n`;
-                    comment += 'No security issues detected.\n\n';
+                    comment += `- **Status**: Passed\n`;
+                    comment += `- **Tools scanned**: ${summary.tools_scanned || 0}\n`;
+                    comment += `- **Result**: No security issues detected\n\n`;
                   } else if (summary.status === 'failed') {
                     hasAnyIssues = true;
+                    totalVulnerabilities += summary.vulnerability_count || 0;
                     comment += `### ❌ ${summary.server}\n`;
-                    comment += 'Security issues detected:\n';
+                    comment += `- **Status**: Failed\n`;
+                    comment += `- **Tools scanned**: ${summary.tools_scanned || 0}\n`;
+                    comment += `- **Vulnerabilities found**: ${summary.vulnerability_count || 0}\n`;
+                    comment += '\n**Security issues detected:**\n';
                     
                     if (summary.vulnerabilities) {
                       summary.vulnerabilities.forEach(vuln => {
-                        comment += `- **${vuln.tool}**: ${vuln.error}\n`;
+                        comment += `- **[${vuln.code}]** ${vuln.message}\n`;
                       });
                     }
                     comment += '\n';
                   } else if (summary.status === 'warning') {
                     comment += `### ⚠️ ${summary.server}\n`;
-                    comment += `Warning: ${summary.message}\n\n`;
+                    comment += `- **Status**: Warning\n`;
+                    comment += `- **Message**: ${summary.message}\n\n`;
                   } else {
                     comment += `### ⚠️ ${summary.server}\n`;
-                    comment += `Error: ${summary.message || 'Unknown error'}\n\n`;
+                    comment += `- **Status**: Error\n`;
+                    comment += `- **Message**: ${summary.message || 'Unknown error'}\n\n`;
                   }
                 } catch (error) {
                   console.error(`Error parsing ${file}:`, error);
+                  comment += `### ⚠️ Error parsing scan results\n`;
+                  comment += `Could not parse ${file}: ${error.message}\n\n`;
                 }
               }
               
-              if (hasAnyIssues) {
+              // Add summary
+              if (totalServersScanned > 0) {
                 comment += '---\n';
-                comment += '⚠️ **Action Required**: Please address the security issues before merging.\n';
-              } else {
-                comment += '---\n';
-                comment += '✅ **All MCP servers passed security scanning.**\n';
+                comment += `**Summary**: Scanned ${totalServersScanned} MCP server(s)`;
+                if (hasAnyIssues) {
+                  comment += `, found ${totalVulnerabilities} vulnerability issue(s).\n\n`;
+                  comment += '⚠️ **Action Required**: Security issues were detected. Please review and address them before merging.\n';
+                } else {
+                  comment += ', all passed security checks. ✅\n';
+                }
               }
             }
             
@@ -422,19 +454,23 @@ jobs:
             );
             
             if (botComment) {
+              // Update existing comment
               await github.rest.issues.updateComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 comment_id: botComment.id,
                 body: comment
               });
+              console.log(`Updated existing comment #${botComment.id}`);
             } else {
+              // Create new comment
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: context.issue.number,
                 body: comment
               });
+              console.log('Created new comment');
             }
 
   summary:
