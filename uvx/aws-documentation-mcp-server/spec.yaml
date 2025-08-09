@@ -17,3 +17,9 @@ spec:
 provenance:
   repository_uri: "https://github.com/awslabs/mcp"
   repository_ref: "refs/tags/v1.1.2"  # Git tag reference for this version
+
+security:
+  # Security allowlist for known false positives
+  allowed_issues:
+    - code: "W001"
+      reason: "The 'recommend' tool contains legitimate usage instructions for AI agents, not malicious prompt injection"
