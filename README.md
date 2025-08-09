@@ -231,6 +231,87 @@ If issues are allowlisted, they won't fail the build:
 ✅ All issues are allowlisted - build can proceed (3 tools scanned)
 ```
 
+## 🔐 Container Security & Attestations
+
+All container images built by Dockyard are signed and attested using Sigstore for supply chain security. Each image includes:
+
+- **Container Signatures**: Images are signed with Sigstore/Cosign
+- **SBOM Attestation**: Software Bill of Materials (SPDX format) for dependency tracking
+- **Build Provenance**: Build provenance attestation for build integrity
+- **Security Scan Attestation**: MCP security scan results are attested
+
+### Verifying Container Signatures
+
+To verify that an image was built and signed by Dockyard:
+
+```bash
+# Install cosign if you haven't already
+brew install cosign  # or see https://docs.sigstore.dev/cosign/installation/
+
+# Verify image signature
+cosign verify \
+  --certificate-identity-regexp "https://github.com/stacklok/dockyard/.github/workflows/build-containers.yml@refs/heads/.*" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14
+```
+
+### Verifying Attestations
+
+#### Build Provenance & SBOM Attestations
+
+Docker buildx automatically creates and pushes SBOM (SPDX format) and provenance attestations when building multi-platform images. These can be verified using:
+
+```bash
+# Verify and view the SBOM attestation (SPDX format)
+cosign verify-attestation \
+  --type https://spdx.dev/Document \
+  --certificate-identity-regexp "https://github.com/stacklok/dockyard/.github/workflows/build-containers.yml@refs/heads/.*" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 | jq '.payload | @base64d | fromjson'
+
+# Verify and view the build provenance attestation
+cosign verify-attestation \
+  --type https://slsa.dev/provenance/v0.2 \
+  --certificate-identity-regexp "https://github.com/stacklok/dockyard/.github/workflows/build-containers.yml@refs/heads/.*" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 | jq '.payload | @base64d | fromjson'
+```
+
+#### Security Scan Attestation
+
+Verify and view the MCP security scan results:
+
+```bash
+# Verify and retrieve security scan attestation
+cosign verify-attestation \
+  --type https://github.com/stacklok/dockyard/mcp-security-scan/v1 \
+  --certificate-identity-regexp "https://github.com/stacklok/dockyard/.github/workflows/build-containers.yml@refs/heads/.*" \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com \
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 | jq '.payload | @base64d | fromjson | .predicate.scanResult'
+```
+
+#### Downloading Attestations
+
+You can also download attestations for offline analysis:
+
+```bash
+# Download all attestations for an image
+cosign download attestation ghcr.io/stacklok/dockyard/npx/context7:1.0.14 > attestations.json
+
+# Parse and view specific attestation types
+cat attestations.json | jq 'select(.predicateType == "https://spdx.dev/Document")'
+```
+
+### Security Guarantees
+
+When you use a Dockyard container image, you can be confident that:
+
+1. **Source Integrity**: The image was built from the exact source code in this repository
+2. **Build Transparency**: Full build provenance is available and verifiable
+3. **Security Scanning**: The MCP server was scanned for security vulnerabilities before packaging
+4. **Dependency Tracking**: Complete SBOM is available for vulnerability management
+5. **Non-repudiation**: Signatures prove the image came from our CI/CD pipeline
+
 ## 🏗️ How It Works
 
 1. **Detection**: GitHub Actions detects changes to YAML files
@@ -238,8 +319,9 @@ If issues are allowlisted, they won't fail the build:
 3. **Validation**: Validates YAML structure and required fields
 4. **Protocol Scheme**: Constructs protocol scheme (e.g., `npx://@upstash/context7-mcp@1.0.14`)
 5. **Container Build**: Uses ToolHive's `BuildFromProtocolSchemeWithName` function (only if security scan passes)
-6. **Publishing**: Pushes to GitHub Container Registry with automatic tagging
-7. **Updates**: Renovate automatically creates PRs for new package versions
+6. **Attestation**: Creates and signs SBOM, provenance, and security scan attestations
+7. **Publishing**: Pushes to GitHub Container Registry with automatic tagging
+8. **Updates**: Renovate automatically creates PRs for new package versions
 
 ## 📋 Container Image Naming
 

@@ -205,7 +205,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write  # Needed for provenance attestation
+      id-token: write  # Needed for OIDC token (sigstore)
+      attestations: write  # Needed for attestations
 
     steps:
       - name: Checkout repository
@@ -321,6 +322,60 @@ jobs:
           
           echo "✅ Images signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
 
+      - name: Download MCP security scan results
+        if: github.event_name != 'pull_request'
+        uses: actions/download-artifact@v4
+        with:
+          name: mcp-scan-${{ steps.meta.outputs.server_name }}
+          path: /tmp/scan-results
+
+      - name: Create security scan attestation
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          echo "Creating security scan attestation for ${{ steps.meta.outputs.image_name }}@${DIGEST}"
+          
+          # Read the scan summary
+          SCAN_SUMMARY=$(cat /tmp/scan-results/scan-summary.json)
+          SCAN_STATUS=$(echo "$SCAN_SUMMARY" | jq -r '.status')
+          
+          # Create custom attestation for security scan
+          cat > /tmp/security-attestation.json <<EOF
+          {
+            "_type": "https://in-toto.io/Statement/v0.1",
+            "predicateType": "https://github.com/stacklok/dockyard/mcp-security-scan/v1",
+            "subject": [
+              {
+                "name": "${{ steps.meta.outputs.image_name }}",
+                "digest": {
+                  "sha256": "${DIGEST#sha256:}"
+                }
+              }
+            ],
+            "predicate": {
+              "scanTool": "mcp-scan",
+              "scanDate": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+              "scanResult": $SCAN_SUMMARY,
+              "repository": "${{ github.repository }}",
+              "commitSha": "${{ github.sha }}",
+              "workflowRun": "${{ github.run_id }}",
+              "configFile": "${{ matrix.config }}"
+            }
+          }
+          EOF
+          
+          # Attest the security scan results
+          cosign attest --yes \
+            --predicate /tmp/security-attestation.json \
+            --type https://github.com/stacklok/dockyard/mcp-security-scan/v1 \
+            ${{ steps.meta.outputs.image_name }}@${DIGEST}
+          
+          echo "✅ Security scan attestation created" >> $GITHUB_STEP_SUMMARY
+          
+          # Clean up
+          rm -f /tmp/security-attestation.json
+
       - name: Generate image summary
         run: |
           echo "## Container Build Summary" >> $GITHUB_STEP_SUMMARY
@@ -330,8 +385,9 @@ jobs:
           echo "- **Image**: ${{ steps.meta.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
-          echo "- **SBOM**: ✅ Included" >> $GITHUB_STEP_SUMMARY
-          echo "- **Provenance**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
+          echo "- **SBOM**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
+          echo "- **Build Provenance**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
+          echo "- **Security Scan**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
           echo "- **Signatures**: ✅ Signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "- **Status**: ✅ Built, pushed, and signed" >> $GITHUB_STEP_SUMMARY
