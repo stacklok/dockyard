@@ -173,6 +173,9 @@ jobs:
             "$scan_output" \
             "${{ steps.meta.outputs.server_name }}" \
             > scan-summary.json
+          
+          # Copy scan output to current directory for artifact upload
+          cp "$scan_output" "mcp-scan-${{ steps.meta.outputs.server_name }}.json"
 
       - name: Upload scan results
         if: always()
@@ -180,7 +183,7 @@ jobs:
         with:
           name: mcp-scan-${{ steps.meta.outputs.server_name }}
           path: |
-            /tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.json
+            mcp-scan-${{ steps.meta.outputs.server_name }}.json
             scan-summary.json
           retention-days: 30
 
@@ -368,44 +371,20 @@ jobs:
             
             if (fs.existsSync(artifactsDir)) {
               console.log('Artifacts directory exists');
-              const artifactItems = fs.readdirSync(artifactsDir);
-              console.log('Artifact directory contents:', artifactItems);
+              const artifactDirs = fs.readdirSync(artifactsDir);
+              console.log('Artifact directories:', artifactDirs);
               
-              for (const item of artifactItems) {
-                const itemPath = path.join(artifactsDir, item);
-                const itemStat = fs.statSync(itemPath);
-                
-                if (itemStat.isDirectory()) {
-                  // Check for scan-summary.json inside the directory
-                  const summaryFile = path.join(itemPath, 'scan-summary.json');
+              // Each artifact directory should contain the scan results
+              for (const dir of artifactDirs) {
+                const dirPath = path.join(artifactsDir, dir);
+                if (fs.statSync(dirPath).isDirectory()) {
+                  // Look for scan-summary.json in each artifact directory
+                  const summaryFile = path.join(dirPath, 'scan-summary.json');
                   if (fs.existsSync(summaryFile)) {
                     summaryFiles.push(summaryFile);
-                    console.log('Found summary file in directory:', summaryFile);
+                    console.log('Found summary file:', summaryFile);
                   } else {
-                    // List contents of the directory for debugging
-                    console.log(`Contents of ${itemPath}:`, fs.readdirSync(itemPath));
-                  }
-                } else if (item === 'scan-summary.json') {
-                  // Check if scan-summary.json is directly in the artifacts directory
-                  summaryFiles.push(itemPath);
-                  console.log('Found summary file directly:', itemPath);
-                }
-              }
-              
-              // Also check for any .json files that might be scan summaries
-              const jsonFiles = artifactItems.filter(f => f.endsWith('.json'));
-              console.log('JSON files found:', jsonFiles);
-              for (const jsonFile of jsonFiles) {
-                const filePath = path.join(artifactsDir, jsonFile);
-                if (!summaryFiles.includes(filePath)) {
-                  try {
-                    const content = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-                    if (content.server && content.status) {
-                      summaryFiles.push(filePath);
-                      console.log('Found additional scan result file:', filePath);
-                    }
-                  } catch (e) {
-                    console.log(`Could not parse ${jsonFile}:`, e.message);
+                    console.log(`No scan-summary.json in ${dirPath}, contents:`, fs.readdirSync(dirPath));
                   }
                 }
               }
