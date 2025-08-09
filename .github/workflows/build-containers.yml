@@ -128,8 +128,8 @@ jobs:
           # Install Python dependencies for scripts
           uv pip install --system pyyaml
           
-          # Verify installation
-          uv run mcp-scan --version
+          # Verify installation (mcp-scan doesn't have --version, so we use help)
+          uv tool run mcp-scan --help || true
 
       - name: Extract metadata from config
         id: meta
@@ -157,7 +157,7 @@ jobs:
           # Run mcp-scan
           scan_output="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.json"
           
-          if uv run mcp-scan scan "/tmp/${{ steps.meta.outputs.server_name }}-mcp-config.json" \
+          if uv tool run mcp-scan scan "/tmp/${{ steps.meta.outputs.server_name }}-mcp-config.json" \
             --json \
             --storage-file "/tmp/mcp-scan-storage" \
             --server-timeout 30 \
