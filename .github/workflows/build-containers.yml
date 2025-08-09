@@ -100,6 +100,7 @@ jobs:
   mcp-security-scan:
     needs: discover-configs
     runs-on: ubuntu-latest
+    # Always run security scans when we have configs to build
     if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
     strategy:
       matrix:
@@ -196,7 +197,8 @@ jobs:
   build-containers:
     needs: [discover-configs, mcp-security-scan]
     runs-on: ubuntu-latest
-    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
+    # Only proceed if security scans passed
+    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' && needs.mcp-security-scan.result == 'success' }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
@@ -227,7 +229,8 @@ jobs:
         uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
 
       - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
+        # Only login when we're going to push (main branch or manual trigger)
+        if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
         uses: docker/login-action@184bdaa0721073962dff0199f1fb9940f07167d1 # v3
         with:
           registry: ${{ env.REGISTRY }}
@@ -323,11 +326,13 @@ jobs:
           echo "✅ Images signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
 
       - name: Download MCP security scan results
+        id: download-scan
         if: github.event_name != 'pull_request'
         uses: actions/download-artifact@v4
         with:
           name: mcp-scan-${{ steps.meta.outputs.server_name }}
           path: /tmp/scan-results
+        continue-on-error: false  # Fail if scan results are missing
 
       - name: Create security scan attestation
         if: github.event_name != 'pull_request'
@@ -385,12 +390,13 @@ jobs:
           echo "- **Image**: ${{ steps.meta.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
-          echo "- **SBOM**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
-          echo "- **Build Provenance**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
-          echo "- **Security Scan**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
-          echo "- **Signatures**: ✅ Signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
+          
           if [ "${{ github.event_name }}" != "pull_request" ]; then
-            echo "- **Status**: ✅ Built, pushed, and signed" >> $GITHUB_STEP_SUMMARY
+            echo "- **SBOM**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
+            echo "- **Build Provenance**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
+            echo "- **Security Scan**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
+            echo "- **Signatures**: ✅ Signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
+            echo "- **Status**: ✅ Built, pushed, signed, and attested" >> $GITHUB_STEP_SUMMARY
             echo "- **Tags**:" >> $GITHUB_STEP_SUMMARY
             echo "  - ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
             echo "  - ${{ steps.meta.outputs.image_name }}:latest" >> $GITHUB_STEP_SUMMARY
