@@ -121,22 +121,62 @@ provenance:
    - Description of what your server does
    - Link to the package registry and source repository
 
+**Note**: Your MCP server will be automatically scanned for security vulnerabilities. The PR will only be mergeable if the security scan passes.
+
 ### Step 5: Automated Building
 
-Once your PR is merged:
+Once your PR passes security scanning and is merged:
+- ✅ Security scan ensures no vulnerabilities
 - 🤖 GitHub Actions automatically detects your new configuration
 - 🏗️ Builds a container image using ToolHive
 - 📦 Publishes to `ghcr.io/stacklok/dockyard/{protocol}/{name}:{version}`
 - 🔄 Renovate keeps your package version up-to-date automatically
 
+## 🔒 Security Scanning
+
+Dockyard automatically scans all MCP servers for security vulnerabilities before building containers using [mcp-scan](https://github.com/invariantlabs-ai/mcp-scan) from Invariant Labs. This ensures that only secure MCP servers are deployed.
+
+### What We Scan For
+
+- **Prompt Injection Risks**: Detects dangerous words or patterns in tool descriptions that could be exploited
+- **Toxic Flows**: Identifies combinations of tools that could lead to destructive behaviors
+- **Tool Poisoning**: Checks for malicious tool implementations
+- **Cross-Origin Escalation**: Detects potential privilege escalation vulnerabilities
+- **Rug Pull Attacks**: Identifies suspicious patterns that could indicate malicious intent
+
+### Security Requirements
+
+All MCP servers must pass security scanning before being merged. If vulnerabilities are detected:
+- The CI pipeline will fail
+- A detailed report will be posted as a PR comment
+- The vulnerabilities must be addressed before the PR can be merged
+
+### Security Report Example
+
+When vulnerabilities are found, you'll see a detailed report in your PR:
+
+```
+## 🔒 MCP Security Scan Results
+
+### ❌ your-mcp-server
+- **Status**: Failed
+- **Tools scanned**: 3
+- **Vulnerabilities found**: 2
+
+**Security issues detected:**
+- **[W001]** Tool description contains dangerous words that could be used for prompt injection
+- **[TF002]** Destructive toxic flow detected
+```
+
 ## 🏗️ How It Works
 
 1. **Detection**: GitHub Actions detects changes to YAML files
-2. **Validation**: Validates YAML structure and required fields
-3. **Protocol Scheme**: Constructs protocol scheme (e.g., `npx://@upstash/context7-mcp@1.0.14`)
-4. **Container Build**: Uses ToolHive's `BuildFromProtocolSchemeWithName` function
-5. **Publishing**: Pushes to GitHub Container Registry with automatic tagging
-6. **Updates**: Renovate automatically creates PRs for new package versions
+2. **Security Scan**: Runs mcp-scan to check for vulnerabilities
+3. **Validation**: Validates YAML structure and required fields
+4. **Protocol Scheme**: Constructs protocol scheme (e.g., `npx://@upstash/context7-mcp@1.0.14`)
+5. **Container Build**: Uses ToolHive's `BuildFromProtocolSchemeWithName` function (only if security scan passes)
+6. **Publishing**: Pushes to GitHub Container Registry with automatic tagging
+7. **Updates**: Renovate automatically creates PRs for new package versions
 
 ## 📋 Container Image Naming
 
@@ -177,7 +217,12 @@ dockyard/
 ├── go.mod                     # Go module definition
 ├── renovate.json              # Renovate configuration for auto-updates
 ├── .github/workflows/         # CI/CD pipeline
-│   └── build-containers.yml   # Automated container building
+│   └── build-containers.yml   # Automated container building with security scanning
+├── scripts/                   # Utility scripts
+│   └── mcp-scan/             # MCP security scanning tools
+│       ├── generate_mcp_config.py    # Converts YAML to MCP config format
+│       ├── process_scan_results.py   # Processes scan results
+│       └── README.md                  # Scanning documentation
 ├── npx/                       # Node.js (NPX) configurations
 │   └── *.yaml                # YAML files for npm packages
 ├── uvx/                       # Python (UVX) configurations
@@ -191,3 +236,4 @@ dockyard/
 - **[ToolHive](https://github.com/stacklok/toolhive)** - Container building from protocol schemes
 - **[gopkg.in/yaml.v3](https://gopkg.in/yaml.v3)** - YAML configuration parsing
 - **[Renovate](https://renovatebot.com/)** - Automated dependency updates
+- **[mcp-scan](https://github.com/invariantlabs-ai/mcp-scan)** - Security vulnerability scanning for MCP servers
