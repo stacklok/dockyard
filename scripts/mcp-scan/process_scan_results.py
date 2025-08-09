@@ -40,19 +40,25 @@ def main():
         vulnerability_details = []
         tools_scanned = 0
         
-        if 'servers' in scan_data:
-            for srv_name, srv_data in scan_data['servers'].items():
-                if 'tools' in srv_data:
-                    tools_scanned = len(srv_data['tools'])
-                    for tool in srv_data['tools']:
-                        # Check for vulnerabilities
-                        if tool.get('vulnerability_found') or tool.get('status') == 'error':
-                            has_vulnerabilities = True
-                            vulnerability_details.append({
-                                'tool': tool.get('name', 'unknown'),
-                                'error': tool.get('error', 'Unknown vulnerability'),
-                                'severity': tool.get('severity', 'unknown')
-                            })
+        # The actual mcp-scan output structure has the config path as key
+        for config_path, config_data in scan_data.items():
+            if isinstance(config_data, dict):
+                # Count tools from the servers array
+                if 'servers' in config_data and isinstance(config_data['servers'], list):
+                    for server in config_data['servers']:
+                        if 'signature' in server and 'tools' in server['signature']:
+                            tools_scanned += len(server['signature']['tools'])
+                
+                # Check for issues/vulnerabilities
+                if 'issues' in config_data and isinstance(config_data['issues'], list):
+                    for issue in config_data['issues']:
+                        has_vulnerabilities = True
+                        vulnerability_details.append({
+                            'code': issue.get('code', 'unknown'),
+                            'message': issue.get('message', 'Unknown vulnerability'),
+                            'reference': issue.get('reference'),
+                            'extra_data': issue.get('extra_data')
+                        })
         
         # Generate summary
         if has_vulnerabilities:
@@ -67,7 +73,7 @@ def main():
             # Print human-readable output to stderr for CI logs
             print(f"❌ Security vulnerabilities found in {server_name}:", file=sys.stderr)
             for vuln in vulnerability_details:
-                print(f"  - Tool '{vuln['tool']}': {vuln['error']}", file=sys.stderr)
+                print(f"  - [{vuln['code']}] {vuln['message']}", file=sys.stderr)
             
             # Exit with error code to fail the CI step
             print(json.dumps(summary, indent=2))
