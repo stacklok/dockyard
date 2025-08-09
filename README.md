@@ -185,7 +185,25 @@ Dockyard automatically scans all MCP servers for security vulnerabilities before
 All MCP servers must pass security scanning before being merged. If vulnerabilities are detected:
 - The CI pipeline will fail
 - A detailed report will be posted as a PR comment
-- The vulnerabilities must be addressed before the PR can be merged
+- The vulnerabilities must be addressed OR explicitly allowed before the PR can be merged
+
+### Allowing Known Issues
+
+Some security warnings may be false positives, especially for containerized deployments where additional sandboxing is provided. You can explicitly allow specific security issues by adding a `security` section to your YAML configuration:
+
+```yaml
+security:
+  # Security allowlist for known issues that are acceptable in this context
+  allowed_issues:
+    - code: "W001"
+      reason: "Tool description contains imperative instructions for AI agents which are necessary for proper operation"
+    - code: "TF002"
+      reason: "Destructive toxic flow is mitigated by container sandboxing - code execution is isolated from host system"
+```
+
+Each allowed issue must include:
+- `code`: The issue code reported by mcp-scan (e.g., W001, TF002, E001)
+- `reason`: A clear explanation of why this issue is acceptable in your specific context
 
 ### Security Report Example
 
@@ -202,6 +220,15 @@ When vulnerabilities are found, you'll see a detailed report in your PR:
 **Security issues detected:**
 - **[W001]** Tool description contains dangerous words that could be used for prompt injection
 - **[TF002]** Destructive toxic flow detected
+```
+
+If issues are allowlisted, they won't fail the build:
+
+```
+ℹ️  Allowed security issues found in your-mcp-server:
+  - [W001] Tool description contains dangerous words...
+    Reason: Tool description contains imperative instructions for AI agents which are necessary for proper operation
+✅ All issues are allowlisted - build can proceed (3 tools scanned)
 ```
 
 ## 🏗️ How It Works
