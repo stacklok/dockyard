@@ -1,0 +1,19 @@
+# Heroku MCP Server Configuration
+# MCP server for interacting with the Heroku Platform
+# Package: https://www.npmjs.com/package/@heroku/mcp-server
+# Repository: https://github.com/heroku/heroku-mcp-server
+# Will build as: ghcr.io/stacklok/dockyard/npx/heroku-mcp-server:1.0.7
+
+metadata:
+  name: heroku-mcp-server
+  description: "MCP server for seamless interaction between LLMs and the Heroku Platform"
+  version: "1.0.7"
+  protocol: npx
+
+spec:
+  package: "@heroku/mcp-server"
+  version: "1.0.7"
+
+provenance:
+  repository_uri: "https://github.com/heroku/heroku-mcp-server"
+  repository_ref: "refs/heads/main"
