@@ -151,6 +151,16 @@ Repository: {repo-url}"
 - Multi-architecture builds (amd64, arm64)
 - Automated security scanning
 
+### Verifying CI Builds
+
+After pushing changes:
+1. Check workflow runs: `https://github.com/stacklok/dockyard/actions`
+2. Look for your package in the build jobs (e.g., `build-containers (uvx/mcp-clickhouse/spec.yaml)`)
+3. Verify security scan passed: `mcp-security-scan (uvx/mcp-clickhouse/spec.yaml)`
+4. Manual trigger if needed: Actions → Build MCP Server Containers → Run workflow
+
+Note: Only spec.yaml changes trigger automatic builds. Manual triggers build all packages.
+
 ## Quick Debugging
 
 | Issue | Solution |
