@@ -1,0 +1,19 @@
+# ClickHouse MCP Server Configuration
+# Official ClickHouse MCP server for database operations
+# Package: https://pypi.org/project/mcp-clickhouse/
+# Repository: https://github.com/ClickHouse/mcp-clickhouse
+# Will build as: ghcr.io/stacklok/dockyard/uvx/mcp-clickhouse:0.1.11
+
+metadata:
+  name: mcp-clickhouse
+  description: "MCP server for ClickHouse that provides tools to execute SQL queries, list databases and tables, and optionally use chDB's embedded OLAP engine"
+  version: "0.1.11"
+  protocol: uvx  # Uses Python with uv package manager
+
+spec:
+  package: "mcp-clickhouse"  # PyPI package name
+  version: "0.1.11"          # Latest version from PyPI
+
+provenance:
+  repository_uri: "https://github.com/ClickHouse/mcp-clickhouse"
+  repository_ref: "refs/heads/main"  # Using main branch as the primary development branch
