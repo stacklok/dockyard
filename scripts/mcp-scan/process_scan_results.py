@@ -76,7 +76,7 @@ def main():
                 # Count tools from the servers array
                 if 'servers' in config_data and isinstance(config_data['servers'], list):
                     for server in config_data['servers']:
-                        if 'signature' in server and 'tools' in server['signature']:
+                        if 'signature' in server and server['signature'] and 'tools' in server['signature']:
                             tools_scanned += len(server['signature']['tools'])
                 
                 # Check for issues/vulnerabilities
