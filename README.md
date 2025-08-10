@@ -340,41 +340,28 @@ Examples:
 - Docker or Podman
 - ToolHive library
 
-### Build a container locally:
+### Build and install dockhand:
 
 ```bash
-go run main.go -config npx/context7/spec.yaml
+go build -o dockhand ./cmd/dockhand
+# Or install globally
+go install ./cmd/dockhand
+```
+
+### Generate a Dockerfile:
+
+```bash
+# Generate Dockerfile to stdout
+./dockhand build -c npx/context7/spec.yaml
+
+# Save Dockerfile to file
+./dockhand build -c npx/context7/spec.yaml -o Dockerfile
 ```
 
 ### Build with custom tag:
 
 ```bash
-go run main.go -config npx/context7/spec.yaml -tag my-custom-tag:latest
-```
-
-## 🏗️ Project Structure
-
-```
-dockyard/
-├── main.go                    # Main application
-├── go.mod                     # Go module definition
-├── renovate.json              # Renovate configuration for auto-updates
-├── .github/workflows/         # CI/CD pipeline
-│   └── build-containers.yml   # Automated container building with security scanning
-├── scripts/                   # Utility scripts
-│   └── mcp-scan/             # MCP security scanning tools
-│       ├── generate_mcp_config.py    # Converts YAML to MCP config format
-│       ├── process_scan_results.py   # Processes scan results
-│       └── README.md                  # Scanning documentation
-├── npx/                       # Node.js (NPX) configurations
-│   └── {server-name}/        # Each server in its own directory
-│       └── spec.yaml         # Server specification
-├── uvx/                       # Python (UVX) configurations
-│   └── {server-name}/        # Each server in its own directory
-│       └── spec.yaml         # Server specification
-└── go/                        # Go configurations
-    └── {server-name}/        # Each server in its own directory
-        └── spec.yaml         # Server specification
+./dockhand build -c npx/context7/spec.yaml -t my-custom-tag:latest
 ```
 
 ## 🔧 Dependencies

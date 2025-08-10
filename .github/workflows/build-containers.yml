@@ -7,7 +7,7 @@ on:
       - 'npx/**/*.yaml'
       - 'uvx/**/*.yaml'
       - 'go/**/*.yaml'
-      - 'main.go'
+      - 'cmd/dockhand/**'
       - 'go.mod'
       - 'go.sum'
   pull_request:
@@ -16,7 +16,7 @@ on:
       - 'npx/**/*.yaml'
       - 'uvx/**/*.yaml'
       - 'go/**/*.yaml'
-      - 'main.go'
+      - 'cmd/dockhand/**'
       - 'go.mod'
       - 'go.sum'
   workflow_dispatch:
@@ -52,8 +52,8 @@ jobs:
             changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
             configs_to_build=""
             
-            # Check if main.go, go.mod, or go.sum changed (rebuild all)
-            if echo "$changed_files" | grep -E "(main\.go|go\.mod|go\.sum)"; then
+            # Check if dockhand source, go.mod, or go.sum changed (rebuild all)
+            if echo "$changed_files" | grep -E "(cmd/dockhand/|go\.mod|go\.sum)"; then
               echo "Core files changed - building all configurations"
               configs_to_build="$all_configs"
             else
@@ -71,8 +71,8 @@ jobs:
             changed_files=$(git diff --name-only HEAD~1..HEAD)
             configs_to_build=""
             
-            # Check if main.go, go.mod, or go.sum changed (rebuild all)
-            if echo "$changed_files" | grep -E "(main\.go|go\.mod|go\.sum)"; then
+            # Check if dockhand source, go.mod, or go.sum changed (rebuild all)
+            if echo "$changed_files" | grep -E "(cmd/dockhand/|go\.mod|go\.sum)"; then
               echo "Core files changed - building all configurations"
               configs_to_build="$all_configs"
             else
@@ -278,8 +278,9 @@ jobs:
           dockerfile_dir=$(mktemp -d)
           dockerfile_path="${dockerfile_dir}/Dockerfile"
           
-          # Generate the Dockerfile using our tool
-          go run main.go -config "${{ steps.meta.outputs.config_file }}" -output "${dockerfile_path}"
+          # Build and run dockhand to generate the Dockerfile
+          go build -o /tmp/dockhand ./cmd/dockhand
+          /tmp/dockhand build -config "${{ steps.meta.outputs.config_file }}" -output "${dockerfile_path}"
           
           echo "dockerfile_dir=$dockerfile_dir" >> $GITHUB_OUTPUT
           echo "dockerfile_path=$dockerfile_path" >> $GITHUB_OUTPUT

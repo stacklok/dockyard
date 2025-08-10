@@ -1,17 +1,14 @@
-// Package main implements the Dockyard MCP server containerization tool.
-// It reads YAML configuration files and uses ToolHive to build container images
-// from protocol schemes (npx://, uvx://, go://).
+// Package main implements the Dockyard CLI tool for containerizing MCP servers.
 package main
 
 import (
 	"context"
-	"flag"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"strings"
 
+	"github.com/spf13/cobra"
 	"github.com/stacklok/toolhive/pkg/container/images"
 	"github.com/stacklok/toolhive/pkg/logger"
 	"github.com/stacklok/toolhive/pkg/runner"
@@ -52,45 +49,101 @@ type MCPServerProvenance struct {
 	CertIssuer        string `yaml:"cert_issuer,omitempty"`
 }
 
+var (
+	// Global flags
+	verbose bool
+
+	// Build command flags
+	configFile string
+	outputTag  string
+	output     string
+)
+
 func main() {
 	// Initialize the logger
 	logger.Initialize()
 
-	var (
-		configFile = flag.String("config", "", "Path to the YAML configuration file")
-		outputTag  = flag.String("tag", "", "Custom container image tag (optional)")
-		output     = flag.String("output", "", "Output file for Dockerfile (optional, defaults to stdout)")
-	)
-	flag.Parse()
+	rootCmd := &cobra.Command{
+		Use:   "dockhand",
+		Short: "A tool for containerizing MCP servers",
+		Long: `Dockhand is a CLI tool that reads YAML configuration files and uses ToolHive 
+to build container images from protocol schemes (npx://, uvx://, go://).
 
-	if *configFile == "" {
-		log.Fatal("Please provide a configuration file with -config flag")
+It simplifies the process of packaging MCP (Model Context Protocol) servers 
+into container images for easy deployment and distribution.`,
+		Version: "0.1.0",
 	}
 
+	// Add global flags
+	rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "Enable verbose output")
+
+	// Add build command
+	buildCmd := &cobra.Command{
+		Use:   "build",
+		Short: "Build a container image from an MCP server specification",
+		Long: `Build reads a YAML configuration file that describes an MCP server
+and generates a Dockerfile or builds a container image using ToolHive.
+
+The configuration file should follow the structure:
+  {protocol}/{name}/spec.yaml
+
+Where protocol is one of: npx, uvx, or go`,
+		Example: `  # Generate a Dockerfile to stdout
+  dockhand build -c npx/context7/spec.yaml
+
+  # Generate a Dockerfile and save to file
+  dockhand build -c npx/context7/spec.yaml -o Dockerfile
+
+  # Generate with custom tag
+  dockhand build -c npx/context7/spec.yaml -t myregistry/myimage:v1.0.0`,
+		RunE: runBuild,
+	}
+
+	// Add build command flags
+	buildCmd.Flags().StringVarP(&configFile, "config", "c", "", "Path to the YAML configuration file (required)")
+	buildCmd.Flags().StringVarP(&outputTag, "tag", "t", "", "Custom container image tag (optional)")
+	buildCmd.Flags().StringVarP(&output, "output", "o", "", "Output file for Dockerfile (optional, defaults to stdout)")
+	if err := buildCmd.MarkFlagRequired("config"); err != nil {
+		// This should never fail for a valid flag name
+		panic(fmt.Sprintf("failed to mark config flag as required: %v", err))
+	}
+
+	// Add commands to root
+	rootCmd.AddCommand(buildCmd)
+
+	// Execute
+	if err := rootCmd.Execute(); err != nil {
+		os.Exit(1)
+	}
+}
+
+func runBuild(cmd *cobra.Command, _ []string) error {
 	// Read and parse the YAML configuration
-	spec, err := loadMCPServerSpec(*configFile)
+	spec, err := loadMCPServerSpec(configFile)
 	if err != nil {
-		log.Fatalf("Failed to load configuration: %v", err)
+		return fmt.Errorf("failed to load configuration: %w", err)
 	}
 
 	// Generate Dockerfile
 	ctx := context.Background()
-	dockerfile, err := generateDockerfile(ctx, spec, *outputTag)
+	dockerfile, err := generateDockerfile(ctx, spec, outputTag)
 	if err != nil {
-		log.Fatalf("Failed to generate Dockerfile: %v", err)
+		return fmt.Errorf("failed to generate Dockerfile: %w", err)
 	}
 
 	// Output Dockerfile
-	if *output != "" {
+	if output != "" {
 		// Write to file
-		if err := os.WriteFile(*output, []byte(dockerfile), 0600); err != nil {
-			log.Fatalf("Failed to write Dockerfile to %s: %v", *output, err)
+		if err := os.WriteFile(output, []byte(dockerfile), 0600); err != nil {
+			return fmt.Errorf("failed to write Dockerfile to %s: %w", output, err)
 		}
-		fmt.Printf("Dockerfile written to: %s\n", *output)
+		cmd.Printf("Dockerfile written to: %s\n", output)
 	} else {
-		// Output to stdout
-		fmt.Print(dockerfile)
+		// Output to stdout using cobra's command
+		cmd.Print(dockerfile)
 	}
+
+	return nil
 }
 
 // validateConfigPath ensures the config path is safe and within expected directories
