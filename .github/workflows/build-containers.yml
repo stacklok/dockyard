@@ -280,7 +280,7 @@ jobs:
           
           # Build and run dockhand to generate the Dockerfile
           go build -o /tmp/dockhand ./cmd/dockhand
-          /tmp/dockhand build -config "${{ steps.meta.outputs.config_file }}" -output "${dockerfile_path}"
+          /tmp/dockhand build --config "${{ steps.meta.outputs.config_file }}" --output "${dockerfile_path}"
           
           echo "dockerfile_dir=$dockerfile_dir" >> $GITHUB_OUTPUT
           echo "dockerfile_path=$dockerfile_path" >> $GITHUB_OUTPUT
