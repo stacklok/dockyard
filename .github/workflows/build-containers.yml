@@ -443,18 +443,24 @@ jobs:
               const artifactDirs = fs.readdirSync(artifactsDir);
               console.log('Artifact directories:', artifactDirs);
               
-              // Each artifact directory should contain the scan results
-              for (const dir of artifactDirs) {
-                const dirPath = path.join(artifactsDir, dir);
-                if (fs.statSync(dirPath).isDirectory()) {
-                  // Look for scan-summary.json in each artifact directory
-                  const summaryFile = path.join(dirPath, 'scan-summary.json');
+              // Check each item in the artifacts directory
+              for (const item of artifactDirs) {
+                const itemPath = path.join(artifactsDir, item);
+                const stat = fs.statSync(itemPath);
+                
+                if (stat.isDirectory()) {
+                  // Look for scan-summary.json in subdirectory
+                  const summaryFile = path.join(itemPath, 'scan-summary.json');
                   if (fs.existsSync(summaryFile)) {
                     summaryFiles.push(summaryFile);
-                    console.log('Found summary file:', summaryFile);
+                    console.log('Found summary file in directory:', summaryFile);
                   } else {
-                    console.log(`No scan-summary.json in ${dirPath}, contents:`, fs.readdirSync(dirPath));
+                    console.log(`No scan-summary.json in ${itemPath}, contents:`, fs.readdirSync(itemPath));
                   }
+                } else if (stat.isFile() && item === 'scan-summary.json') {
+                  // The file is directly in the artifacts directory
+                  summaryFiles.push(itemPath);
+                  console.log('Found summary file directly:', itemPath);
                 }
               }
             } else {
@@ -478,16 +484,24 @@ jobs:
                     comment += `- **Result**: No security issues detected\n\n`;
                   } else if (summary.status === 'failed') {
                     hasAnyIssues = true;
-                    totalVulnerabilities += summary.vulnerability_count || 0;
+                    totalVulnerabilities += summary.blocking_count || 0;
                     comment += `### ❌ ${summary.server}\n`;
                     comment += `- **Status**: Failed\n`;
                     comment += `- **Tools scanned**: ${summary.tools_scanned || 0}\n`;
-                    comment += `- **Vulnerabilities found**: ${summary.vulnerability_count || 0}\n`;
+                    comment += `- **Vulnerabilities found**: ${summary.blocking_count || 0}\n`;
                     comment += '\n**Security issues detected:**\n';
                     
-                    if (summary.vulnerabilities) {
-                      summary.vulnerabilities.forEach(vuln => {
+                    if (summary.blocking_issues) {
+                      summary.blocking_issues.forEach(vuln => {
                         comment += `- **[${vuln.code}]** ${vuln.message}\n`;
+                      });
+                    }
+                    
+                    // Also show allowed issues if any
+                    if (summary.allowed_issues && summary.allowed_issues.length > 0) {
+                      comment += '\n**Allowed issues (not blocking):**\n';
+                      summary.allowed_issues.forEach(vuln => {
+                        comment += `- **[${vuln.code}]** ${vuln.message} _(Allowed: ${vuln.allowed_reason})_\n`;
                       });
                     }
                     comment += '\n';
@@ -512,7 +526,7 @@ jobs:
                 comment += '---\n';
                 comment += `**Summary**: Scanned ${totalServersScanned} MCP server(s)`;
                 if (hasAnyIssues) {
-                  comment += `, found ${totalVulnerabilities} vulnerability issue(s).\n\n`;
+                  comment += `, found ${totalVulnerabilities} security issue(s).\n\n`;
                   comment += '⚠️ **Action Required**: Security issues were detected. Please review and address them before merging.\n';
                 } else {
                   comment += ', all passed security checks. ✅\n';
