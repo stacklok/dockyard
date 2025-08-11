@@ -1,0 +1,19 @@
+# Supabase MCP Server Configuration
+# MCP server for interacting with Supabase databases and services
+# Package: https://www.npmjs.com/package/@supabase/mcp-server-supabase
+# Repository: https://github.com/supabase-community/supabase-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/supabase-mcp-server:0.4.5
+
+metadata:
+  name: supabase-mcp-server
+  description: "MCP server for interacting with Supabase"
+  version: "0.4.5"
+  protocol: npx
+
+spec:
+  package: "@supabase/mcp-server-supabase"
+  version: "0.4.5"
+
+provenance:
+  repository_uri: "https://github.com/supabase-community/supabase-mcp"
+  repository_ref: "refs/tags/v0.4.5"
