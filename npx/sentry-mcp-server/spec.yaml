@@ -1,0 +1,19 @@
+# Sentry MCP Server Configuration
+# MCP server for Sentry debugging and error tracking operations
+# Package: https://www.npmjs.com/package/@sentry/mcp-server
+# Repository: https://github.com/getsentry/sentry-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/sentry-mcp-server:0.17.1
+
+metadata:
+  name: sentry-mcp-server
+  description: "MCP server for Sentry debugging and error tracking operations"
+  version: "0.17.1"
+  protocol: npx
+
+spec:
+  package: "@sentry/mcp-server"
+  version: "0.17.1"
+
+provenance:
+  repository_uri: "https://github.com/getsentry/sentry-mcp"
+  repository_ref: "refs/heads/main"
