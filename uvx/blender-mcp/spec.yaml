@@ -1,0 +1,19 @@
+# Blender MCP Server Configuration
+# Blender integration through the Model Context Protocol
+# Package: https://pypi.org/project/blender-mcp/
+# Repository: https://github.com/ahujasid/blender-mcp
+# Will build as: ghcr.io/stacklok/dockyard/uvx/blender-mcp:1.2.1
+
+metadata:
+  name: blender-mcp
+  description: "Blender integration through the Model Context Protocol"
+  version: "1.2.1"
+  protocol: uvx
+
+spec:
+  package: "blender-mcp"
+  version: "1.2.1"
+
+provenance:
+  repository_uri: "https://github.com/ahujasid/blender-mcp"
+  repository_ref: "refs/heads/main"
