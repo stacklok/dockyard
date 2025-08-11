@@ -1,0 +1,19 @@
+# Browserbase MCP Server Configuration
+# Cloud browser automation capabilities using Browserbase and Stagehand
+# Package: https://www.npmjs.com/package/@browserbasehq/mcp-server-browserbase
+# Repository: https://github.com/browserbase/mcp-server-browserbase
+# Will build as: ghcr.io/stacklok/dockyard/npx/browserbase-mcp-server:2.0.0
+
+metadata:
+  name: browserbase-mcp-server
+  description: "MCP server for cloud browser automation with Browserbase and Stagehand"
+  version: "2.0.0"
+  protocol: npx
+
+spec:
+  package: "@browserbasehq/mcp-server-browserbase"
+  version: "2.0.0"
+
+provenance:
+  repository_uri: "https://github.com/browserbase/mcp-server-browserbase"
+  repository_ref: "refs/heads/main"
