@@ -10,27 +10,27 @@
     {
       "customType": "regex",
       "description": "Update npm package versions in npx YAML configurations",
-      "managerFilePatterns": ["npx/*.yaml"],
+      "fileMatch": ["^npx/.*/spec\\.ya?ml$"],
       "matchStrings": [
-        "package:\\s*[\"']?(?<depName>[^\"'\\s]+)[\"']?.*\\n\\s*version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+        "spec:\\s*\\n\\s*package:\\s*[\"']?(?<depName>[^\"'\\n]+?)\\s*[\"']?\\s*(?:#.*)?\\n\\s*version:\\s*[\"']?(?<currentValue>[\\d\\.\\w-]+)[\"']?\\s*(?:#.*)?"
       ],
       "datasourceTemplate": "npm"
     },
     {
       "customType": "regex",
       "description": "Update Python package versions in uvx YAML configurations",
-      "managerFilePatterns": ["uvx/*.yaml"],
+      "fileMatch": ["^uvx/.*/spec\\.ya?ml$"],
       "matchStrings": [
-        "package:\\s*[\"']?(?<depName>[^\"'\\s]+)[\"']?.*\\n\\s*version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+        "spec:\\s*\\n\\s*package:\\s*[\"']?(?<depName>[^\"'\\n]+?)\\s*[\"']?\\s*(?:#.*)?\\n\\s*version:\\s*[\"']?(?<currentValue>[\\d\\.\\w-]+)[\"']?\\s*(?:#.*)?"
       ],
       "datasourceTemplate": "pypi"
     },
     {
       "customType": "regex",
       "description": "Update Go package versions in go YAML configurations",
-      "managerFilePatterns": ["go/*.yaml"],
+      "fileMatch": ["^go/.*/spec\\.ya?ml$"],
       "matchStrings": [
-        "package:\\s*[\"']?(?<depName>[^\"'\\s]+)[\"']?.*\\n\\s*version:\\s*[\"']?(?<currentValue>[^\"'\\s]+)[\"']?"
+        "spec:\\s*\\n\\s*package:\\s*[\"']?(?<depName>[^\"'\\n]+?)\\s*[\"']?\\s*(?:#.*)?\\n\\s*version:\\s*[\"']?(?<currentValue>[\\d\\.\\w-]+)[\"']?\\s*(?:#.*)?"
       ],
       "datasourceTemplate": "go"
     }
