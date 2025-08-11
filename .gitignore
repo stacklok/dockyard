@@ -38,3 +38,9 @@ Thumbs.db
 # Environment files
 .env
 .env.local
+
+# Node.js dependencies
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*

@@ -1,0 +1,17 @@
+{
+  "name": "renovate-tests",
+  "version": "1.0.0",
+  "description": "Tests for Renovate configuration",
+  "main": "test-regex.js",
+  "scripts": {
+    "test": "node test-regex.js",
+    "validate-config": "npx --yes --package renovate -- renovate-config-validator"
+  },
+  "dependencies": {
+    "glob": "^10.3.10"
+  },
+  "devDependencies": {},
+  "engines": {
+    "node": ">=14.0.0"
+  }
+}

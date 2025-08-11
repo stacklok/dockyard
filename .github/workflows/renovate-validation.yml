@@ -1,0 +1,90 @@
+name: Renovate Configuration Validation
+
+on:
+  push:
+    paths:
+      - 'renovate.json'
+      - '.github/workflows/renovate-validation.yml'
+      - 'test/renovate/**'
+      - 'npx/**/spec.yaml'
+      - 'npx/**/spec.yml'
+      - 'uvx/**/spec.yaml'
+      - 'uvx/**/spec.yml'
+      - 'go/**/spec.yaml'
+      - 'go/**/spec.yml'
+  pull_request:
+    paths:
+      - 'renovate.json'
+      - '.github/workflows/renovate-validation.yml'
+      - 'test/renovate/**'
+      - 'npx/**/spec.yaml'
+      - 'npx/**/spec.yml'
+      - 'uvx/**/spec.yaml'
+      - 'uvx/**/spec.yml'
+      - 'go/**/spec.yaml'
+      - 'go/**/spec.yml'
+  workflow_dispatch:
+
+jobs:
+  validate-config:
+    name: Validate Renovate Configuration
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: 'test/renovate/package-lock.json'
+          
+      - name: Install dependencies
+        working-directory: test/renovate
+        run: npm ci || npm install
+        
+      - name: Validate Renovate config syntax
+        run: npx --yes --package renovate -- renovate-config-validator
+        
+      - name: Test regex patterns
+        working-directory: test/renovate
+        run: npm test
+        
+      - name: Check for deprecated config
+        run: |
+          npx --yes --package renovate -- renovate-config-validator --strict || {
+            echo "::warning::Configuration uses deprecated options. Consider migrating."
+            exit 0
+          }
+
+  test-dry-run:
+    name: Test Renovate Dry Run
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          
+      - name: Dry run Renovate
+        env:
+          LOG_LEVEL: debug
+          RENOVATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          npx --yes --package renovate -- renovate \
+            --platform=github \
+            --token="${RENOVATE_TOKEN}" \
+            --dry-run=full \
+            --print-config \
+            --autodiscover=false \
+            ${{ github.repository }} || {
+            echo "::warning::Dry run failed. This might be due to missing permissions or configuration issues."
+            exit 0
+          }
