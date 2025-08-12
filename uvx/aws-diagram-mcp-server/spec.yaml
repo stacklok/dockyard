@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "awslabs.aws-diagram-mcp-server"  # PyPI package name
-  version: "1.0.5"                           # Latest version from PyPI
+  version: "1.0.6"                           # Latest version from PyPI
 
 provenance:
   # Note: The AWS Labs MCP repository uses a monorepo structure
