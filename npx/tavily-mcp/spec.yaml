@@ -1,0 +1,19 @@
+# Tavily MCP Server Configuration
+# MCP server for advanced web search using Tavily
+# Package: https://www.npmjs.com/package/tavily-mcp
+# Repository: https://github.com/tavily-ai/tavily-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/tavily-mcp:0.2.9
+
+metadata:
+  name: tavily-mcp
+  description: "MCP server for advanced web search using Tavily"
+  version: "0.2.9"
+  protocol: npx
+
+spec:
+  package: "tavily-mcp"
+  version: "0.2.9"
+
+provenance:
+  repository_uri: "https://github.com/tavily-ai/tavily-mcp"
+  repository_ref: "refs/heads/main"
