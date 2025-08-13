@@ -1,0 +1,19 @@
+# Neon MCP Server Configuration
+# MCP server for interacting with Neon Management API and databases
+# Package: https://www.npmjs.com/package/@neondatabase/mcp-server-neon
+# Repository: https://github.com/neondatabase-labs/mcp-server-neon
+# Will build as: ghcr.io/stacklok/dockyard/npx/mcp-server-neon:0.6.3
+
+metadata:
+  name: mcp-server-neon
+  description: "MCP server for interacting with Neon Management API and databases"
+  version: "0.6.3"
+  protocol: npx
+
+spec:
+  package: "@neondatabase/mcp-server-neon"
+  version: "0.6.3"
+
+provenance:
+  repository_uri: "https://github.com/neondatabase-labs/mcp-server-neon"
+  repository_ref: "refs/heads/main"
