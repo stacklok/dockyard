@@ -1,0 +1,25 @@
+# Magic MCP Server Configuration
+# AI-powered UI component generator MCP server by 21st.dev
+# Package: https://www.npmjs.com/package/@21st-dev/magic
+# Repository: https://github.com/21st-dev/magic-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/magic-mcp:0.1.0
+
+metadata:
+  name: magic-mcp
+  description: "AI-powered UI component generator MCP server by 21st.dev"
+  version: "0.1.0"
+  protocol: npx
+
+spec:
+  package: "@21st-dev/magic"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/21st-dev/magic-mcp"
+  repository_ref: "refs/heads/main"
+
+# Security allowlist for known acceptable issues
+security:
+  allowed_issues:
+    - code: "TF002"
+      reason: "Destructive toxic flow is acceptable for UI component generation use case. The server generates UI components from user descriptions, which requires both content generation and file system operations. Risk is mitigated by the specific use case of generating frontend components."
