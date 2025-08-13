@@ -6,7 +6,7 @@ toolchain go1.24.6
 
 require (
 	github.com/spf13/cobra v1.9.1
-	github.com/stacklok/toolhive v0.2.6
+	github.com/stacklok/toolhive v0.2.7
 	gopkg.in/yaml.v3 v3.0.1
 )
 
