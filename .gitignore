@@ -22,6 +22,7 @@ go.work.sum
 /dockhand
 /cmd/dockhand/dockhand
 /tmp/
+build/
 
 # IDE specific files
 .idea/
@@ -44,3 +45,6 @@ node_modules/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Task runtime files
+.task/
