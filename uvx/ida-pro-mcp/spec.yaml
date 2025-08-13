@@ -1,0 +1,19 @@
+# IDA Pro MCP Server Configuration
+# MCP server for IDA Pro reverse engineering and analysis
+# Package: https://pypi.org/project/ida-pro-mcp/
+# Repository: https://github.com/mrexodia/ida-pro-mcp
+# Will build as: ghcr.io/stacklok/dockyard/uvx/ida-pro-mcp:1.4.0
+
+metadata:
+  name: ida-pro-mcp
+  description: "MCP server for IDA Pro reverse engineering and analysis"
+  version: "1.4.0"
+  protocol: uvx
+
+spec:
+  package: "ida-pro-mcp"
+  version: "1.4.0"
+
+provenance:
+  repository_uri: "https://github.com/mrexodia/ida-pro-mcp"
+  repository_ref: "refs/heads/main"
