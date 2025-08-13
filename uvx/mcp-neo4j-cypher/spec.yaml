@@ -1,0 +1,25 @@
+# Neo4j Cypher MCP Server Configuration
+# MCP server for executing Cypher queries against Neo4j databases
+# Package: https://pypi.org/project/mcp-neo4j-cypher/
+# Repository: https://github.com/neo4j-contrib/mcp-neo4j
+# Will build as: ghcr.io/stacklok/dockyard/uvx/mcp-neo4j-cypher:0.3.0
+
+metadata:
+  name: mcp-neo4j-cypher
+  description: "MCP server for executing Cypher queries against Neo4j databases"
+  version: "0.3.0"
+  protocol: uvx
+
+spec:
+  package: "mcp-neo4j-cypher"
+  version: "0.3.0"
+
+provenance:
+  repository_uri: "https://github.com/neo4j-contrib/mcp-neo4j"
+  repository_ref: "refs/tags/mcp-neo4j-cypher-v0.3.0"
+
+# Security allowlist for expected database operations
+security:
+  allowed_issues:
+    - code: "TF002"
+      reason: "Expected behavior for database MCP server that needs both read and write capabilities for Cypher queries"

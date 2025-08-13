@@ -1,0 +1,19 @@
+# Neo4j Memory MCP Server Configuration
+# MCP server for Neo4j memory management and operations
+# Package: https://pypi.org/project/mcp-neo4j-memory/
+# Repository: https://github.com/neo4j-contrib/mcp-neo4j
+# Will build as: ghcr.io/stacklok/dockyard/uvx/mcp-neo4j-memory:0.2.0
+
+metadata:
+  name: mcp-neo4j-memory
+  description: "MCP server for Neo4j memory management and operations"
+  version: "0.2.0"
+  protocol: uvx
+
+spec:
+  package: "mcp-neo4j-memory"
+  version: "0.2.0"
+
+provenance:
+  repository_uri: "https://github.com/neo4j-contrib/mcp-neo4j"
+  repository_ref: "refs/tags/mcp-neo4j-memory-v0.2.0"

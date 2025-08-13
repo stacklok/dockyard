@@ -115,15 +115,14 @@ mkdir -p {protocol}/{server-name}
 
 4. Test:
 ```bash
-# Validate spec
-dockhand build -c {protocol}/{server-name}/spec.yaml
+# Validate spec and generate Dockerfile
+task build -- {protocol}/{server-name}
 
-# Build image
-dockhand build -c {protocol}/{server-name}/spec.yaml -o Dockerfile
-docker build -t test-server .
+# Run security scan
+task scan -- {protocol}/{server-name}
 
-# Run test
-docker run --rm test-server --help
+# Optional: Build and test container image
+task test-build -- {protocol}/{server-name}
 ```
 
 5. Commit with descriptive message:
