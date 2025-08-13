@@ -1,0 +1,25 @@
+# ArXiv MCP Server Configuration
+# A flexible arXiv search and analysis service with MCP protocol support
+# Package: https://pypi.org/project/arxiv-mcp-server/
+# Repository: https://github.com/blazickjp/arxiv-mcp-server
+# Will build as: ghcr.io/stacklok/dockyard/uvx/arxiv-mcp-server:0.3.0
+
+metadata:
+  name: arxiv-mcp-server
+  description: "A flexible arXiv search and analysis service with MCP protocol support"
+  version: "0.3.0"
+  protocol: uvx
+
+spec:
+  package: "arxiv-mcp-server"
+  version: "0.3.0"
+
+provenance:
+  repository_uri: "https://github.com/blazickjp/arxiv-mcp-server"
+  repository_ref: "refs/heads/main"
+
+# Security allowlist for false positive
+security:
+  allowed_issues:
+    - code: "TF002"
+      reason: "False positive - arXiv is a trusted academic source and file operations are limited to writing papers to a configured storage directory. No actual destructive capabilities present."
