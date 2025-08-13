@@ -17,3 +17,11 @@ spec:
 provenance:
   repository_uri: "https://github.com/ahujasid/blender-mcp"
   repository_ref: "refs/heads/main"
+
+# Security allowlist for known acceptable risks
+security:
+  allowed_issues:
+    - code: "TF001"
+      reason: "Data leak risk acceptable - tool designed for creative workflows where external content integration is essential. Users should be aware of potential data exposure through code execution capabilities."
+    - code: "TF002"
+      reason: "Destructive flow risk acceptable - execute_blender_code tool is core functionality for Blender automation. Users should only use with trusted prompts and in isolated environments."
