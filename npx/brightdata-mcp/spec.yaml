@@ -1,0 +1,19 @@
+# Bright Data MCP Server Configuration
+# An MCP interface into the Bright Data toolset
+# Package: https://www.npmjs.com/package/@brightdata/mcp
+# Repository: https://github.com/brightdata/brightdata-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/brightdata-mcp:2.4.2
+
+metadata:
+  name: brightdata-mcp
+  description: "An MCP interface into the Bright Data toolset"
+  version: "2.4.2"
+  protocol: npx
+
+spec:
+  package: "@brightdata/mcp"
+  version: "2.4.2"
+
+provenance:
+  repository_uri: "https://github.com/brightdata/brightdata-mcp"
+  repository_ref: "refs/heads/main"
