@@ -1,0 +1,136 @@
+version: '3'
+
+tasks:
+  scan:
+    desc: "Run security scan on a specific MCP server"
+    summary: |
+      Run mcp-scan on a specific MCP server configuration.
+      
+      Usage:
+        task scan -- npx/browserbase-mcp-server
+        task scan -- uvx/blender-mcp
+        task scan -- npx/sentry-mcp-server
+      
+      The server path should be relative to the project root and contain a spec.yaml file.
+    requires:
+      vars: [CLI_ARGS]
+    vars:
+      SERVER_PATH: '{{.CLI_ARGS}}'
+      PROTOCOL:
+        sh: echo "{{.SERVER_PATH}}" | cut -d'/' -f1
+      SERVER_NAME:
+        sh: echo "{{.SERVER_PATH}}" | cut -d'/' -f2
+    cmds:
+      - |
+        if [ ! -f "{{.SERVER_PATH}}/spec.yaml" ]; then
+          echo "❌ Error: spec.yaml not found at {{.SERVER_PATH}}/spec.yaml"
+          exit 1
+        fi
+      - 'echo "🔍 Scanning MCP server: {{.SERVER_NAME}} ({{.PROTOCOL}})"'
+      - |
+        python3 scripts/mcp-scan/generate_mcp_config.py \
+          "{{.SERVER_PATH}}/spec.yaml" \
+          "{{.PROTOCOL}}" \
+          "{{.SERVER_NAME}}" \
+          > "/tmp/{{.SERVER_NAME}}-mcp-config.json"
+      - |
+        uv tool run mcp-scan scan "/tmp/{{.SERVER_NAME}}-mcp-config.json" \
+          --json \
+          --storage-file "/tmp/mcp-scan-storage" \
+          --server-timeout 30 \
+          --suppress-mcpserver-io true \
+          > "/tmp/mcp-scan-{{.SERVER_NAME}}.json"
+      - |
+        python3 scripts/mcp-scan/process_scan_results.py \
+          "/tmp/mcp-scan-{{.SERVER_NAME}}.json" \
+          "{{.SERVER_NAME}}" \
+          "{{.SERVER_PATH}}/spec.yaml"
+      - echo "✅ Scan completed for {{.SERVER_NAME}}"
+      - 'echo "📄 Raw results: /tmp/mcp-scan-{{.SERVER_NAME}}.json"'
+
+  scan-all:
+    desc: "Run security scan on all MCP servers"
+    summary: |
+      Run mcp-scan on all MCP server configurations found in the project.
+      
+      This will scan all spec.yaml files found in:
+      - npx/*/spec.yaml
+      - uvx/*/spec.yaml  
+      - go/*/spec.yaml
+    cmds:
+      - |
+        echo "🔍 Discovering all MCP server configurations..."
+        configs=$(find npx uvx go -name "spec.yaml" -type f 2>/dev/null | sort)
+        
+        if [ -z "$configs" ]; then
+          echo "❌ No MCP server configurations found"
+          exit 1
+        fi
+        
+        echo "📋 Found configurations:"
+        echo "$configs" | sed 's/^/  - /'
+        echo ""
+        
+        total=$(echo "$configs" | wc -l)
+        current=0
+        
+        for config in $configs; do
+          current=$((current + 1))
+          server_dir=$(dirname "$config")
+          
+          echo "🔍 [$current/$total] Scanning: $server_dir"
+          task scan -- "$server_dir" || echo "⚠️  Scan failed for $server_dir"
+          echo ""
+        done
+        
+        echo "✅ All scans completed!"
+
+  scan-setup:
+    desc: "Setup mcp-scan tool"
+    summary: |
+      Install and setup the mcp-scan tool.
+      This only needs to be run once or when the tool needs updating.
+    cmds:
+      - echo "🔧 Setting up mcp-scan tool..."
+      - uv tool install mcp-scan
+      - uv pip install --system pyyaml
+      - echo "✅ mcp-scan setup completed"
+      - uv tool run mcp-scan --help || true
+
+  scan-clean:
+    desc: "Clean up temporary scan files"
+    summary: |
+      Remove temporary files created during security scans.
+    cmds:
+      - echo "🧹 Cleaning up temporary scan files..."
+      - rm -f /tmp/*mcp-config.json /tmp/mcp-scan-*.json /tmp/mcp-scan-storage
+      - echo "✅ Cleanup completed"
+
+  scan-help:
+    desc: "Show help for security scanning tasks"
+    summary: |
+      Display detailed help and examples for using the security scanning tasks.
+    cmds:
+      - |
+        echo "🔒 MCP Security Scanning Tasks"
+        echo "============================="
+        echo ""
+        echo "Available tasks:"
+        echo "  scan        - Run security scan on a specific server"
+        echo "  scan-all    - Run security scan on all servers"
+        echo "  scan-setup  - Setup mcp-scan tool (run once)"
+        echo "  scan-clean  - Clean up temporary files"
+        echo "  scan-help   - Show this help"
+        echo ""
+        echo "Examples:"
+        echo "  task scan -- npx/browserbase-mcp-server"
+        echo "  task scan -- uvx/blender-mcp"
+        echo "  task scan-all"
+        echo "  task scan-setup"
+        echo ""
+        echo "The scan results will show:"
+        echo "  ✅ - No security issues found"
+        echo "  ❌ - Security issues found (not allowlisted)"
+        echo "  ⚠️  - Security issues found but allowlisted"
+        echo ""
+        echo "For detailed analysis, check the raw JSON output files in /tmp/"

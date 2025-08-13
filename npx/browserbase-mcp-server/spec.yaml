@@ -17,3 +17,10 @@ spec:
 provenance:
   repository_uri: "https://github.com/browserbase/mcp-server-browserbase"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "TF001"
+      reason: "Data leak risk acceptable - tool designed for web automation workflows where external content interaction is essential. Users should be aware of potential data exposure through cloud browser service."
+    - code: "TF002"
+      reason: "Destructive flow risk acceptable - browserbase_stagehand_act tool is core functionality for web automation. Users should only use with trusted prompts and on non-production systems."
