@@ -1,0 +1,19 @@
+# JetBrains MCP Proxy Server Configuration
+# A MCP proxy to redirect requests to JetBrains IDEs
+# Package: https://www.npmjs.com/package/@jetbrains/mcp-proxy
+# Repository: https://github.com/JetBrains/mcp-jetbrains
+# Will build as: ghcr.io/stacklok/dockyard/npx/mcp-jetbrains:1.8.0
+
+metadata:
+  name: mcp-jetbrains
+  description: "A MCP proxy to redirect requests to JetBrains IDEs"
+  version: "1.8.0"
+  protocol: npx
+
+spec:
+  package: "@jetbrains/mcp-proxy"
+  version: "1.8.0"
+
+provenance:
+  repository_uri: "https://github.com/JetBrains/mcp-jetbrains"
+  repository_ref: "refs/heads/main"
