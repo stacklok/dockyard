@@ -17,3 +17,10 @@ spec:
 provenance:
   repository_uri: "https://github.com/graphlit/graphlit-mcp-server"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "TF001"
+      reason: "Data leak risk acceptable - platform designed for comprehensive knowledge management requiring ingestion from external sources (websites, social media, documents) and access to private data sources (Slack, email, Google Drive, etc.) with output to various sinks. Users should be aware of potential data exposure through connected services."
+    - code: "TF002"
+      reason: "Destructive flow risk acceptable - delete operations (collections, feeds, content, conversations) are core functionality for knowledge management lifecycle. Platform designed for trusted environments where users manage their own data repositories."
