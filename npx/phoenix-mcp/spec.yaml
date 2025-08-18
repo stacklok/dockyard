@@ -1,0 +1,38 @@
+# Phoenix MCP Server Configuration
+# MCP server for Arize Phoenix observability platform
+# Package: https://www.npmjs.com/package/@arizeai/phoenix-mcp
+# Repository: https://github.com/Arize-ai/phoenix/tree/main/js/packages/phoenix-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/phoenix-mcp:2.2.9
+
+metadata:
+  name: phoenix-mcp
+  description: "MCP server for Arize Phoenix observability platform"
+  version: "2.2.9"
+  protocol: npx
+
+spec:
+  package: "@arizeai/phoenix-mcp"
+  version: "2.2.9"
+
+provenance:
+  repository_uri: "https://github.com/Arize-ai/phoenix"
+  repository_ref: "refs/heads/main"
+
+# Optional: Security allowlist
+security:
+  allowed_issues:
+    - code: "TF001"
+      reason: |
+        Data leak toxic flow is expected for an observability platform. Phoenix MCP server:
+        - Reads traces, spans, and evaluation data (private data access)
+        - Processes and analyzes observability data from various sources (untrusted content)
+        - Exports and shares data for analysis (public sink)
+        This combination is essential for the observability platform to function,
+        allowing agents to monitor, analyze, and report on application performance and LLM traces.
+    - code: "TF002"
+      reason: |
+        Destructive toxic flow is expected and required for data management. The server includes:
+        - Tools to delete traces, spans, and evaluations (destructive operations)
+        - Tools that process data from external sources (untrusted content)
+        These capabilities are essential for proper data lifecycle management,
+        allowing agents to clean up old data and manage the observability platform effectively.
