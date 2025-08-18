@@ -10,28 +10,35 @@ import sys
 import yaml
 import os
 
-def load_allowed_issues(config_file=None):
+def load_security_config(config_file=None):
     """
-    Load allowed security issues from the YAML configuration file.
+    Load security configuration from the YAML configuration file.
     
-    Returns a dict mapping issue codes to their reasons for being allowed.
+    Returns a tuple of (allowed_issues dict, insecure_ignore bool).
     """
     allowed_issues = {}
+    insecure_ignore = False
     
     if config_file and os.path.exists(config_file):
         try:
             with open(config_file, 'r') as f:
                 config = yaml.safe_load(f)
                 
-            # Check for security.allowed_issues in the config
-            if config and 'security' in config and 'allowed_issues' in config['security']:
-                for issue in config['security']['allowed_issues']:
-                    if 'code' in issue:
-                        allowed_issues[issue['code']] = issue.get('reason', 'Explicitly allowed')
+            if config and 'security' in config:
+                security_config = config['security']
+                
+                # Check for insecure_ignore flag
+                insecure_ignore = security_config.get('insecure_ignore', False)
+                
+                # Check for allowed_issues
+                if 'allowed_issues' in security_config:
+                    for issue in security_config['allowed_issues']:
+                        if 'code' in issue:
+                            allowed_issues[issue['code']] = issue.get('reason', 'Explicitly allowed')
         except Exception as e:
-            print(f"Warning: Could not load security allowlist from {config_file}: {e}", file=sys.stderr)
+            print(f"Warning: Could not load security config from {config_file}: {e}", file=sys.stderr)
     
-    return allowed_issues
+    return allowed_issues, insecure_ignore
 
 def main():
     if len(sys.argv) < 3:
@@ -42,24 +49,58 @@ def main():
     server_name = sys.argv[2]
     config_file = sys.argv[3] if len(sys.argv) > 3 else None
     
-    # Load allowed issues from config
-    allowed_issues = load_allowed_issues(config_file)
+    # Load security configuration from config
+    allowed_issues, insecure_ignore = load_security_config(config_file)
     
     try:
         with open(scan_output_file, 'r') as f:
             content = f.read()
         
+        # Check if file is empty (scan failed to produce output)
+        if not content.strip():
+            if insecure_ignore:
+                summary = {
+                    'server': server_name,
+                    'status': 'warning',
+                    'tools_scanned': 0,
+                    'message': 'Scan failed to produce output (insecure_ignore is enabled)'
+                }
+                print(f"⚠️ Warning: Scan failed for {server_name} but insecure_ignore is enabled - proceeding", file=sys.stderr)
+                print(json.dumps(summary, indent=2))
+                return
+            else:
+                summary = {
+                    'server': server_name,
+                    'status': 'error',
+                    'message': 'Scan failed to produce output'
+                }
+                print(f"❌ Error: Scan failed for {server_name}", file=sys.stderr)
+                print(json.dumps(summary, indent=2))
+                sys.exit(1)
+        
         # Try to find JSON in the output (mcp-scan may include other text)
         json_start = content.find('{')
         if json_start == -1:
             # No JSON found in output
-            summary = {
-                'server': server_name,
-                'status': 'warning',
-                'message': 'No JSON output found in scan results'
-            }
-            print(json.dumps(summary, indent=2))
-            return
+            if insecure_ignore:
+                summary = {
+                    'server': server_name,
+                    'status': 'warning',
+                    'tools_scanned': 0,
+                    'message': 'No JSON output found in scan results (insecure_ignore is enabled)'
+                }
+                print(f"⚠️ Warning: No JSON output for {server_name} but insecure_ignore is enabled - proceeding", file=sys.stderr)
+                print(json.dumps(summary, indent=2))
+                return
+            else:
+                summary = {
+                    'server': server_name,
+                    'status': 'error',
+                    'message': 'No JSON output found in scan results'
+                }
+                print(f"❌ Error: No JSON output found for {server_name}", file=sys.stderr)
+                print(json.dumps(summary, indent=2))
+                sys.exit(1)
         
         # Parse the JSON data
         scan_data = json.loads(content[json_start:])
@@ -148,33 +189,64 @@ def main():
             print(json.dumps(summary, indent=2))
             
     except FileNotFoundError:
-        summary = {
-            'server': server_name,
-            'status': 'error',
-            'message': f'Scan output file not found: {scan_output_file}'
-        }
-        print(json.dumps(summary, indent=2))
-        print(f"⚠️ Error: {summary['message']}", file=sys.stderr)
-        sys.exit(1)
+        if insecure_ignore:
+            summary = {
+                'server': server_name,
+                'status': 'warning',
+                'tools_scanned': 0,
+                'message': f'Scan output file not found (insecure_ignore is enabled): {scan_output_file}'
+            }
+            print(f"⚠️ Warning: {summary['message']}", file=sys.stderr)
+            print(json.dumps(summary, indent=2))
+        else:
+            summary = {
+                'server': server_name,
+                'status': 'error',
+                'message': f'Scan output file not found: {scan_output_file}'
+            }
+            print(f"❌ Error: {summary['message']}", file=sys.stderr)
+            print(json.dumps(summary, indent=2))
+            sys.exit(1)
         
     except json.JSONDecodeError as e:
-        summary = {
-            'server': server_name,
-            'status': 'warning',
-            'message': f'Could not parse scan results: {str(e)}'
-        }
-        print(json.dumps(summary, indent=2))
-        print(f"⚠️ Warning: {summary['message']}", file=sys.stderr)
+        if insecure_ignore:
+            summary = {
+                'server': server_name,
+                'status': 'warning',
+                'tools_scanned': 0,
+                'message': f'Could not parse scan results (insecure_ignore is enabled): {str(e)}'
+            }
+            print(f"⚠️ Warning: {summary['message']}", file=sys.stderr)
+            print(json.dumps(summary, indent=2))
+        else:
+            summary = {
+                'server': server_name,
+                'status': 'error',
+                'message': f'Could not parse scan results: {str(e)}'
+            }
+            print(f"❌ Error: {summary['message']}", file=sys.stderr)
+            print(json.dumps(summary, indent=2))
+            sys.exit(1)
         
     except Exception as e:
-        summary = {
-            'server': server_name,
-            'status': 'error',
-            'message': f'Unexpected error: {str(e)}'
-        }
-        print(json.dumps(summary, indent=2))
-        print(f"⚠️ Error: {summary['message']}", file=sys.stderr)
-        sys.exit(1)
+        if insecure_ignore:
+            summary = {
+                'server': server_name,
+                'status': 'warning',
+                'tools_scanned': 0,
+                'message': f'Unexpected error (insecure_ignore is enabled): {str(e)}'
+            }
+            print(f"⚠️ Warning: {summary['message']}", file=sys.stderr)
+            print(json.dumps(summary, indent=2))
+        else:
+            summary = {
+                'server': server_name,
+                'status': 'error',
+                'message': f'Unexpected error: {str(e)}'
+            }
+            print(f"❌ Error: {summary['message']}", file=sys.stderr)
+            print(json.dumps(summary, indent=2))
+            sys.exit(1)
 
 if __name__ == "__main__":
     main()

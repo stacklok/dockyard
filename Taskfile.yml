@@ -34,11 +34,8 @@ tasks:
           "{{.SERVER_NAME}}" \
           > "/tmp/{{.SERVER_NAME}}-mcp-config.json"
       - |
-        uv tool run mcp-scan scan "/tmp/{{.SERVER_NAME}}-mcp-config.json" \
-          --json \
-          --storage-file "/tmp/mcp-scan-storage" \
-          --server-timeout 30 \
-          --suppress-mcpserver-io true \
+        python3 scripts/mcp-scan/run_scan.py \
+          "/tmp/{{.SERVER_NAME}}-mcp-config.json" \
           > "/tmp/mcp-scan-{{.SERVER_NAME}}.json"
       - |
         python3 scripts/mcp-scan/process_scan_results.py \
