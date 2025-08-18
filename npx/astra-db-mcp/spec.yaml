@@ -1,0 +1,38 @@
+# Astra DB MCP Server Configuration
+# MCP server for interacting with DataStax Astra DB
+# Package: https://www.npmjs.com/package/@datastax/astra-db-mcp
+# Repository: https://github.com/datastax/astra-db-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/astra-db-mcp:1.2.0
+
+metadata:
+  name: astra-db-mcp
+  description: "Model Context Protocol server for interacting with DataStax Astra DB"
+  version: "1.2.0"
+  protocol: npx
+
+spec:
+  package: "@datastax/astra-db-mcp"
+  version: "1.2.0"
+
+provenance:
+  repository_uri: "https://github.com/datastax/astra-db-mcp"
+  repository_ref: "refs/heads/main"
+
+# Security allowlist - Expected issues for database tools
+security:
+  allowed_issues:
+    - code: "TF001"
+      reason: |
+        Data leak toxic flow is expected for Astra DB operations. The server provides:
+        - Tools that read database content (GetRecord, ListRecords, FindRecord) which access private data
+        - Tools that can create/update records with untrusted content from external sources
+        - OpenBrowser tool that acts as a public sink
+        This combination is necessary for the database server to function as intended,
+        allowing agents to query, manipulate, and authenticate with Astra DB.
+    - code: "TF002"
+      reason: |
+        Destructive toxic flow is expected and required for database management. The server includes:
+        - Destructive operations: DeleteCollection, DeleteRecord, BulkDeleteRecords, UpdateRecord, BulkUpdateRecords
+        - Tools that handle untrusted content: CreateRecord, BulkCreateRecords, FindRecord
+        These destructive capabilities are essential for proper database management,
+        allowing agents to maintain and modify database state as needed.
