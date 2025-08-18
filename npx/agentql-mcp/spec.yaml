@@ -1,0 +1,19 @@
+# AgentQL MCP Server Configuration
+# MCP server that integrates AgentQL's data extraction capabilities
+# Package: https://www.npmjs.com/package/agentql-mcp
+# Repository: https://github.com/tinyfish-io/agentql-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/agentql-mcp:1.0.0
+
+metadata:
+  name: agentql-mcp
+  description: "Model Context Protocol server that integrates AgentQL data extraction capabilities"
+  version: "1.0.0"
+  protocol: npx
+
+spec:
+  package: "agentql-mcp"
+  version: "1.0.0"
+
+provenance:
+  repository_uri: "https://github.com/tinyfish-io/agentql-mcp"
+  repository_ref: "refs/heads/main"
