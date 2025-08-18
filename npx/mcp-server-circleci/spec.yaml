@@ -1,0 +1,29 @@
+# MCP Server CircleCI Configuration
+# MCP server for CircleCI CI/CD platform operations
+# Package: https://www.npmjs.com/package/@circleci/mcp-server-circleci
+# Repository: https://github.com/CircleCI-Public/mcp-server-circleci
+# Will build as: ghcr.io/stacklok/dockyard/npx/mcp-server-circleci:0.14.0
+
+metadata:
+  name: mcp-server-circleci
+  description: "MCP server for CircleCI, enabling natural language interactions with CircleCI functionality"
+  version: "0.14.0"
+  protocol: npx
+
+spec:
+  package: "@circleci/mcp-server-circleci"
+  version: "0.14.0"
+
+provenance:
+  repository_uri: "https://github.com/CircleCI-Public/mcp-server-circleci"
+  repository_ref: "refs/heads/main"
+
+# Optional: Security allowlist
+security:
+  allowed_issues:
+    - code: W001
+      reason: "CI/CD operations require specific terminology for pipeline control (run, rollback, rerun) that may trigger prompt injection warnings"
+    - code: TF001
+      reason: "CircleCI must access private build data, configurations, and secrets while interacting with external systems for CI/CD operations"
+    - code: TF002
+      reason: "CI/CD platforms inherently perform destructive operations like canceling builds, running pipelines, and modifying configurations"
