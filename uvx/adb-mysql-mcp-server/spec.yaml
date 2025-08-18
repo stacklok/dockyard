@@ -1,0 +1,26 @@
+# AnalyticDB for MySQL MCP Server Configuration
+# MCP server for AnalyticDB for MySQL database operations
+# Package: https://pypi.org/project/adb-mysql-mcp-server/
+# Repository: https://github.com/aliyun/alibabacloud-adb-mysql-mcp-server
+# Will build as: ghcr.io/stacklok/dockyard/uvx/adb-mysql-mcp-server:1.0.0
+
+metadata:
+  name: adb-mysql-mcp-server
+  description: "Official MCP server for AnalyticDB for MySQL of Alibaba Cloud"
+  version: "1.0.0"
+  protocol: uvx
+
+spec:
+  package: "adb-mysql-mcp-server"
+  version: "1.0.0"
+
+provenance:
+  repository_uri: "https://github.com/aliyun/alibabacloud-adb-mysql-mcp-server"
+  repository_ref: "refs/heads/master"
+
+# Security allowlist - TF002 is expected for database tools
+security:
+  insecure_ignore: true  # Temporarily ignore scan failures due to mcp-scan JSON serialization bug
+  allowed_issues:
+    - code: "TF002"
+      reason: "Database MCP servers inherently have tools that can execute SQL queries, which is their intended purpose"
