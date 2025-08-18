@@ -1,0 +1,25 @@
+# Chroma MCP Server Configuration
+# MCP server for ChromaDB vector database operations
+# Package: https://pypi.org/project/chroma-mcp/
+# Repository: https://github.com/chroma-core/chroma-mcp
+# Will build as: ghcr.io/stacklok/dockyard/uvx/chroma-mcp:0.2.6
+
+metadata:
+  name: chroma-mcp
+  description: "MCP server for ChromaDB vector database operations"
+  version: "0.2.6"
+  protocol: uvx
+
+spec:
+  package: "chroma-mcp"
+  version: "0.2.6"
+
+provenance:
+  repository_uri: "https://github.com/chroma-core/chroma-mcp"
+  repository_ref: "refs/heads/main"
+
+# Optional: Security allowlist
+security:
+  allowed_issues:
+    - code: TF002
+      reason: "ChromaDB is a vector database that requires both read and write operations for managing embeddings and collections"
