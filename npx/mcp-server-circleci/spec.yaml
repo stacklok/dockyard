@@ -23,6 +23,8 @@ security:
   allowed_issues:
     - code: W001
       reason: "CI/CD operations require specific terminology for pipeline control (run, rollback, rerun) that may trigger prompt injection warnings"
+    - code: E001
+      reason: "Tool descriptions contain operational instructions for CI/CD workflows (e.g., 'MUST start your response with', 'CRITICAL REQUIREMENTS') that are necessary for proper data handling and tool usage guidance"
     - code: TF001
       reason: "CircleCI must access private build data, configurations, and secrets while interacting with external systems for CI/CD operations"
     - code: TF002
