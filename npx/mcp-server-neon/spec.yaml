@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "@neondatabase/mcp-server-neon"
-  version: "0.6.3"
+  version: "0.6.4"
 
 provenance:
   repository_uri: "https://github.com/neondatabase-labs/mcp-server-neon"
