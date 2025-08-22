@@ -5,8 +5,8 @@
 # Will build as: ghcr.io/stacklok/dockyard/uvx/aws-diagram-mcp-server:1.0.5
 
 metadata:
-  name: aws-diagram-mcp-server
-  description: "An AWS Labs Model Context Protocol (MCP) server that creates diagrams using the Python diagrams package DSL"
+  name: aws-diagram
+  description: "Generate AWS diagrams, sequence diagrams, flow diagrams, and class diagrams using Python code"
   version: "1.0.5"
   protocol: uvx  # Uses Python with uv package manager
 
