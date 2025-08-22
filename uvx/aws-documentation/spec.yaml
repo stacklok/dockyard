@@ -5,8 +5,8 @@
 # Will build as: ghcr.io/stacklok/dockyard/uvx/aws-documentation-mcp-server:1.1.2
 
 metadata:
-  name: aws-documentation-mcp-server
-  description: "An AWS Labs Model Context Protocol (MCP) server for AWS Documentation"
+  name: aws-documentation
+  description: "Access AWS documentation, search for content, and get recommendations"
   version: "1.1.2"
   protocol: uvx  # Uses Python with uv package manager
 
@@ -15,6 +15,8 @@ spec:
   version: "1.1.6"                                # Specific version to install
 
 provenance:
+  # Note: The AWS Labs MCP repository uses a monorepo structure
+  # This server is located in src/aws-documentation-mcp-server
   repository_uri: "https://github.com/awslabs/mcp"
   repository_ref: "refs/tags/v1.1.2"  # Git tag reference for this version
 
