@@ -6,7 +6,7 @@ toolchain go1.25.0
 
 require (
 	github.com/spf13/cobra v1.9.1
-	github.com/stacklok/toolhive v0.2.10
+	github.com/stacklok/toolhive v0.2.11
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -153,7 +153,7 @@ require (
 	k8s.io/client-go v0.33.4 // indirect
 	k8s.io/klog/v2 v2.130.1 // indirect
 	k8s.io/kube-openapi v0.0.0-20250318190949-c8a335a9a2ff // indirect
-	k8s.io/utils v0.0.0-20250604170112-4c0f3b243397 // indirect
+	k8s.io/utils v0.0.0-20250820121507-0af2bda4dd1d // indirect
 	sigs.k8s.io/json v0.0.0-20241010143419-9aa6b5e7a4b3 // indirect
 	sigs.k8s.io/randfill v1.0.0 // indirect
 	sigs.k8s.io/structured-merge-diff/v4 v4.6.0 // indirect
