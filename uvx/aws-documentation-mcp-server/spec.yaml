@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "awslabs.aws-documentation-mcp-server"  # PyPI package name
-  version: "1.1.4"                                # Specific version to install
+  version: "1.1.6"                                # Specific version to install
 
 provenance:
   repository_uri: "https://github.com/awslabs/mcp"
