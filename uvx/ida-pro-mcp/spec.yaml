@@ -17,3 +17,9 @@ spec:
 provenance:
   repository_uri: "https://github.com/mrexodia/ida-pro-mcp"
   repository_ref: "refs/heads/main"
+
+# Security allowlist for false positive
+security:
+  allowed_issues:
+    - code: "TF002"
+      reason: "Destructive toxic flow is acceptable for a reverse engineering tool"
