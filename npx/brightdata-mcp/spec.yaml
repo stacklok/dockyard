@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "@brightdata/mcp"
-  version: "2.4.3"
+  version: "2.5.0"
 
 provenance:
   repository_uri: "https://github.com/brightdata/brightdata-mcp"
