@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "@supabase/mcp-server-supabase"
-  version: "0.5.2"
+  version: "0.5.3"
 
 provenance:
   repository_uri: "https://github.com/supabase-community/supabase-mcp"
