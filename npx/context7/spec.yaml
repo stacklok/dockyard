@@ -2,12 +2,12 @@
 # This server provides vector search and context management capabilities
 # Package: https://www.npmjs.com/package/@upstash/context7-mcp
 # Repository: https://github.com/upstash/context7
-# Will build as: ghcr.io/stacklok/dockyard/npx/context7:1.0.14
+# Will build as: ghcr.io/stacklok/dockyard/npx/context7:1.0.17
 
 metadata:
   name: context7
   description: "Upstash Context7 MCP server for vector search and context management"
-  version: "1.0.14"
+  version: "1.0.17"
   protocol: npx  # Uses Node.js package manager (npm/npx)
 
 spec:
@@ -18,4 +18,4 @@ provenance:
   # Note: This package does not have npm provenance attestations (Sigstore signatures)
   # The repository information below is verified from npm metadata and GitHub
   repository_uri: "https://github.com/upstash/context7"
-  repository_ref: "refs/tags/v1.0.14"
+  repository_ref: "refs/tags/v1.0.17"
