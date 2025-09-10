@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "awslabs.aws-documentation-mcp-server"  # PyPI package name
-  version: "1.1.6"                                # Specific version to install
+  version: "1.1.7"                                # Specific version to install
 
 provenance:
   # Note: The AWS Labs MCP repository uses a monorepo structure
