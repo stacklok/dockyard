@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "@arizeai/phoenix-mcp"
-  version: "2.2.12"
+  version: "2.2.13"
 
 provenance:
   repository_uri: "https://github.com/Arize-ai/phoenix"
