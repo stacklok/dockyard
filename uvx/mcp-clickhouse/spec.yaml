@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "mcp-clickhouse"  # PyPI package name
-  version: "0.1.11"          # Latest version from PyPI
+  version: "0.1.12"          # Latest version from PyPI
 
 provenance:
   repository_uri: "https://github.com/ClickHouse/mcp-clickhouse"
