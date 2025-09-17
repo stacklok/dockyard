@@ -7,7 +7,6 @@
 metadata:
   name: tavily-mcp
   description: "MCP server for advanced web search using Tavily"
-  version: "0.2.9"
   protocol: npx
 
 spec:

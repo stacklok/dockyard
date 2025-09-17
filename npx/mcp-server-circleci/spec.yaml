@@ -7,7 +7,6 @@
 metadata:
   name: mcp-server-circleci
   description: "MCP server for CircleCI, enabling natural language interactions with CircleCI functionality"
-  version: "0.14.0"
   protocol: npx
 
 spec:

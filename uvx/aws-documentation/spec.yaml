@@ -7,7 +7,6 @@
 metadata:
   name: aws-documentation
   description: "Access AWS documentation, search for content, and get recommendations"
-  version: "1.1.2"
   protocol: uvx  # Uses Python with uv package manager
 
 spec:

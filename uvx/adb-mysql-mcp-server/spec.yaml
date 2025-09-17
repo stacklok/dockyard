@@ -7,7 +7,6 @@
 metadata:
   name: adb-mysql-mcp-server
   description: "Official MCP server for AnalyticDB for MySQL of Alibaba Cloud"
-  version: "1.0.0"
   protocol: uvx
 
 spec:

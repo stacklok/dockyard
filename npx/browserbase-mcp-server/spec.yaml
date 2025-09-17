@@ -7,7 +7,6 @@
 metadata:
   name: browserbase-mcp-server
   description: "MCP server for cloud browser automation with Browserbase and Stagehand"
-  version: "2.0.0"
   protocol: npx
 
 spec:

@@ -7,7 +7,6 @@
 metadata:
   name: mcp-server-box
   description: "MCP server that integrates with the Box API to perform file operations, AI-based querying, metadata management, and document generation"
-  version: "0.1.1"
   protocol: uvx  # Uses Python with uv package manager
 
 spec:

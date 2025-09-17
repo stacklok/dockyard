@@ -29,7 +29,6 @@ type MCPServerSpec struct {
 type MCPServerMetadata struct {
 	Name        string `yaml:"name"`
 	Description string `yaml:"description,omitempty"`
-	Version     string `yaml:"version,omitempty"`
 	Protocol    string `yaml:"protocol"` // npx, uvx, go
 }
 
@@ -259,11 +258,8 @@ func generateImageTag(spec *MCPServerSpec) string {
 	// Clean the package name to create a valid image name
 	name := cleanPackageName(spec.Metadata.Name)
 
-	// Use version from spec or metadata, fallback to "latest"
+	// Use version from spec, fallback to "latest"
 	version := spec.Spec.Version
-	if version == "" {
-		version = spec.Metadata.Version
-	}
 	if version == "" {
 		version = "latest"
 	}

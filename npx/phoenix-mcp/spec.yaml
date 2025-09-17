@@ -7,7 +7,6 @@
 metadata:
   name: phoenix-mcp
   description: "MCP server for Arize Phoenix observability platform"
-  version: "2.2.9"
   protocol: npx
 
 spec:

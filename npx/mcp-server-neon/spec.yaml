@@ -7,7 +7,6 @@
 metadata:
   name: mcp-server-neon
   description: "MCP server for interacting with Neon Management API and databases"
-  version: "0.6.3"
   protocol: npx
 
 spec:

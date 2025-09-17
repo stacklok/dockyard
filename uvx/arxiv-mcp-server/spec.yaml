@@ -7,7 +7,6 @@
 metadata:
   name: arxiv-mcp-server
   description: "A flexible arXiv search and analysis service with MCP protocol support"
-  version: "0.3.0"
   protocol: uvx
 
 spec:

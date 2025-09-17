@@ -7,7 +7,6 @@
 metadata:
   name: mcp-jetbrains
   description: "A MCP proxy to redirect requests to JetBrains IDEs"
-  version: "1.8.0"
   protocol: npx
 
 spec:

@@ -7,7 +7,6 @@
 metadata:
   name: mcp-neo4j-cypher
   description: "MCP server for executing Cypher queries against Neo4j databases"
-  version: "0.3.1"
   protocol: uvx
 
 spec:

@@ -7,7 +7,6 @@
 metadata:
   name: chroma-mcp
   description: "MCP server for ChromaDB vector database operations"
-  version: "0.2.6"
   protocol: uvx
 
 spec:

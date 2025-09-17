@@ -7,7 +7,6 @@
 metadata:
   name: context7
   description: "Upstash Context7 MCP server for vector search and context management"
-  version: "1.0.17"
   protocol: npx  # Uses Node.js package manager (npm/npx)
 
 spec:

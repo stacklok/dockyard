@@ -7,7 +7,6 @@
 metadata:
   name: brightdata-mcp
   description: "An MCP interface into the Bright Data toolset"
-  version: "2.4.2"
   protocol: npx
 
 spec:

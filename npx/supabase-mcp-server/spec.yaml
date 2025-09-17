@@ -7,7 +7,6 @@
 metadata:
   name: supabase-mcp-server
   description: "MCP server for interacting with Supabase"
-  version: "0.4.5"
   protocol: npx
 
 spec:

@@ -7,7 +7,6 @@
 metadata:
   name: magic-mcp
   description: "AI-powered UI component generator MCP server by 21st.dev"
-  version: "0.1.0"
   protocol: npx
 
 spec:

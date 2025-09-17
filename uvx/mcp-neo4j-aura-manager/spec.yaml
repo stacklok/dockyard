@@ -7,7 +7,6 @@
 metadata:
   name: mcp-neo4j-aura-manager
   description: "MCP server for managing Neo4j Aura cloud instances"
-  version: "0.3.0"
   protocol: uvx
 
 spec:

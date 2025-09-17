@@ -7,7 +7,6 @@
 metadata:
   name: blender-mcp
   description: "Blender integration through the Model Context Protocol"
-  version: "1.2.1"
   protocol: uvx
 
 spec:

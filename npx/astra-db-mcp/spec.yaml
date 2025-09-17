@@ -7,7 +7,6 @@
 metadata:
   name: astra-db-mcp
   description: "Model Context Protocol server for interacting with DataStax Astra DB"
-  version: "1.2.0"
   protocol: npx
 
 spec:

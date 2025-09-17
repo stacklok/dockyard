@@ -7,7 +7,6 @@
 metadata:
   name: onchain-mcp
   description: "MCP server for blockchain data interaction through the Bankless API"
-  version: "1.0.6"
   protocol: npx
 
 spec:

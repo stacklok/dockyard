@@ -251,15 +251,12 @@ jobs:
           server_name=$(echo "$config_file" | cut -d'/' -f2)
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
           
-          # Extract version from YAML file (prefer spec.version, fallback to metadata.version)
+          # Extract version from YAML file (spec.version)
           spec_version=$(grep -A1 "^spec:" "$config_file" | grep "version:" | sed 's/.*version:[ ]*"\(.*\)".*/\1/' | head -1)
-          metadata_version=$(grep -A10 "^metadata:" "$config_file" | grep "version:" | sed 's/.*version:[ ]*"\(.*\)".*/\1/' | head -1)
           
-          # Use spec.version if available, otherwise metadata.version, otherwise "latest"
+          # Use spec.version if available, otherwise "latest"
           if [ -n "$spec_version" ]; then
             version="$spec_version"
-          elif [ -n "$metadata_version" ]; then
-            version="$metadata_version"
           else
             version="latest"
           fi

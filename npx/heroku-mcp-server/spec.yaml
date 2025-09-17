@@ -7,7 +7,6 @@
 metadata:
   name: heroku-mcp-server
   description: "MCP server for seamless interaction between LLMs and the Heroku Platform"
-  version: "1.0.7"
   protocol: npx
 
 spec:

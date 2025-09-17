@@ -7,7 +7,6 @@
 metadata:
   name: mcp-clickhouse
   description: "MCP server for ClickHouse that provides tools to execute SQL queries, list databases and tables, and optionally use chDB's embedded OLAP engine"
-  version: "0.1.11"
   protocol: uvx  # Uses Python with uv package manager
 
 spec:

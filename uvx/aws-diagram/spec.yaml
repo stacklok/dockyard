@@ -7,7 +7,6 @@
 metadata:
   name: aws-diagram
   description: "Generate AWS diagrams, sequence diagrams, flow diagrams, and class diagrams using Python code"
-  version: "1.0.5"
   protocol: uvx  # Uses Python with uv package manager
 
 spec:
