@@ -228,6 +228,9 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
 
+      - name: Install yq
+        uses: mikefarah/yq@v4.47.2
+
       - name: Log in to Container Registry
         # Only login when we're going to push (main branch or manual trigger)
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
