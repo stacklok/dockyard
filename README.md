@@ -1,5 +1,3 @@
-## Note: This is an experimental project that is actively being developed and tested - features may change without notice
-
 # Dockyard - MCP Server Container Builder
 
 > **A centralized repository for packaging Model Context Protocol (MCP) servers into containers**
