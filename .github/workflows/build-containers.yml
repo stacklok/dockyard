@@ -255,7 +255,7 @@ jobs:
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
           
           # Extract version from YAML file (spec.version)
-          spec_version=$(grep -A1 "^spec:" "$config_file" | grep "version:" | sed 's/.*version:[ ]*"\(.*\)".*/\1/' | head -1)
+          spec_version=$(yq '.spec.version' "$config_file" 2>/dev/null || echo "")
           
           # Use spec.version if available, otherwise "latest"
           if [ -n "$spec_version" ]; then
