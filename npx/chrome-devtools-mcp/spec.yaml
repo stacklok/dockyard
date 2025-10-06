@@ -1,0 +1,18 @@
+# Chrome DevTools MCP server
+# Package URL: https://www.npmjs.com/package/chrome-devtools-mcp
+# Repository: https://github.com/ChromeDevTools/chrome-devtools-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/chrome-devtools-mcp:0.6.0
+
+metadata:
+  name: chrome-devtools-mcp
+  description: "MCP server for Chrome DevTools. Provides browser automation, debugging, and performance analysis via Chrome DevTools."
+  version: "0.6.0"
+  protocol: npx
+
+spec:
+  package: "chrome-devtools-mcp"
+  version: "0.6.0"
+
+provenance:
+  repository_uri: "https://github.com/ChromeDevTools/chrome-devtools-mcp"
+  repository_ref: "refs/tags/chrome-devtools-mcp-v0.6.0"
