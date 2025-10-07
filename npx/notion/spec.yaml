@@ -1,0 +1,38 @@
+# Notion MCP Server Configuration
+# MCP server for interacting with the Notion API
+# Package: https://www.npmjs.com/package/@notionhq/notion-mcp-server
+# Repository: https://github.com/makenotion/notion-mcp-server
+# Will build as: ghcr.io/stacklok/dockyard/npx/notion:1.9.0
+
+metadata:
+  name: notion
+  description: "MCP server for interacting with the Notion API"
+  version: "1.9.0"
+  protocol: npx
+
+spec:
+  package: "@notionhq/notion-mcp-server"
+  version: "1.9.0"
+
+provenance:
+  repository_uri: "https://github.com/makenotion/notion-mcp-server"
+  repository_ref: "refs/heads/main"
+
+# Optional: Security allowlist
+security:
+  allowed_issues:
+    - code: "TF001"
+      reason: |
+        Data leak toxic flow is expected for a Notion integration server. Notion MCP server:
+        - Reads private Notion workspace data including pages, databases, and user information (private data access)
+        - Processes user-generated content from various Notion sources and external integrations (untrusted content)
+        - Exports and shares Notion data through search, fetch, and analysis operations (public sink)
+        This combination is essential for the Notion MCP server to function effectively,
+        allowing agents to access, analyze, and work with Notion workspace content and data.
+    - code: "TF002"
+      reason: |
+        Destructive toxic flow is expected and required for Notion content management. The server includes:
+        - Tools to delete, update, and move Notion pages, databases, and other content (destructive operations)
+        - Tools that process user-generated content from Notion workspaces and external sources (untrusted content)
+        These capabilities are essential for proper Notion workspace management,
+        allowing agents to create, modify, organize, and maintain Notion content effectively.
