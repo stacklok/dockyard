@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "graphlit-mcp-server"
-  version: "1.0.20251005001"
+  version: "1.0.20251007001"
 
 provenance:
   repository_uri: "https://github.com/graphlit/graphlit-mcp-server"
