@@ -97,8 +97,72 @@ jobs:
           echo "All configurations: $all_configs_json"
           echo "Configurations to build: $configs_json"
 
-  mcp-security-scan:
+  verify-provenance:
     needs: discover-configs
+    runs-on: ubuntu-latest
+    # Verify package provenance when we have configs to build
+    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
+      fail-fast: false
+
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5
+
+      - name: Set up Go
+        uses: actions/setup-go@44694675825211faa026b3c33043df3e48a5fa00 # v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Extract metadata from config
+        id: meta
+        run: |
+          config_file="${{ matrix.config }}"
+          protocol=$(echo "$config_file" | cut -d'/' -f1)
+          server_name=$(echo "$config_file" | cut -d'/' -f2)
+
+          echo "config_file=$config_file" >> $GITHUB_OUTPUT
+          echo "protocol=$protocol" >> $GITHUB_OUTPUT
+          echo "server_name=$server_name" >> $GITHUB_OUTPUT
+
+      - name: Build dockhand
+        run: go build -o /tmp/dockhand ./cmd/dockhand
+
+      - name: Verify package provenance
+        id: provenance
+        run: |
+          echo "🔍 Verifying package provenance for ${{ steps.meta.outputs.server_name }}"
+
+          # Run provenance verification
+          if /tmp/dockhand verify-provenance -c "${{ matrix.config }}" > /tmp/provenance-${{ steps.meta.outputs.server_name }}.txt 2>&1; then
+            echo "provenance_passed=true" >> $GITHUB_OUTPUT
+            echo "✅ Provenance verification passed" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "provenance_passed=false" >> $GITHUB_OUTPUT
+            echo "⚠️ Provenance verification failed or package has no provenance" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Display results
+          cat /tmp/provenance-${{ steps.meta.outputs.server_name }}.txt
+
+          # Save for artifact
+          cp /tmp/provenance-${{ steps.meta.outputs.server_name }}.txt .
+
+      - name: Upload provenance verification results
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: provenance-${{ steps.meta.outputs.server_name }}
+          path: provenance-${{ steps.meta.outputs.server_name }}.txt
+          retention-days: 30
+
+  mcp-security-scan:
+    needs: [discover-configs, verify-provenance]
     runs-on: ubuntu-latest
     # Always run security scans when we have configs to build
     if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
@@ -106,7 +170,7 @@ jobs:
       matrix:
         config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
       fail-fast: false
-    
+
     permissions:
       contents: read
       pull-requests: write
@@ -195,9 +259,9 @@ jobs:
           retention-days: 30
 
   build-containers:
-    needs: [discover-configs, mcp-security-scan]
+    needs: [discover-configs, verify-provenance, mcp-security-scan]
     runs-on: ubuntu-latest
-    # Only proceed if security scans passed
+    # Only proceed if security scans passed (provenance check is informational only)
     if: ${{ needs.discover-configs.outputs.changed-configs != '[]' && needs.mcp-security-scan.result == 'success' }}
     strategy:
       matrix:
@@ -566,7 +630,7 @@ jobs:
             }
 
   summary:
-    needs: [discover-configs, mcp-security-scan, build-containers]
+    needs: [discover-configs, verify-provenance, mcp-security-scan, build-containers]
     runs-on: ubuntu-latest
     if: always()
     steps:
@@ -577,7 +641,15 @@ jobs:
           echo "- **Ref**: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Total Configs**: ${{ needs.discover-configs.outputs.configs }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Changed Configs**: ${{ needs.discover-configs.outputs.changed-configs }}" >> $GITHUB_STEP_SUMMARY
-          
+
+          if [ "${{ needs.verify-provenance.result }}" == "success" ]; then
+            echo "- **Provenance Verification**: ✅ All packages verified" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.verify-provenance.result }}" == "failure" ]; then
+            echo "- **Provenance Verification**: ⚠️ Some packages have provenance issues (non-blocking)" >> $GITHUB_STEP_SUMMARY
+          elif [ "${{ needs.verify-provenance.result }}" == "skipped" ]; then
+            echo "- **Provenance Verification**: ⏭️ Skipped" >> $GITHUB_STEP_SUMMARY
+          fi
+
           if [ "${{ needs.mcp-security-scan.result }}" == "success" ]; then
             echo "- **Security Scan**: ✅ All MCP servers passed security scanning" >> $GITHUB_STEP_SUMMARY
           elif [ "${{ needs.mcp-security-scan.result }}" == "failure" ]; then
