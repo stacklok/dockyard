@@ -61,8 +61,17 @@ spec:
   version: "1.0.0"               # Required: Specific version to build
 
 provenance:                       # Optional but recommended
-  repository_uri: "https://github.com/user/repo"  # Source repository
+  repository_uri: "https://github.com/user/repo"  # Expected source repository (used for verification)
   repository_ref: "refs/tags/v1.0.0"              # Git tag/branch/commit
+
+  # Attestation information (optional - documents package provenance)
+  attestations:
+    available: true              # Whether the package has provenance attestations
+    verified: true               # Whether attestations have been cryptographically verified
+    publisher:
+      kind: "GitHub"            # Publisher type (e.g., GitHub, GitLab)
+      repository: "user/repo"   # Publisher repository
+      workflow: ".github/workflows/release.yml"  # Publishing workflow
 ```
 
 ### Step 3: Protocol-Specific Examples
@@ -313,13 +322,32 @@ When you use a Dockyard container image, you can be confident that:
 ## 🏗️ How It Works
 
 1. **Detection**: GitHub Actions detects changes to YAML files
-2. **Security Scan**: Runs mcp-scan to check for vulnerabilities
-3. **Validation**: Validates YAML structure and required fields
-4. **Protocol Scheme**: Constructs protocol scheme (e.g., `npx://@upstash/context7-mcp@1.0.14`)
-5. **Container Build**: Uses ToolHive's `BuildFromProtocolSchemeWithName` function (only if security scan passes)
-6. **Attestation**: Creates and signs SBOM, provenance, and security scan attestations
-7. **Publishing**: Pushes to GitHub Container Registry with automatic tagging
-8. **Updates**: Renovate automatically creates PRs for new package versions
+2. **Provenance Verification**: Verifies package provenance using `dockhand verify-provenance` (informational)
+3. **Security Scan**: Runs mcp-scan to check for vulnerabilities (blocking)
+4. **Validation**: Validates YAML structure and required fields
+5. **Protocol Scheme**: Constructs protocol scheme (e.g., `npx://@upstash/context7-mcp@1.0.14`)
+6. **Container Build**: Uses ToolHive's `BuildFromProtocolSchemeWithName` function (only if security scan passes)
+7. **Attestation**: Creates and signs SBOM, provenance, and security scan attestations
+8. **Publishing**: Pushes to GitHub Container Registry with automatic tagging
+9. **Updates**: Renovate automatically creates PRs for new package versions
+
+### CI/CD Pipeline
+
+The CI/CD pipeline runs in this order:
+
+```mermaid
+graph TD
+    A[Discover Configs] --> B[Verify Provenance]
+    B --> C[MCP Security Scan]
+    C --> D{Security Passed?}
+    D -->|Yes| E[Build Containers]
+    D -->|No| F[Fail Build]
+    E --> G[Sign with Cosign]
+    G --> H[Create Attestations]
+    H --> I[Push to Registry]
+```
+
+**Provenance verification** is informational and does not block builds - it helps track which packages have cryptographic verification available.
 
 ## 📋 Container Image Naming
 
@@ -332,6 +360,66 @@ Examples:
 - `ghcr.io/stacklok/dockyard/npx/context7:1.0.14`
 - `ghcr.io/stacklok/dockyard/uvx/aws-documentation-mcp-server:1.1.2`
 - `ghcr.io/stacklok/dockyard/go/my-mcp-server:latest`
+
+## 🔍 Package Provenance Verification
+
+Dockyard includes built-in support for verifying package provenance using cryptographic attestations. This helps ensure supply chain security by verifying the authenticity and origin of packages.
+
+### Checking Provenance
+
+Use the `verify-provenance` command to check if a package has provenance information:
+
+```bash
+# Verify npm package provenance
+./build/dockhand verify-provenance -c npx/context7/spec.yaml
+
+# Verify PyPI package provenance
+./build/dockhand verify-provenance -c uvx/mcp-clickhouse/spec.yaml
+
+# Verbose output with details
+./build/dockhand verify-provenance -c uvx/aws-documentation/spec.yaml -v
+```
+
+### Provenance Coverage
+
+Current provenance coverage for packaged MCP servers:
+
+**npm packages (npx/) - 17 total:**
+- 16 packages (94%) have **legacy npm signatures** - detected but not cryptographically verified
+- 1 package (6%) has **modern attestations** - @jetbrains/mcp-proxy with SLSA provenance
+
+**PyPI packages (uvx/) - 12 total:**
+- 3 packages (25%) have **PEP 740 attestations** with cryptographic verification
+  - AWS Labs packages (aws-documentation, aws-diagram)
+  - ClickHouse (mcp-clickhouse)
+- 9 packages (75%) have no provenance
+
+### What Gets Verified
+
+**For npm:**
+- **Legacy signatures** (16 packages): Detection only - confirms they exist
+- **Modern attestations** (1 package): Downloads Sigstore bundles, verifies cryptographically
+
+**For PyPI with attestations (3 packages):**
+1. **Cryptographic signatures** using Sigstore
+2. **Publisher identity** (GitHub Actions from the expected repository)
+3. **Transparency logs** (Rekor entries)
+4. **Certificate validity** via Sigstore trust roots
+5. **Artifact integrity** (SHA256 hashes match)
+
+### Measuring Provenance
+
+Scripts are available in `scripts/` to measure provenance coverage:
+
+```bash
+# Check npm provenance for all packages
+python3 scripts/check-npm-provenance.py
+
+# Check PyPI provenance for all packages
+python3 scripts/check-pypi-provenance.py
+```
+
+Results are saved to JSON files for tracking over time.
 
 ## 🛠️ Local Development
 

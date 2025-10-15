@@ -14,5 +14,16 @@ spec:
   version: "0.1.12"          # Latest version from PyPI
 
 provenance:
+  # Expected source repository (used for attestation verification)
   repository_uri: "https://github.com/ClickHouse/mcp-clickhouse"
   repository_ref: "refs/heads/main"  # Using main branch as the primary development branch
+
+  # Attestation information (PEP 740)
+  # Verified with: dockhand verify-provenance -c uvx/mcp-clickhouse/spec.yaml
+  attestations:
+    available: true
+    verified: true  # Cryptographic verification via sigstore-go
+    publisher:
+      kind: "GitHub"
+      repository: "ClickHouse/mcp-clickhouse"
+      workflow: ".github/workflows/release.yml"

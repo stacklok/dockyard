@@ -14,10 +14,19 @@ spec:
   version: "1.0.10"                           # Latest version from PyPI
 
 provenance:
-  # Note: The AWS Labs MCP repository uses a monorepo structure
-  # This server is located in src/aws-diagram-mcp-server
+  # Expected source repository (used for attestation verification)
   repository_uri: "https://github.com/awslabs/mcp"
   repository_ref: "refs/heads/main"  # Using main branch as specific tags are not available for this package
+
+  # Attestation information (PEP 740)
+  # Verified with: dockhand verify-provenance -c uvx/aws-diagram/spec.yaml
+  attestations:
+    available: true
+    verified: true  # Cryptographic verification via sigstore-go
+    publisher:
+      kind: "GitHub"
+      repository: "awslabs/mcp"
+      workflow: ".github/workflows/publish.yml"
 
 security:
   # Security allowlist for known issues that are acceptable in this context

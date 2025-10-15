@@ -33,6 +33,16 @@ provenance:
   repository_uri: "{github-url}"
   repository_ref: "{git-ref}"  # refs/heads/main or refs/tags/v1.0.0
 
+  # Attestation information (if available)
+  # Document package provenance for supply chain security
+  attestations:
+    available: true              # Whether the package has provenance attestations
+    verified: true               # Whether you've verified the attestations
+    publisher:
+      kind: "{GitHub|GitLab}"   # Publisher type
+      repository: "{owner/repo}" # Publisher repository
+      workflow: "{workflow.yml}" # Publishing workflow (optional)
+
 # Optional: Security allowlist
 security:
   allowed_issues:
@@ -169,8 +179,58 @@ Note: Only spec.yaml changes trigger automatic builds. Manual triggers build all
 | Version error | Ensure version exists in package registry |
 | Wrong protocol | Verify package type matches directory (uvx/npx/go) |
 
+## Verifying Package Provenance
+
+Before adding a new MCP server, verify its provenance:
+
+```bash
+# After creating the spec.yaml, verify the package
+dockhand verify-provenance -c {protocol}/{server-name}/spec.yaml
+
+# With verbose output to see details
+dockhand verify-provenance -c {protocol}/{server-name}/spec.yaml -v
+```
+
+### Understanding Provenance Status
+
+- **VERIFIED**: Package has attestations that were cryptographically verified
+- **ATTESTATIONS**: Package has attestations (npm) or PEP 740 attestations (PyPI)
+- **SIGNATURES**: Package has signatures (older npm format)
+- **TRUSTED_PUBLISHER**: Package uses PyPI Trusted Publishers
+- **NONE**: No provenance information available
+
+### Documenting Provenance in spec.yaml
+
+If provenance is available, document it in your spec.yaml:
+
+```yaml
+provenance:
+  repository_uri: "https://github.com/owner/repo"
+  repository_ref: "refs/tags/v1.0.0"
+
+  attestations:
+    available: true
+    verified: true
+    publisher:
+      kind: "GitHub"
+      repository: "owner/repo"
+      workflow: ".github/workflows/release.yml"
+```
+
+This helps future maintainers verify that attestations haven't been removed and establishes the expected publisher identity.
+
+### Provenance Best Practices
+
+1. **Always check provenance** before adding new packages
+2. **Prefer packages with attestations** when multiple options exist
+3. **Document attestation info** in spec.yaml for verification
+4. **Re-verify** when updating package versions
+
 ## Resources
 
 - [MCP Documentation](https://modelcontextprotocol.io/)
 - [Dockyard Repository](https://github.com/stacklok/dockyard)
 - [Example MCP Servers](https://github.com/modelcontextprotocol/servers)
+- [npm Provenance](https://docs.npmjs.com/generating-provenance-statements)
+- [PyPI Attestations (PEP 740)](https://peps.python.org/pep-0740/)
+- [Sigstore Documentation](https://docs.sigstore.dev/)
