@@ -1,0 +1,18 @@
+# Netbird MCP Server Configuration
+# MCP server for interacting with Netbird networking
+# Go module: go install github.com/aantti/mcp-netbird/cmd/mcp-netbird@latest
+# Repository: https://github.com/aantti/mcp-netbird
+# Will build as: ghcr.io/stacklok/dockyard/go/netbird
+
+metadata:
+  name: netbird
+  description: "MCP Server for Netbird"
+  protocol: go
+
+spec:
+  package: "github.com/aantti/mcp-netbird/cmd/mcp-netbird"
+  version: "latest"
+
+provenance:
+  repository_uri: "https://github.com/aantti/mcp-netbird?tab=readme-ov-file"
+  repository_ref: "refs/heads/main"
