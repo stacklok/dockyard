@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@upstash/context7-mcp"  # NPM package name
-  version: "1.0.25"                # Specific version to install
+  version: "1.0.26"                # Specific version to install
 
 provenance:
   # Note: This package does not have npm provenance attestations (Sigstore signatures)
