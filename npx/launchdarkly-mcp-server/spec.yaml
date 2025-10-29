@@ -1,0 +1,18 @@
+# LaunchDarkly MCP Server Configuration
+# MCP server for LaunchDarkly feature flags and AI configs management
+# Package: https://www.npmjs.com/package/@launchdarkly/mcp-server
+# Repository: https://github.com/launchdarkly/mcp-server
+# Will build as: ghcr.io/stacklok/dockyard/npx/launchdarkly-mcp-server:0.4.2
+
+metadata:
+  name: launchdarkly-mcp-server
+  description: "MCP server for LaunchDarkly feature flags and AI configs management"
+  protocol: npx
+
+spec:
+  package: "@launchdarkly/mcp-server"
+  version: "0.4.2"
+
+provenance:
+  repository_uri: "https://github.com/launchdarkly/mcp-server"
+  repository_ref: "refs/heads/main"
