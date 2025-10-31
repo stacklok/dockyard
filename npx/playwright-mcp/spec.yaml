@@ -1,0 +1,25 @@
+# Playwright MCP Server Configuration
+# Official Playwright MCP server for browser automation and testing
+# Package: https://www.npmjs.com/package/@playwright/mcp
+# Repository: https://github.com/microsoft/playwright-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/playwright-mcp:0.0.44
+
+metadata:
+  name: playwright-mcp
+  description: "Official Playwright MCP server for browser automation and testing"
+  protocol: npx
+
+spec:
+  package: "@playwright/mcp"
+  version: "0.0.44"
+
+provenance:
+  repository_uri: "https://github.com/microsoft/playwright-mcp"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "TF001"
+      reason: "Data leak risk acceptable - tool designed for browser automation and web testing workflows where external content interaction is essential. Users should be aware of potential data exposure when automating web interactions."
+    - code: "TF002"
+      reason: "Destructive flow risk acceptable - browser automation tools are core functionality for web testing and automation. Users should only use with trusted prompts and on non-production systems."
