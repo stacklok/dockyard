@@ -2,7 +2,7 @@ module github.com/stacklok/dockyard
 
 go 1.25.2
 
-toolchain go1.25.3
+toolchain go1.25.4
 
 require (
 	github.com/sigstore/sigstore-go v1.1.3
