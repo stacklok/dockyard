@@ -1,0 +1,27 @@
+# Chrome DevTools MCP Server Configuration
+# Browser automation and debugging using Chrome DevTools Protocol
+# Package: https://www.npmjs.com/package/chrome-devtools-mcp
+# Repository: https://github.com/ChromeDevTools/chrome-devtools-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/chrome-devtools-mcp:0.10.1
+
+metadata:
+  name: chrome-devtools-mcp
+  description: "Chrome DevTools for coding agents - browser automation and debugging using Chrome DevTools Protocol"
+  protocol: npx
+
+spec:
+  package: "chrome-devtools-mcp"
+  version: "0.10.1"
+
+provenance:
+  repository_uri: "https://github.com/ChromeDevTools/chrome-devtools-mcp"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "E001"
+      reason: "Tool documentation contains legitimate browser automation instructions (e.g., selector syntax, DOM operations, DevTools Protocol commands) that may resemble prompt injection patterns but are necessary for proper browser control and debugging functionality"
+    - code: "TF001"
+      reason: "Data leak risk acceptable - tool designed for browser automation and debugging workflows where external content interaction is essential. Chrome DevTools MCP server reads page content, console messages, and network requests which may contain sensitive information. Users should be aware of potential data exposure when automating browser interactions."
+    - code: "TF002"
+      reason: "Destructive flow risk acceptable - browser automation and debugging tools are core functionality. Chrome DevTools MCP includes tools for page navigation, script evaluation, and DOM manipulation. Users should only use with trusted prompts and be aware of the impact of browser automation actions."
