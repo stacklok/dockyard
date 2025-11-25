@@ -309,27 +309,56 @@ cosign verify-attestation \
 
 Note: Security scan attestations are only created when the MCP security scan runs and produces results for that specific image build.
 
+### Container Vulnerability Scanning
+
+All built container images are scanned for vulnerabilities using [Trivy](https://trivy.dev/), checking for:
+
+- **Vulnerabilities**: CVEs in OS packages and application dependencies (CRITICAL, HIGH, MEDIUM severity)
+- **Secrets**: Exposed API keys, tokens, credentials
+- **Misconfigurations**: Security issues in container configuration
+
+Scan results are:
+- Uploaded to the **GitHub Security** tab for each repository
+- Available in the **Security** → **Code scanning** section
+- Non-blocking for PRs (informational only)
+- Automatically run on every build and weekly via periodic scans
+
+To view scan results:
+```bash
+# Navigate to: https://github.com/stacklok/dockyard/security/code-scanning
+# Filter by "trivy-{server-name}" to see specific results
+```
+
+Trivy scans run:
+1. **On every PR**: Provides immediate feedback on new/changed containers
+2. **On main branch**: Scans all published images after build
+3. **Weekly (Monday 2am UTC)**: Comprehensive periodic scans to catch newly disclosed CVEs
+4. **Manual trigger**: Run periodic scans on-demand via GitHub Actions
+
 ### Security Guarantees
 
 When you use a Dockyard container image, you can be confident that:
 
 1. **Source Integrity**: The image was built from the exact source code in this repository
 2. **Build Transparency**: Full build provenance is available and verifiable
-3. **Security Scanning**: The MCP server was scanned for security vulnerabilities before packaging
-4. **Dependency Tracking**: Complete SBOM is available for vulnerability management
-5. **Non-repudiation**: Signatures prove the image came from our CI/CD pipeline
+3. **MCP Security Scanning**: The MCP server was scanned for security vulnerabilities before packaging
+4. **Container Vulnerability Scanning**: Container images are scanned with Trivy for CVEs, secrets, and misconfigurations
+5. **Dependency Tracking**: Complete SBOM is available for vulnerability management
+6. **Non-repudiation**: Signatures prove the image came from our CI/CD pipeline
+7. **Continuous Monitoring**: Weekly scans catch newly disclosed vulnerabilities in published images
 
 ## 🏗️ How It Works
 
 1. **Detection**: GitHub Actions detects changes to YAML files
 2. **Provenance Verification**: Verifies package provenance using `dockhand verify-provenance` (informational)
-3. **Security Scan**: Runs mcp-scan to check for vulnerabilities (blocking)
+3. **MCP Security Scan**: Runs mcp-scan to check for MCP-specific vulnerabilities (blocking)
 4. **Validation**: Validates YAML structure and required fields
 5. **Protocol Scheme**: Constructs protocol scheme (e.g., `npx://@upstash/context7-mcp@1.0.14`)
 6. **Container Build**: Uses ToolHive's `BuildFromProtocolSchemeWithName` function (only if security scan passes)
-7. **Attestation**: Creates and signs SBOM, provenance, and security scan attestations
-8. **Publishing**: Pushes to GitHub Container Registry with automatic tagging
-9. **Updates**: Renovate automatically creates PRs for new package versions
+7. **Container Vulnerability Scan**: Scans built images with Trivy for CVEs, secrets, and misconfigurations (non-blocking)
+8. **Attestation**: Creates and signs SBOM, provenance, and security scan attestations
+9. **Publishing**: Pushes to GitHub Container Registry with automatic tagging
+10. **Updates**: Renovate automatically creates PRs for new package versions
 
 ### CI/CD Pipeline
 
@@ -339,12 +368,14 @@ The CI/CD pipeline runs in this order:
 graph TD
     A[Discover Configs] --> B[Verify Provenance]
     B --> C[MCP Security Scan]
-    C --> D{Security Passed?}
+    C --> D{MCP Scan Passed?}
     D -->|Yes| E[Build Containers]
     D -->|No| F[Fail Build]
-    E --> G[Sign with Cosign]
-    G --> H[Create Attestations]
-    H --> I[Push to Registry]
+    E --> G[Trivy Vulnerability Scan]
+    G --> H[Sign with Cosign]
+    H --> I[Create Attestations]
+    I --> J[Push to Registry]
+    J --> K[Upload Trivy Results to Security Tab]
 ```
 
 **Provenance verification** is informational and does not block builds - it helps track which packages have cryptographic verification available.

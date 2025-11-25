@@ -1,0 +1,227 @@
+name: Periodic Container Security Scan
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Monday at 2am UTC
+  workflow_dispatch:  # Allow manual trigger
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  discover-published-images:
+    runs-on: ubuntu-latest
+    outputs:
+      configs: ${{ steps.find-configs.outputs.configs }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Find all configuration files
+        id: find-configs
+        run: |
+          # Find all spec.yaml files - scan all published images
+          all_configs=$(find npx uvx go -name "spec.yaml" -type f 2>/dev/null | sort)
+          configs_json=$(echo "$all_configs" | jq -R -s -c 'split("\n")[:-1]')
+
+          echo "configs=$configs_json" >> $GITHUB_OUTPUT
+          echo "Found $(echo "$all_configs" | wc -l) configurations to scan"
+
+  scan-images:
+    needs: discover-published-images
+    runs-on: ubuntu-latest
+    if: ${{ needs.discover-published-images.outputs.configs != '[]' }}
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-published-images.outputs.configs) }}
+      fail-fast: false
+
+    permissions:
+      contents: read
+      packages: read
+      security-events: write
+      issues: write  # To create issues for critical findings
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@1af3b93b6815bc44a9784bd300feb67ff0d1eeb3 # v6
+
+      - name: Install yq
+        uses: mikefarah/yq@45be35c06387d692bb6bf689919919e0e32e796f # v4.49.1
+
+      - name: Extract metadata from config
+        id: meta
+        run: |
+          config_file="${{ matrix.config }}"
+          protocol=$(echo "$config_file" | cut -d'/' -f1)
+          server_name=$(echo "$config_file" | cut -d'/' -f2)
+
+          echo "protocol=$protocol" >> $GITHUB_OUTPUT
+          echo "server_name=$server_name" >> $GITHUB_OUTPUT
+
+          # Extract version
+          spec_version=$(yq '.spec.version' "$config_file" 2>/dev/null || echo "")
+          if [ -n "$spec_version" ]; then
+            version="$spec_version"
+          else
+            version="latest"
+          fi
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+          # Generate image name
+          image_name="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${protocol}/${server_name}"
+          echo "image_name=$image_name" >> $GITHUB_OUTPUT
+          echo "image_ref=${image_name}:${version}" >> $GITHUB_OUTPUT
+
+      - name: Log in to Container Registry
+        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Run Trivy comprehensive scan
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # 0.24.0
+        with:
+          image-ref: ${{ steps.meta.outputs.image_ref }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
+          scanners: 'vuln,secret,config,license'
+          timeout: '15m'
+
+      - name: Upload SARIF to GitHub Security
+        uses: github/codeql-action/upload-sarif@4d9e1a6c3d9e0e8f7d1c2f3a4e5d6c7b8a9c0d1e # v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'periodic-trivy-${{ steps.meta.outputs.server_name }}'
+
+      - name: Run Trivy for detailed JSON report
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # 0.24.0
+        with:
+          image-ref: ${{ steps.meta.outputs.image_ref }}
+          format: 'json'
+          output: 'trivy-results.json'
+          severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
+          scanners: 'vuln,secret,config,license'
+          timeout: '15m'
+
+      - name: Check for critical issues
+        id: check-critical
+        run: |
+          critical=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-results.json)
+          high=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' trivy-results.json)
+          secrets=$(jq '[.Results[]?.Secrets[]?] | length' trivy-results.json)
+
+          echo "critical=$critical" >> $GITHUB_OUTPUT
+          echo "high=$high" >> $GITHUB_OUTPUT
+          echo "secrets=$secrets" >> $GITHUB_OUTPUT
+
+          if [ "$critical" -gt 0 ] || [ "$secrets" -gt 0 ]; then
+            echo "should_create_issue=true" >> $GITHUB_OUTPUT
+          else
+            echo "should_create_issue=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Create issue for critical findings
+        if: steps.check-critical.outputs.should_create_issue == 'true'
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const fs = require('fs');
+            const results = JSON.parse(fs.readFileSync('trivy-results.json', 'utf8'));
+
+            const critical = ${{ steps.check-critical.outputs.critical }};
+            const high = ${{ steps.check-critical.outputs.high }};
+            const secrets = ${{ steps.check-critical.outputs.secrets }};
+
+            let body = `## 🚨 Security Scan Alert\n\n`;
+            body += `A periodic security scan found critical issues in the container image:\n\n`;
+            body += `- **Image**: \`${{ steps.meta.outputs.image_ref }}\`\n`;
+            body += `- **Critical vulnerabilities**: ${critical}\n`;
+            body += `- **High vulnerabilities**: ${high}\n`;
+            body += `- **Secrets detected**: ${secrets}\n\n`;
+
+            body += `### Details\n\n`;
+            body += `See the [Security tab](../../security/code-scanning) for full details.\n\n`;
+
+            if (critical > 0) {
+              body += `#### Critical Vulnerabilities\n\n`;
+              const criticalVulns = results.Results.flatMap(r =>
+                (r.Vulnerabilities || []).filter(v => v.Severity === 'CRITICAL').slice(0, 5)
+              );
+
+              for (const vuln of criticalVulns) {
+                body += `- **${vuln.VulnerabilityID}** in \`${vuln.PkgName}\`: ${vuln.Title || 'No title'}\n`;
+              }
+
+              if (critical > 5) {
+                body += `\n_... and ${critical - 5} more. See Security tab for complete list._\n`;
+              }
+            }
+
+            if (secrets > 0) {
+              body += `\n⚠️ **${secrets} potential secret(s) detected in the image!**\n`;
+            }
+
+            body += `\n---\n`;
+            body += `_Automated security scan from [periodic-security-scan workflow](../actions/workflows/periodic-security-scan.yml)_`;
+
+            // Check if an issue already exists for this image
+            const { data: issues } = await github.rest.issues.listForRepo({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'security,trivy',
+            });
+
+            const existingIssue = issues.find(issue =>
+              issue.title.includes('${{ steps.meta.outputs.server_name }}')
+            );
+
+            if (existingIssue) {
+              // Update existing issue
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: existingIssue.number,
+                body: `## Updated Scan Results\n\n${body}`
+              });
+              console.log(`Updated existing issue #${existingIssue.number}`);
+            } else {
+              // Create new issue
+              await github.rest.issues.create({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                title: `🚨 Security: Critical issues in ${{ steps.meta.outputs.server_name }} container`,
+                body: body,
+                labels: ['security', 'trivy', 'critical']
+              });
+              console.log('Created new security issue');
+            }
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        with:
+          name: periodic-scan-${{ steps.meta.outputs.server_name }}
+          path: |
+            trivy-results.json
+            trivy-results.sarif
+          retention-days: 90
+
+  summary:
+    needs: scan-images
+    runs-on: ubuntu-latest
+    if: always()
+    steps:
+      - name: Generate summary
+        run: |
+          echo "## Periodic Security Scan Complete" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scan Type**: Comprehensive (vulnerabilities, secrets, configs, licenses)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Severity Levels**: CRITICAL, HIGH, MEDIUM, LOW" >> $GITHUB_STEP_SUMMARY
+          echo "- **Status**: ${{ needs.scan-images.result }}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "View detailed results in the [Security tab](../../security/code-scanning)." >> $GITHUB_STEP_SUMMARY

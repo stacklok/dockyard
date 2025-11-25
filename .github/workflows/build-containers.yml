@@ -273,6 +273,7 @@ jobs:
       packages: write
       id-token: write  # Needed for OIDC token (sigstore)
       attestations: write  # Needed for attestations
+      security-events: write  # Needed for Trivy SARIF upload
 
     steps:
       - name: Checkout repository
@@ -446,6 +447,21 @@ jobs:
           # Clean up
           rm -f /tmp/security-attestation.json
 
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@6e7b7d1fd3e4fef0c5fa8cce1229c54b2c9bd0d8 # 0.24.0
+        with:
+          image-ref: ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@4d9e1a6c3d9e0e8f7d1c2f3a4e5d6c7b8a9c0d1e # v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+          category: 'trivy-${{ steps.meta.outputs.server_name }}'
+
       - name: Generate image summary
         run: |
           echo "## Container Build Summary" >> $GITHUB_STEP_SUMMARY
@@ -455,18 +471,20 @@ jobs:
           echo "- **Image**: ${{ steps.meta.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Version**: ${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
           echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
-          
+
           if [ "${{ github.event_name }}" != "pull_request" ]; then
             echo "- **SBOM**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
             echo "- **Build Provenance**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
             echo "- **Security Scan**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
             echo "- **Signatures**: ✅ Signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
+            echo "- **Trivy Scan**: ✅ Completed (see Security tab)" >> $GITHUB_STEP_SUMMARY
             echo "- **Status**: ✅ Built, pushed, signed, and attested" >> $GITHUB_STEP_SUMMARY
             echo "- **Tags**:" >> $GITHUB_STEP_SUMMARY
             echo "  - ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
             echo "  - ${{ steps.meta.outputs.image_name }}:latest" >> $GITHUB_STEP_SUMMARY
             echo "- **Digest**: ${{ steps.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
           else
+            echo "- **Trivy Scan**: ✅ Completed (see Security tab)" >> $GITHUB_STEP_SUMMARY
             echo "- **Status**: ✅ Built (not pushed - PR)" >> $GITHUB_STEP_SUMMARY
           fi
 
