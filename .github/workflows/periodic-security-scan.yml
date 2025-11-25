@@ -92,7 +92,7 @@ jobs:
           timeout: '15m'
 
       - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@4d9e1a6c3d9e0e8f7d1c2f3a4e5d6c7b8a9c0d1e # v3
+        uses: github/codeql-action/upload-sarif@d3ced5c96c16c4332e2a61eb6f3649d6f1b20bb8 # v3
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
