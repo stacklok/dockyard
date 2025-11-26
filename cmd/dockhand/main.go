@@ -319,7 +319,8 @@ func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag stri
 		protocolScheme,
 		"", // caCertPath - empty for now
 		imageTag,
-		true, // always dryRun to generate Dockerfile
+		[]string{}, // extraArgs
+		true,       // always dryRun to generate Dockerfile
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate Dockerfile for protocol scheme %s: %w", protocolScheme, err)
