@@ -377,6 +377,17 @@ jobs:
           sbom: true
           provenance: true
 
+      - name: Build single-platform image for Trivy scan
+        id: build-for-scan
+        uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
+        with:
+          context: ${{ steps.dockerfile.outputs.dockerfile_dir }}
+          file: ${{ steps.dockerfile.outputs.dockerfile_path }}
+          platforms: linux/amd64
+          load: true
+          tags: local-scan:${{ steps.meta.outputs.server_name }}-${{ steps.meta.outputs.version }}
+          cache-from: type=gha
+
       - name: Sign container images with Cosign
         if: github.event_name != 'pull_request'
         env:
@@ -450,7 +461,7 @@ jobs:
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@b6643a29fecd7f34b3597bc6acb0a98b03d33ff8 # 0.33.1
         with:
-          image-ref: ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
+          image-ref: local-scan:${{ steps.meta.outputs.server_name }}-${{ steps.meta.outputs.version }}
           format: 'sarif'
           output: 'trivy-results.sarif'
           severity: 'CRITICAL,HIGH,MEDIUM'
