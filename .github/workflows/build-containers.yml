@@ -261,6 +261,7 @@ jobs:
   build-containers:
     needs: [discover-configs, verify-provenance, mcp-security-scan]
     runs-on: ubuntu-latest
+    timeout-minutes: 60
     # Only proceed if security scans passed (provenance check is informational only)
     if: ${{ needs.discover-configs.outputs.changed-configs != '[]' && needs.mcp-security-scan.result == 'success' }}
     strategy:
@@ -356,6 +357,7 @@ jobs:
 
       - name: Build and push Docker image
         id: build
+        timeout-minutes: 30
         uses: docker/build-push-action@263435318d21b8e681c14492fe198d362a7d2c83 # v6
         with:
           context: ${{ steps.dockerfile.outputs.dockerfile_dir }}
