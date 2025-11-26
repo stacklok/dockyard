@@ -383,7 +383,6 @@ jobs:
         with:
           context: ${{ steps.dockerfile.outputs.dockerfile_dir }}
           file: ${{ steps.dockerfile.outputs.dockerfile_path }}
-          platforms: linux/amd64
           load: true
           tags: local-scan:${{ steps.meta.outputs.server_name }}-${{ steps.meta.outputs.version }}
           cache-from: type=gha
