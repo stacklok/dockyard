@@ -39,8 +39,9 @@ type MCPServerMetadata struct {
 
 // MCPServerPackageSpec defines the package to be containerized
 type MCPServerPackageSpec struct {
-	Package string `yaml:"package"`           // e.g., "@upstash/context7-mcp"
-	Version string `yaml:"version,omitempty"` // e.g., "1.0.14"
+	Package string   `yaml:"package"`           // e.g., "@upstash/context7-mcp"
+	Version string   `yaml:"version,omitempty"` // e.g., "1.0.14"
+	Args    []string `yaml:"args,omitempty"`    // Additional arguments for the package
 }
 
 // MCPServerProvenance contains supply chain provenance information
@@ -319,8 +320,8 @@ func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag stri
 		protocolScheme,
 		"", // caCertPath - empty for now
 		imageTag,
-		[]string{}, // extraArgs
-		true,       // always dryRun to generate Dockerfile
+		spec.Spec.Args, // Pass args from spec if present
+		true,           // always dryRun to generate Dockerfile
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate Dockerfile for protocol scheme %s: %w", protocolScheme, err)
