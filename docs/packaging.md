@@ -28,6 +28,9 @@ metadata:
 spec:
   package: "{package-identifier}"  # PyPI/npm name or Go module
   version: "{exact-version}"
+  args:                            # Optional: CLI arguments for the package
+    - "{arg1}"                     # Passed to the entrypoint command
+    - "{arg2}"
 
 provenance:
   repository_uri: "{github-url}"

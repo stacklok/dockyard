@@ -59,6 +59,9 @@ metadata:
 spec:
   package: "your-package-name"    # Required: Package name from registry
   version: "1.0.0"               # Required: Specific version to build
+  args:                          # Optional: Additional arguments for the package
+    - "arg1"                     # Arguments are passed to the entrypoint
+    - "arg2"
 
 provenance:                       # Optional but recommended
   repository_uri: "https://github.com/user/repo"  # Expected source repository (used for verification)
@@ -97,10 +100,24 @@ metadata:
 spec:
   package: "@your-org/mcp-server"  # NPM package name
   version: "2.1.0"
+  args:                            # Optional: Add required CLI arguments
+    - "start"                      # For packages that need specific commands
 
 provenance:
   repository_uri: "https://github.com/your-org/mcp-server"
   repository_ref: "refs/tags/v2.1.0"
+```
+
+**Real-world example** (LaunchDarkly MCP server):
+```yaml
+# Some packages require specific CLI arguments to run
+# These are baked into the container entrypoint
+spec:
+  package: "@launchdarkly/mcp-server"
+  version: "0.4.2"
+  args:
+    - "start"  # Required by LaunchDarkly's CLI
+# Results in: ENTRYPOINT ["npx", "@launchdarkly/mcp-server", "start"]
 ```
 
 #### UVX (Python) Example
