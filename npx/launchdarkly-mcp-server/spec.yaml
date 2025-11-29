@@ -12,6 +12,8 @@ metadata:
 spec:
   package: "@launchdarkly/mcp-server"
   version: "0.4.2"
+  args:
+    - "start"
 
 provenance:
   repository_uri: "https://github.com/launchdarkly/mcp-server"
