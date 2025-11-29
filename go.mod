@@ -5,7 +5,7 @@ go 1.25.3
 require (
 	github.com/sigstore/sigstore-go v1.1.3
 	github.com/spf13/cobra v1.10.1
-	github.com/stacklok/toolhive v0.6.7
+	github.com/stacklok/toolhive v0.6.9
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -34,7 +34,7 @@ require (
 	github.com/beorn7/perks v1.0.1 // indirect
 	github.com/blang/semver v3.5.1+incompatible // indirect
 	github.com/buger/jsonparser v1.1.1 // indirect
-	github.com/cedar-policy/cedar-go v1.3.0 // indirect
+	github.com/cedar-policy/cedar-go v1.3.1 // indirect
 	github.com/cenkalti/backoff/v5 v5.0.3 // indirect
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/cncf/xds/go v0.0.0-20250501225837-2ac532fd4443 // indirect
@@ -215,7 +215,7 @@ require (
 	golang.org/x/crypto v0.45.0 // indirect
 	golang.org/x/exp v0.0.0-20250620022241-b7579e27df2b // indirect
 	golang.org/x/exp/event v0.0.0-20251023183803-a4bb9ffd2546 // indirect
-	golang.org/x/exp/jsonrpc2 v0.0.0-20251113190631-e25ba8c21ef6 // indirect
+	golang.org/x/exp/jsonrpc2 v0.0.0-20251125195548-87e1e737ad39 // indirect
 	golang.org/x/mod v0.30.0 // indirect
 	golang.org/x/net v0.47.0 // indirect
 	golang.org/x/oauth2 v0.33.0 // indirect
