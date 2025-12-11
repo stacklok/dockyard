@@ -10,34 +10,61 @@ import sys
 import yaml
 import os
 
+# Global config file location (relative to this script)
+GLOBAL_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'global_allowed_issues.yaml')
+
+def load_global_allowed_issues():
+    """
+    Load globally allowed issues from the global config file.
+
+    Returns a dict of {issue_code: reason}.
+    """
+    allowed_issues = {}
+
+    if os.path.exists(GLOBAL_CONFIG_FILE):
+        try:
+            with open(GLOBAL_CONFIG_FILE, 'r') as f:
+                config = yaml.safe_load(f)
+
+            if config and 'allowed_issues' in config:
+                for issue in config['allowed_issues']:
+                    if 'code' in issue:
+                        allowed_issues[issue['code']] = issue.get('reason', 'Globally allowed')
+        except Exception as e:
+            print(f"Warning: Could not load global config from {GLOBAL_CONFIG_FILE}: {e}", file=sys.stderr)
+
+    return allowed_issues
+
 def load_security_config(config_file=None):
     """
     Load security configuration from the YAML configuration file.
-    
+
     Returns a tuple of (allowed_issues dict, insecure_ignore bool).
+    Merges global allowed issues with per-server allowed issues.
     """
-    allowed_issues = {}
+    # Start with globally allowed issues
+    allowed_issues = load_global_allowed_issues()
     insecure_ignore = False
-    
+
     if config_file and os.path.exists(config_file):
         try:
             with open(config_file, 'r') as f:
                 config = yaml.safe_load(f)
-                
+
             if config and 'security' in config:
                 security_config = config['security']
-                
+
                 # Check for insecure_ignore flag
                 insecure_ignore = security_config.get('insecure_ignore', False)
-                
-                # Check for allowed_issues
+
+                # Check for allowed_issues (merge with global, per-server takes precedence)
                 if 'allowed_issues' in security_config:
                     for issue in security_config['allowed_issues']:
                         if 'code' in issue:
                             allowed_issues[issue['code']] = issue.get('reason', 'Explicitly allowed')
         except Exception as e:
             print(f"Warning: Could not load security config from {config_file}: {e}", file=sys.stderr)
-    
+
     return allowed_issues, insecure_ignore
 
 def main():

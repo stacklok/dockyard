@@ -21,5 +21,3 @@ security:
   allowed_issues:
     - code: "TF001"
       reason: "Data leak risk acceptable - incident management requires sharing operational data with responders and creating public status updates. Write operations are disabled by default, requiring explicit opt-in with --enable-write-tools flag."
-    - code: "W004"
-      reason: "Server not in Invariant Labs registry - this is a first-party PagerDuty MCP server from the official PagerDuty GitHub organization."
