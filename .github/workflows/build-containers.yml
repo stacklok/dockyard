@@ -155,7 +155,7 @@ jobs:
 
       - name: Upload provenance verification results
         if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: provenance-${{ steps.meta.outputs.server_name }}
           path: provenance-${{ steps.meta.outputs.server_name }}.txt
@@ -250,7 +250,7 @@ jobs:
 
       - name: Upload scan results
         if: always()
-        uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
         with:
           name: mcp-scan-${{ steps.meta.outputs.server_name }}
           path: |
@@ -406,7 +406,7 @@ jobs:
       - name: Download MCP security scan results
         id: download-scan
         if: github.event_name != 'pull_request'
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           name: mcp-scan-${{ steps.meta.outputs.server_name }}
           path: /tmp/scan-results
@@ -508,7 +508,7 @@ jobs:
       pull-requests: write
     steps:
       - name: Download all scan results
-        uses: actions/download-artifact@018cc2cf5baa6db3ef3c5f8a56943fffe632ef53 # v6
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
         with:
           pattern: mcp-scan-*
           path: scan-artifacts
