@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "chrome-devtools-mcp"
-  version: "0.11.0"
+  version: "0.12.1"
 
 provenance:
   repository_uri: "https://github.com/ChromeDevTools/chrome-devtools-mcp"
