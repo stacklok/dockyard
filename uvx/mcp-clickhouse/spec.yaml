@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "mcp-clickhouse"  # PyPI package name
-  version: "0.1.12"          # Latest version from PyPI
+  version: "0.1.13"          # Latest version from PyPI
 
 provenance:
   # Expected source repository (used for attestation verification)
