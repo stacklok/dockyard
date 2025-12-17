@@ -4,7 +4,7 @@ go 1.25.3
 
 require (
 	github.com/sigstore/sigstore-go v1.1.3
-	github.com/spf13/cobra v1.10.1
+	github.com/spf13/cobra v1.10.2
 	github.com/stacklok/toolhive v0.6.7
 	gopkg.in/yaml.v3 v3.0.1
 )
