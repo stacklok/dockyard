@@ -3,5 +3,7 @@
 # For server-specific exceptions, add them to the server's spec.yaml file instead.
 
 allowed_issues:
+  - code: "W003"
+    reason: "Server not in Invariant Labs registry - we verify provenance independently via our own checks."
   - code: "W004"
     reason: "Server not in Invariant Labs registry - we verify provenance independently via our own checks."
