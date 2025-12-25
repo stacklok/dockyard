@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "@notionhq/notion-mcp-server"
-  version: "1.9.1"
+  version: "2.0.0"
 
 provenance:
   repository_uri: "https://github.com/makenotion/notion-mcp-server"
