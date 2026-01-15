@@ -25,3 +25,5 @@ security:
       reason: "Data leak risk acceptable - tool designed for browser automation and web testing workflows where external content interaction is essential. Users should be aware of potential data exposure when automating web interactions."
     - code: "TF002"
       reason: "Destructive flow risk acceptable - browser automation tools are core functionality for web testing and automation. Users should only use with trusted prompts and on non-production systems."
+    - code: "W005"
+      reason: "New tools (browser_run_code, browser_snapshot) not yet cataloged in Invariant Labs registry. The server itself is registered; these are legitimate browser automation tools with no security concerns."

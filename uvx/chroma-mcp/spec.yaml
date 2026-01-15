@@ -20,5 +20,7 @@ provenance:
 # Optional: Security allowlist
 security:
   allowed_issues:
+    - code: TF001
+      reason: "Data leak flow is inherent to vector database functionality - the server reads stored embeddings (private data), processes search queries (untrusted content), and returns matching results (public sink). This is the core purpose of a vector database."
     - code: TF002
       reason: "ChromaDB is a vector database that requires both read and write operations for managing embeddings and collections"
