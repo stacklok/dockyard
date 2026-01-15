@@ -11,10 +11,21 @@ metadata:
 
 spec:
   package: "@upstash/context7-mcp"  # NPM package name
-  version: "1.0.33"                # Specific version to install
+  version: "2.1.0"                # Specific version to install
 
 provenance:
   # Note: This package does not have npm provenance attestations (Sigstore signatures)
   # The repository information below is verified from npm metadata and GitHub
   repository_uri: "https://github.com/upstash/context7"
   repository_ref: "refs/tags/v1.0.17"
+
+# Security allowlist for known false positives
+security:
+  allowed_issues:
+    - code: "W001"
+      reason: |
+        Tool descriptions contain security warnings instructing users NOT to include
+        sensitive data (API keys, passwords, credentials) in queries. These are
+        defensive instructions added in v2.0.0 to protect user privacy, not prompt
+        injection attempts. The flagged keywords appear in a "Do not include..."
+        context, not in an extraction context.
