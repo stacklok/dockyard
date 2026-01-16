@@ -19,6 +19,8 @@ provenance:
 
 # Security allowlist for known false positives
 security:
+  # Server requires SENTRY_ACCESS_TOKEN to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-9.1"
       reason: |

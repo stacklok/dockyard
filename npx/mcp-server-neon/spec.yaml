@@ -18,6 +18,8 @@ provenance:
   repository_ref: "refs/heads/main"
 
 security:
+  # Server requires NEON_API_KEY to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-12.1"
       reason: "Tool descriptions use structured XML-like documentation (e.g., <use_case>, <important_notes>) to provide AI assistants with workflow guidance. This is legitimate documentation pattern for MCP tools, not tool poisoning."

@@ -19,4 +19,6 @@ provenance:
 
 # Security allowlist for known acceptable issues
 security:
+  # Server requires API_KEY (21st.dev Magic) to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues: []

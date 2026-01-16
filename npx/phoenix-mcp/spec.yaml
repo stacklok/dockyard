@@ -20,3 +20,7 @@ provenance:
 # Optional: Security allowlist
 # No security issues flagged by scanner for version 2.3.2
 # Previous allowlist entries (AITech-8.2, AITech-9.1) removed as they are no longer flagged
+security:
+  # Server requires PHOENIX_API_KEY and PHOENIX_BASE_URL to start - cannot be scanned in CI
+  insecure_ignore: true
+  allowed_issues: []

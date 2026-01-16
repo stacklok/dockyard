@@ -20,6 +20,8 @@ provenance:
 
 # Optional: Security allowlist
 security:
+  # Server requires NOTION_TOKEN to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-8.2"
       reason: |

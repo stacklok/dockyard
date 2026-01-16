@@ -19,6 +19,8 @@ provenance:
 
 # Security scan allowlist - known false positives from YARA analysis
 security:
+  # Server requires SUPABASE_ACCESS_TOKEN to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - tool: "execute_sql"
       analyzer: "yara_analyzer"

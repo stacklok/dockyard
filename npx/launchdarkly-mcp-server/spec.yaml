@@ -20,6 +20,8 @@ provenance:
   repository_ref: "refs/heads/main"
 
 security:
+  # Server requires LD_ACCESS_TOKEN to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-1.1"
       reason: "False positive - The update-ai-config-variation tool is designed to modify AI model configurations (prompts, parameters) as core LaunchDarkly functionality. This is the intended purpose of the AI config management feature, not a prompt injection vulnerability."

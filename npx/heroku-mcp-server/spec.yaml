@@ -21,6 +21,8 @@ provenance:
 # YARA analyzer found no issues. LLM analyzer flagged tools that perform legitimate
 # operations for the Heroku Platform MCP server by Salesforce/Heroku.
 security:
+  # Server requires HEROKU_API_KEY to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AISubtech-12.1.2"
       tool: "create_app"

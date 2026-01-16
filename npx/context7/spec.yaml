@@ -21,6 +21,8 @@ provenance:
 
 # Security allowlist for known false positives
 security:
+  # Server requires CONTEXT7_API_KEY to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-1.1"
       reason: |

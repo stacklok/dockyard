@@ -19,6 +19,8 @@ provenance:
 
 # Security allowlist for known acceptable issues
 security:
+  # Server requires API_TOKEN to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-12.1"
       reason: |

@@ -18,6 +18,8 @@ provenance:
   repository_ref: "refs/heads/main"
 
 security:
+  # Server requires GRAPHLIT_JWT_SECRET and other credentials to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-1.1"
       reason: "False positive - extractText tool legitimately processes arbitrary user text through LLM for JSON data extraction. The text input is the data to be extracted from, not an attempt to manipulate LLM instructions. This is core functionality for structured data extraction from unstructured content."
