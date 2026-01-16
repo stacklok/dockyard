@@ -42,8 +42,15 @@ tasks:
         args=$(echo "$config_json" | jq -r '.args')
 
         # Run scan using Cisco AI Defense mcp-scanner
+        # Note: stderr is redirected to a separate file to avoid corrupting JSON output
         python3 scripts/mcp-scan/run_scan.py "$command" "$args" \
-          > "/tmp/mcp-scan-{{.SERVER_NAME}}.json" 2>&1 || true
+          > "/tmp/mcp-scan-{{.SERVER_NAME}}.json" 2> "/tmp/mcp-scan-{{.SERVER_NAME}}.stderr" || true
+
+        # Show stderr if it exists (for debugging)
+        if [ -s "/tmp/mcp-scan-{{.SERVER_NAME}}.stderr" ]; then
+          echo "Scanner stderr:"
+          cat "/tmp/mcp-scan-{{.SERVER_NAME}}.stderr"
+        fi
       - |
         python3 scripts/mcp-scan/process_scan_results.py \
           "/tmp/mcp-scan-{{.SERVER_NAME}}.json" \

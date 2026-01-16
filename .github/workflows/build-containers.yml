@@ -231,13 +231,20 @@ jobs:
           args=$(echo "$config_json" | jq -r '.args')
 
           # Run scan using Cisco AI Defense mcp-scanner
+          # Note: stderr is redirected to a separate file to avoid corrupting JSON output
           scan_output="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.json"
+          scan_stderr="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.stderr"
 
           if python3 scripts/mcp-scan/run_scan.py "$command" "$args" \
-            > "$scan_output" 2>&1; then
+            > "$scan_output" 2> "$scan_stderr"; then
             echo "scan_passed=true" >> $GITHUB_OUTPUT
           else
             echo "scan_passed=false" >> $GITHUB_OUTPUT
+            # Show stderr in logs for debugging
+            if [ -s "$scan_stderr" ]; then
+              echo "Scanner stderr output:"
+              cat "$scan_stderr"
+            fi
           fi
 
           # Process results (pass the config file to check for allowed issues)

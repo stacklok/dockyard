@@ -285,7 +285,15 @@ def main():
                 sys.exit(1)
 
         # Parse the JSON data
-        scan_data = json.loads(content[json_start:])
+        # Use a JSON decoder that stops at the end of the first valid JSON object
+        # This handles cases where there might be extra output after the JSON
+        json_content = content[json_start:]
+        decoder = json.JSONDecoder()
+        try:
+            scan_data, end_idx = decoder.raw_decode(json_content)
+        except json.JSONDecodeError:
+            # Fall back to regular parsing for better error messages
+            scan_data = json.loads(json_content)
 
         # Process Cisco scanner results
         tools_scanned, blocking_issues, allowed_issues_found = process_cisco_scan_results(
