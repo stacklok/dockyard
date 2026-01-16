@@ -16,3 +16,75 @@ spec:
 provenance:
   repository_uri: "https://github.com/heroku/heroku-mcp-server"
   repository_ref: "refs/heads/main"
+
+# Security allowlist for known false positives from LLM analyzer
+# YARA analyzer found no issues. LLM analyzer flagged tools that perform legitimate
+# operations for the Heroku Platform MCP server by Salesforce/Heroku.
+security:
+  allowed_issues:
+    - code: "AISubtech-12.1.2"
+      tool: "create_app"
+      reason: |
+        LLM flags this as Tool Poisoning (MEDIUM) because it creates resources.
+        This is the tool's intended purpose - creating Heroku apps with custom
+        name, region, team, and private space settings. Official Heroku MCP server
+        from Salesforce. YARA analyzer confirms SAFE. Verified in v1.0.7.
+    - code: "AISubtech-12.1.2"
+      tool: "rename_app"
+      reason: |
+        LLM flags this as Tool Poisoning (MEDIUM) because it modifies resources.
+        This is the tool's intended purpose - renaming existing Heroku apps.
+        Official Heroku MCP server from Salesforce. YARA analyzer confirms SAFE.
+        Verified in v1.0.7.
+    - code: "AISubtech-12.1.2"
+      tool: "create_addon"
+      reason: |
+        LLM flags this as Tool Poisoning (MEDIUM) because it creates resources.
+        This is the tool's intended purpose - provisioning add-ons for Heroku apps
+        with service, plan, and custom name settings. Official Heroku MCP server
+        from Salesforce. YARA analyzer confirms SAFE. Verified in v1.0.7.
+    - code: "AISubtech-12.1.2"
+      tool: "pg_psql"
+      reason: |
+        LLM flags this as Tool Poisoning (HIGH) because it can execute SQL queries.
+        This is the tool's intended purpose - providing database administration
+        capabilities for Heroku PostgreSQL. Requires proper Heroku authentication.
+        Official Heroku MCP server from Salesforce. YARA analyzer confirms SAFE.
+        Verified in v1.0.7.
+    - code: "AISubtech-12.1.5"
+      tool: "pg_credentials"
+      reason: |
+        LLM flags this as Tool Shadowing (MEDIUM) because it handles credentials.
+        This is the tool's intended purpose - managing database credentials and
+        permissions for Heroku PostgreSQL. Official Heroku MCP server from
+        Salesforce. YARA analyzer confirms SAFE. Verified in v1.0.7.
+    - code: "AISubtech-12.1.2"
+      tool: "pg_kill"
+      reason: |
+        LLM flags this as Tool Poisoning (MEDIUM) because it can terminate processes.
+        This is the tool's intended purpose - terminating stuck queries and blocking
+        database processes for PostgreSQL administration. Official Heroku MCP server
+        from Salesforce. YARA analyzer confirms SAFE. Verified in v1.0.7.
+    - code: "AISubtech-12.1.2"
+      tool: "pipelines_create"
+      reason: |
+        LLM flags this as Tool Poisoning (MEDIUM) because it creates resources.
+        This is the tool's intended purpose - creating Heroku deployment pipelines
+        with configurable stages, apps, and team settings. Official Heroku MCP
+        server from Salesforce. YARA analyzer confirms SAFE. Verified in v1.0.7.
+    - code: "AISubtech-12.1.2"
+      tool: "deploy_to_heroku"
+      reason: |
+        LLM flags this as Tool Poisoning (MEDIUM) because it deploys code.
+        This is the tool's intended purpose - deploying applications to Heroku
+        with app.json configuration. Official Heroku MCP server from Salesforce.
+        YARA analyzer confirms SAFE. Verified in v1.0.7.
+    - code: "AISubtech-12.1.2"
+      tool: "deploy_one_off_dyno"
+      reason: |
+        LLM flags this as Tool Poisoning (HIGH) because it can run arbitrary commands.
+        This is the tool's intended purpose - executing code/commands in Heroku
+        one-off dynos for development, testing, and administrative tasks. Requires
+        proper Heroku authentication and targets user's own Heroku apps. Official
+        Heroku MCP server from Salesforce. YARA analyzer confirms SAFE. Verified
+        in v1.0.7.

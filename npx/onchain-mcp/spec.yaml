@@ -18,19 +18,6 @@ provenance:
   repository_ref: "refs/heads/main"
 
 # Optional: Security allowlist
+# No security issues currently flagged by scanner
 security:
-  allowed_issues:
-    - code: "W001"
-      reason: |
-        The read_contract tool description contains the word "important:" as part of legitimate
-        technical documentation explaining how to handle tuple types and nested structs in
-        blockchain smart contracts. This is necessary technical guidance for proper usage
-        of the tool, not a prompt injection attempt.
-    - code: "TF001"
-      reason: |
-        Data leak toxic flow is expected and required for blockchain data operations. The server:
-        - Reads blockchain state and contract data (get_source, get_abi, read_contract)
-        - Processes transaction history and token balances (get_transaction_history_for_user, get_token_balances_on_network)
-        - Returns this data to users for analysis
-        This combination is essential for blockchain data analysis, allowing agents to query,
-        analyze, and report on blockchain state and transactions.
+  allowed_issues: []

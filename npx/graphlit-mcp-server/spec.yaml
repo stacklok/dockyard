@@ -19,7 +19,9 @@ provenance:
 
 security:
   allowed_issues:
-    - code: "TF001"
+    - code: "AITech-1.1"
+      reason: "False positive - extractText tool legitimately processes arbitrary user text through LLM for JSON data extraction. The text input is the data to be extracted from, not an attempt to manipulate LLM instructions. This is core functionality for structured data extraction from unstructured content."
+    - code: "AITech-8.2"
       reason: "Data leak risk acceptable - platform designed for comprehensive knowledge management requiring ingestion from external sources (websites, social media, documents) and access to private data sources (Slack, email, Google Drive, etc.) with output to various sinks. Users should be aware of potential data exposure through connected services."
-    - code: "TF002"
+    - code: "AITech-9.1"
       reason: "Destructive flow risk acceptable - delete operations (collections, feeds, content, conversations) are core functionality for knowledge management lifecycle. Platform designed for trusted environments where users manage their own data repositories."

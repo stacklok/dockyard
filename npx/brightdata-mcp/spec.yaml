@@ -16,3 +16,20 @@ spec:
 provenance:
   repository_uri: "https://github.com/brightdata/brightdata-mcp"
   repository_ref: "refs/heads/main"
+
+# Security allowlist for known acceptable issues
+security:
+  allowed_issues:
+    - code: "AITech-12.1"
+      reason: |
+        LLM analyzer flags scrape_as_markdown and scrape_batch tools with AITech-12.1
+        (Tool Poisoning) because their descriptions state they "can unlock any webpage
+        even if it uses bot detection or CAPTCHA." This is NOT tool poisoning - it's
+        the legitimate core functionality of Bright Data's commercial web scraping
+        service. The tools:
+        - Call the official Bright Data API (api.brightdata.com)
+        - Are read-only (readOnlyHint: true) with no destructive capabilities
+        - Transparently document their CAPTCHA/bot-detection bypass capability
+        - Use authenticated API tokens for access control
+        YARA analysis finds no threats. The "unlock" feature is the product's value
+        proposition, not malicious behavior. Verified in v2.8.0.

@@ -18,9 +18,4 @@ provenance:
   repository_ref: "refs/tags/mcp-neo4j-cypher-v0.3.1"
 
 # Security allowlist for expected database operations
-security:
-  allowed_issues:
-    - code: "TF001"
-      reason: "Expected behavior for database MCP server that handles user queries and can access both private database content and external data sources"
-    - code: "TF002"
-      reason: "Expected behavior for database MCP server that needs both read and write capabilities for Cypher queries"
+# No entries needed - scanner reports all tools as SAFE

@@ -17,8 +17,5 @@ provenance:
   repository_uri: "https://github.com/blazickjp/arxiv-mcp-server"
   repository_ref: "refs/heads/main"
 
-# Security allowlist for false positive
-security:
-  allowed_issues:
-    - code: "TF002"
-      reason: "False positive - arXiv is a trusted academic source and file operations are limited to writing papers to a configured storage directory. No actual destructive capabilities present."
+# Security allowlist for false positives
+# Currently empty - no security findings to allowlist

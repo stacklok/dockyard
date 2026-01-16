@@ -16,3 +16,15 @@ spec:
 provenance:
   repository_uri: "https://github.com/getsentry/sentry-mcp"
   repository_ref: "refs/heads/main"
+
+# Security allowlist for known false positives
+security:
+  allowed_issues:
+    - code: "AITech-9.1"
+      reason: |
+        YARA flags the search_docs tool with "command injection" (AISubtech-9.1.4) due to
+        pattern matching on terms like "SDK setup", "configuration", and "instrumentation"
+        in the tool description. This is a false positive - the tool is a read-only
+        documentation search that queries Sentry's docs for SDK setup guides and
+        configuration help. LLM analyzer confirms SAFE. No actual injection risk exists
+        as the tool only returns documentation snippets. Verified in v0.26.0.

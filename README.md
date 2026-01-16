@@ -196,7 +196,7 @@ Once your PR passes security scanning and is merged:
 
 ## 🔒 Security Scanning
 
-Dockyard automatically scans all MCP servers for security vulnerabilities before building containers using [mcp-scan](https://github.com/invariantlabs-ai/mcp-scan) from Invariant Labs. This ensures that only secure MCP servers are deployed.
+Dockyard automatically scans all MCP servers for security vulnerabilities before building containers using [Cisco AI Defense mcp-scanner](https://github.com/cisco-ai-defense/mcp-scanner). This ensures that only secure MCP servers are deployed.
 
 ### What We Scan For
 
@@ -221,14 +221,14 @@ Some security warnings may be false positives, especially for containerized depl
 security:
   # Security allowlist for known issues that are acceptable in this context
   allowed_issues:
-    - code: "W001"
+    - code: "AITech-1.1"
       reason: "Tool description contains imperative instructions for AI agents which are necessary for proper operation"
-    - code: "TF002"
+    - code: "AITech-9.1"
       reason: "Destructive toxic flow is mitigated by container sandboxing - code execution is isolated from host system"
 ```
 
 Each allowed issue must include:
-- `code`: The issue code reported by mcp-scan (e.g., W001, TF002, E001)
+- `code`: The issue code reported by mcp-scanner (e.g., AITech-1.1, AITech-8.2, AITech-9.1)
 - `reason`: A clear explanation of why this issue is acceptable in your specific context
 
 ### Security Report Example
@@ -368,7 +368,7 @@ When you use a Dockyard container image, you can be confident that:
 
 1. **Detection**: GitHub Actions detects changes to YAML files
 2. **Provenance Verification**: Verifies package provenance using `dockhand verify-provenance` (informational)
-3. **MCP Security Scan**: Runs mcp-scan to check for MCP-specific vulnerabilities (blocking)
+3. **MCP Security Scan**: Runs Cisco AI Defense mcp-scanner to check for MCP-specific vulnerabilities (blocking)
 4. **Validation**: Validates YAML structure and required fields
 5. **Protocol Scheme**: Constructs protocol scheme (e.g., `npx://@upstash/context7-mcp@1.0.14`)
 6. **Container Build**: Uses ToolHive's `BuildFromProtocolSchemeWithName` function (only if security scan passes)
@@ -505,4 +505,4 @@ go install ./cmd/dockhand
 - **[ToolHive](https://github.com/stacklok/toolhive)** - Container building from protocol schemes
 - **[gopkg.in/yaml.v3](https://gopkg.in/yaml.v3)** - YAML configuration parsing
 - **[Renovate](https://renovatebot.com/)** - Automated dependency updates
-- **[mcp-scan](https://github.com/invariantlabs-ai/mcp-scan)** - Security vulnerability scanning for MCP servers
+- **[Cisco AI Defense mcp-scanner](https://github.com/cisco-ai-defense/mcp-scanner)** - Security vulnerability scanning for MCP servers

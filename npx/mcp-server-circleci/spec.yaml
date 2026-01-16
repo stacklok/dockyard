@@ -20,11 +20,11 @@ provenance:
 # Optional: Security allowlist
 security:
   allowed_issues:
-    - code: W001
+    - code: "AITech-1.1"
       reason: "CI/CD operations require specific terminology for pipeline control (run, rollback, rerun) that may trigger prompt injection warnings"
-    - code: E001
+    - code: "AITech-12.1"
       reason: "Tool descriptions contain operational instructions for CI/CD workflows (e.g., 'MUST start your response with', 'CRITICAL REQUIREMENTS') that are necessary for proper data handling and tool usage guidance"
-    - code: TF001
+    - code: "AITech-8.2"
       reason: "CircleCI must access private build data, configurations, and secrets while interacting with external systems for CI/CD operations"
-    - code: TF002
+    - code: "AITech-9.1"
       reason: "CI/CD platforms inherently perform destructive operations like canceling builds, running pipelines, and modifying configurations"
