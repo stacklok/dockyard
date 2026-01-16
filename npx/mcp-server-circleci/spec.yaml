@@ -19,6 +19,8 @@ provenance:
 
 # Optional: Security allowlist
 security:
+  # Server requires CIRCLECI_API_TOKEN to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-1.1"
       reason: "CI/CD operations require specific terminology for pipeline control (run, rollback, rerun) that may trigger prompt injection warnings"
