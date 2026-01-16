@@ -19,4 +19,6 @@ provenance:
 
 # Security allowlist - No issues found in scan
 security:
+  # Server requires Astra DB credentials to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues: []
