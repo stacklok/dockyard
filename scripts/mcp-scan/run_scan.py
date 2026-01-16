@@ -30,13 +30,15 @@ def main():
                   file=sys.stderr)
 
     # Build scanner arguments
-    # Use 'stdio' subcommand with --stdio-args (not deprecated --stdio-arg)
+    # Use 'stdio' subcommand with --stdio-arg
+    # Note: --stdio-arg is deprecated but --stdio-args has different behavior
+    # that causes issues with some package names
     scanner_args = [
         "--analyzers", ",".join(analyzers),
         "--format", "raw",
         "stdio",
         "--stdio-command", command,
-        "--stdio-args", package_arg
+        "--stdio-arg", package_arg
     ]
 
     # Use installed mcp-scanner if available (faster), otherwise use uv run --with
