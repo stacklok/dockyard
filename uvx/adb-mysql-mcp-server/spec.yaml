@@ -17,9 +17,6 @@ provenance:
   repository_uri: "https://github.com/aliyun/alibabacloud-adb-mysql-mcp-server"
   repository_ref: "refs/heads/master"
 
-# Security allowlist - TF002 is expected for database tools
+# Security allowlist - none needed, scan shows all tools as SAFE
 security:
-  insecure_ignore: true  # Temporarily ignore scan failures due to mcp-scan JSON serialization bug
-  allowed_issues:
-    - code: "TF002"
-      reason: "Database MCP servers inherently have tools that can execute SQL queries, which is their intended purpose"
+  allowed_issues: []

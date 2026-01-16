@@ -19,5 +19,7 @@ provenance:
 
 security:
   allowed_issues:
-    - code: "TF001"
+    - code: "AITech-8.2"
       reason: "Data leak risk acceptable - incident management requires sharing operational data with responders and creating public status updates. Write operations are disabled by default, requiring explicit opt-in with --enable-write-tools flag."
+    - code: "AITech-9.1"
+      reason: "False positive - YARA rule triggers on 'change event' terminology in tool names (list_change_events, get_change_event, list_service_change_events, list_incident_change_events). These are read-only API calls to retrieve PagerDuty change events for incident correlation, not code execution capabilities. LLM analyzer confirms SAFE."

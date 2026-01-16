@@ -19,11 +19,5 @@ provenance:
 
 security:
   allowed_issues:
-    - code: "E001"
-      reason: "Tool documentation contains legitimate browser automation instructions (e.g., key names like 'ArrowLeft') that may resemble prompt injection patterns but are necessary for proper browser control functionality"
-    - code: "TF001"
-      reason: "Data leak risk acceptable - tool designed for browser automation and web testing workflows where external content interaction is essential. Users should be aware of potential data exposure when automating web interactions."
-    - code: "TF002"
-      reason: "Destructive flow risk acceptable - browser automation tools are core functionality for web testing and automation. Users should only use with trusted prompts and on non-production systems."
-    - code: "W005"
-      reason: "New tools (browser_run_code, browser_snapshot) not yet cataloged in Invariant Labs registry. The server itself is registered; these are legitimate browser automation tools with no security concerns."
+    - code: "AITech-12.1"
+      reason: "Tools like browser_evaluate, browser_install, and browser_run_code execute JavaScript/code which is their intended browser automation functionality - flagged as tool poisoning but this is core Playwright capability"

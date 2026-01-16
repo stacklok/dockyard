@@ -17,8 +17,12 @@ provenance:
   repository_uri: "https://github.com/mrexodia/ida-pro-mcp"
   repository_ref: "refs/heads/main"
 
-# Security allowlist for false positive
+# Security allowlist for false positives
 security:
   allowed_issues:
-    - code: "TF002"
-      reason: "Destructive toxic flow is acceptable for a reverse engineering tool"
+    - code: "AITech-9.1"
+      reason: "Code execution and injection patterns are expected for a reverse engineering tool that disassembles and renames functions in IDA Pro"
+    - code: "AITech-12.1"
+      reason: "Tool poisoning patterns are false positives - modifying function prototypes, variable types, stack frames, and reading memory/data are core reverse engineering operations in IDA Pro"
+    - code: "AITech-8.2"
+      reason: "Data exfiltration patterns are false positives - reading strings and binary data from IDA databases is the fundamental purpose of this reverse engineering tool"

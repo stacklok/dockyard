@@ -30,6 +30,5 @@ provenance:
 
 security:
   # Security allowlist for known false positives
-  allowed_issues:
-    - code: "W001"
-      reason: "The 'recommend' tool contains legitimate usage instructions for AI agents, not malicious prompt injection"
+  # No current allowlist entries - scan shows all tools as SAFE
+  allowed_issues: []

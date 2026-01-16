@@ -20,8 +20,10 @@ provenance:
 
 # Optional: Security allowlist
 security:
+  # Server requires NOTION_TOKEN to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
-    - code: "TF001"
+    - code: "AITech-8.2"
       reason: |
         Data leak toxic flow is expected for a Notion integration server. Notion MCP server:
         - Reads private Notion workspace data including pages, databases, and user information (private data access)
@@ -29,7 +31,7 @@ security:
         - Exports and shares Notion data through search, fetch, and analysis operations (public sink)
         This combination is essential for the Notion MCP server to function effectively,
         allowing agents to access, analyze, and work with Notion workspace content and data.
-    - code: "TF002"
+    - code: "AITech-9.1"
       reason: |
         Destructive toxic flow is expected and required for Notion content management. The server includes:
         - Tools to delete, update, and move Notion pages, databases, and other content (destructive operations)

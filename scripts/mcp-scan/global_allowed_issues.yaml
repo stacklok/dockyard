@@ -1,9 +1,14 @@
-# Global allowed issues for MCP security scanning
+# Global allowed issues for MCP security scanning (Cisco AITech taxonomy)
+# See: https://github.com/cisco-ai-defense/mcp-scanner
+#
+# Common AITech codes:
+#   AITech-1.1  - Prompt injection
+#   AITech-8.2  - Data exfiltration/exposure
+#   AITech-9.1  - System manipulation
+#   AITech-12.1 - Tool exploitation/poisoning
+#
 # These issues are allowed for ALL MCP servers in the registry.
 # For server-specific exceptions, add them to the server's spec.yaml file instead.
 
-allowed_issues:
-  - code: "W003"
-    reason: "Server not in Invariant Labs registry - we verify provenance independently via our own checks."
-  - code: "W004"
-    reason: "Server not in Invariant Labs registry - we verify provenance independently via our own checks."
+allowed_issues: []
+# Note: W003/W004 were Invariant-registry-specific codes - no equivalent needed in Cisco scanner

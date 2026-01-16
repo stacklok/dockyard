@@ -18,8 +18,12 @@ provenance:
   repository_ref: "refs/heads/main"
 
 security:
+  # Server requires BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, GEMINI_API_KEY to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
-    - code: "TF001"
+    - code: "AITech-8.2"
       reason: "Data leak risk acceptable - tool designed for web automation workflows where external content interaction is essential. Users should be aware of potential data exposure through cloud browser service."
-    - code: "TF002"
+    - code: "AITech-9.1"
       reason: "Destructive flow risk acceptable - browserbase_stagehand_act tool is core functionality for web automation. Users should only use with trusted prompts and on non-production systems."
+    - code: "AITech-1.1"
+      reason: "False positive - YARA flags navigate/observe tools for instructional text in descriptions (e.g., 'Only use this tool with...'), not actual prompt injection. LLM analyzer confirms SAFE. The browserbase_stagehand_agent tool legitimately processes instructions for autonomous web tasks, which is core functionality."

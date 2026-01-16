@@ -191,14 +191,14 @@ jobs:
 
       - name: Install dependencies
         run: |
-          # Install mcp-scan
-          uv tool install mcp-scan
-          
+          # Install Cisco AI Defense mcp-scanner (PyPI package: cisco-ai-mcp-scanner, CLI: mcp-scanner)
+          uv tool install cisco-ai-mcp-scanner
+
           # Install Python dependencies for scripts
           uv pip install --system pyyaml
-          
-          # Verify installation (mcp-scan doesn't have --version, so we use help)
-          uv tool run mcp-scan --help || true
+
+          # Verify installation
+          mcp-scanner --help || true
 
       - name: Extract metadata from config
         id: meta
@@ -214,37 +214,46 @@ jobs:
 
       - name: Run MCP Security Scan
         id: scan
+        env:
+          MCP_SCANNER_ENABLE_LLM: ${{ vars.MCP_SCANNER_ENABLE_LLM || 'false' }}
+          MCP_SCANNER_LLM_API_KEY: ${{ secrets.MCP_SCANNER_LLM_API_KEY }}
+          MCP_SCANNER_LLM_MODEL: ${{ vars.MCP_SCANNER_LLM_MODEL || '' }}
         run: |
           echo "🔍 Scanning MCP server: ${{ steps.meta.outputs.server_name }}"
-          
-          # Generate MCP configuration
-          python3 scripts/mcp-scan/generate_mcp_config.py \
+
+          # Generate config (outputs JSON with command/args)
+          config_json=$(python3 scripts/mcp-scan/generate_mcp_config.py \
             "${{ matrix.config }}" \
             "${{ steps.meta.outputs.protocol }}" \
-            "${{ steps.meta.outputs.server_name }}" \
-            > "/tmp/${{ steps.meta.outputs.server_name }}-mcp-config.json"
-          
-          # Run mcp-scan
+            "${{ steps.meta.outputs.server_name }}")
+
+          command=$(echo "$config_json" | jq -r '.command')
+          args=$(echo "$config_json" | jq -r '.args')
+
+          # Run scan using Cisco AI Defense mcp-scanner
+          # Note: stderr is redirected to a separate file to avoid corrupting JSON output
           scan_output="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.json"
-          
-          if uv tool run mcp-scan scan "/tmp/${{ steps.meta.outputs.server_name }}-mcp-config.json" \
-            --json \
-            --storage-file "/tmp/mcp-scan-storage" \
-            --server-timeout 30 \
-            --suppress-mcpserver-io true \
-            > "$scan_output" 2>&1; then
+          scan_stderr="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.stderr"
+
+          if python3 scripts/mcp-scan/run_scan.py "$command" "$args" \
+            > "$scan_output" 2> "$scan_stderr"; then
             echo "scan_passed=true" >> $GITHUB_OUTPUT
           else
             echo "scan_passed=false" >> $GITHUB_OUTPUT
+            # Show stderr in logs for debugging
+            if [ -s "$scan_stderr" ]; then
+              echo "Scanner stderr output:"
+              cat "$scan_stderr"
+            fi
           fi
-          
+
           # Process results (pass the config file to check for allowed issues)
           python3 scripts/mcp-scan/process_scan_results.py \
             "$scan_output" \
             "${{ steps.meta.outputs.server_name }}" \
             "${{ matrix.config }}" \
             > scan-summary.json
-          
+
           # Copy scan output to current directory for artifact upload
           cp "$scan_output" "mcp-scan-${{ steps.meta.outputs.server_name }}.json"
 
@@ -437,7 +446,7 @@ jobs:
               }
             ],
             "predicate": {
-              "scanTool": "mcp-scan",
+              "scanTool": "cisco-ai-mcp-scanner",
               "scanDate": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
               "scanResult": $SCAN_SUMMARY,
               "repository": "${{ github.repository }}",
