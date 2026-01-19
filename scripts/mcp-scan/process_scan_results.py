@@ -145,15 +145,21 @@ def process_cisco_scan_results(scan_data, allowed_issues):
       ],
       "requested_analyzers": ["yara"]
     }
+
+    Returns:
+        Tuple of (tools_scanned, blocking_issues, allowed_issues_found, analyzers)
     """
     tools_scanned = 0
     blocking_issues = []
     allowed_issues_found = []
+    analyzers = []
 
     # Handle different possible data structures
     if isinstance(scan_data, list):
         scan_results = scan_data
     elif isinstance(scan_data, dict):
+        # Extract requested_analyzers from scanner output
+        analyzers = scan_data.get('requested_analyzers', [])
         scan_results = (
             scan_data.get('scan_results') or
             scan_data.get('tools') or
@@ -219,7 +225,7 @@ def process_cisco_scan_results(scan_data, allowed_issues):
                 else:
                     blocking_issues.append(issue_detail)
 
-    return tools_scanned, blocking_issues, allowed_issues_found
+    return tools_scanned, blocking_issues, allowed_issues_found, analyzers
 
 
 def main():
@@ -296,7 +302,7 @@ def main():
             scan_data = json.loads(json_content)
 
         # Process Cisco scanner results
-        tools_scanned, blocking_issues, allowed_issues_found = process_cisco_scan_results(
+        tools_scanned, blocking_issues, allowed_issues_found, analyzers = process_cisco_scan_results(
             scan_data, allowed_issues
         )
 
@@ -308,6 +314,7 @@ def main():
                 'server': server_name,
                 'status': 'failed',
                 'tools_scanned': tools_scanned,
+                'analyzers': analyzers,
                 'blocking_issues': blocking_issues,
                 'blocking_count': len(blocking_issues),
                 'allowed_issues': allowed_issues_found,
@@ -334,6 +341,7 @@ def main():
                 'server': server_name,
                 'status': 'passed',
                 'tools_scanned': tools_scanned,
+                'analyzers': analyzers,
                 'message': 'No blocking security issues detected'
             }
 

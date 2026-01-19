@@ -190,15 +190,18 @@ jobs:
           enable-cache: true
 
       - name: Install dependencies
+        id: install-deps
         run: |
-          # Install Cisco AI Defense mcp-scanner (PyPI package: cisco-ai-mcp-scanner, CLI: mcp-scanner)
-          uv tool install cisco-ai-mcp-scanner
-
-          # Install Python dependencies for scripts
-          uv pip install --system pyyaml
+          # Install pinned Python dependencies from requirements.txt
+          uv pip install --system -r scripts/mcp-scan/requirements.txt
 
           # Verify installation
           mcp-scanner --help || true
+
+          # Capture scanner version for attestation
+          SCANNER_VERSION=$(uv pip show cisco-ai-mcp-scanner | grep "^Version:" | cut -d' ' -f2)
+          echo "scanner_version=$SCANNER_VERSION" >> $GITHUB_OUTPUT
+          echo "Installed mcp-scanner version: $SCANNER_VERSION"
 
       - name: Extract metadata from config
         id: meta
@@ -257,6 +260,9 @@ jobs:
           # Copy scan output to current directory for artifact upload
           cp "$scan_output" "mcp-scan-${{ steps.meta.outputs.server_name }}.json"
 
+          # Save scanner version for attestation (from install-deps step)
+          echo "${{ steps.install-deps.outputs.scanner_version }}" > scanner-version.txt
+
       - name: Upload scan results
         if: always()
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
@@ -265,6 +271,7 @@ jobs:
           path: |
             mcp-scan-${{ steps.meta.outputs.server_name }}.json
             scan-summary.json
+            scanner-version.txt
           retention-days: 30
 
   build-containers:
@@ -421,50 +428,52 @@ jobs:
           path: /tmp/scan-results
         continue-on-error: false  # Fail if scan results are missing
 
-      - name: Create security scan attestation
+      - name: Create security scan attestation (SCAI format)
         if: github.event_name != 'pull_request'
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          echo "Creating security scan attestation for ${{ steps.meta.outputs.image_name }}@${DIGEST}"
-          
-          # Read the scan summary
-          SCAN_SUMMARY=$(cat /tmp/scan-results/scan-summary.json)
-          SCAN_STATUS=$(echo "$SCAN_SUMMARY" | jq -r '.status')
-          
-          # Create custom attestation for security scan
-          cat > /tmp/security-attestation.json <<EOF
-          {
-            "_type": "https://in-toto.io/Statement/v0.1",
-            "predicateType": "https://github.com/stacklok/dockyard/mcp-security-scan/v1",
-            "subject": [
-              {
-                "name": "${{ steps.meta.outputs.image_name }}",
-                "digest": {
-                  "sha256": "${DIGEST#sha256:}"
-                }
-              }
-            ],
-            "predicate": {
-              "scanTool": "cisco-ai-mcp-scanner",
-              "scanDate": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-              "scanResult": $SCAN_SUMMARY,
-              "repository": "${{ github.repository }}",
-              "commitSha": "${{ github.sha }}",
-              "workflowRun": "${{ github.run_id }}",
-              "configFile": "${{ matrix.config }}"
-            }
-          }
-          EOF
-          
-          # Attest the security scan results
+          echo "Creating SCAI security scan attestation for ${{ steps.meta.outputs.image_name }}@${DIGEST}"
+
+          # Read scanner version from scan results
+          SCANNER_VERSION=""
+          if [ -f /tmp/scan-results/scanner-version.txt ]; then
+            SCANNER_VERSION=$(cat /tmp/scan-results/scanner-version.txt | tr -d '\n')
+            echo "Scanner version: $SCANNER_VERSION"
+          fi
+
+          # Generate SCAI attestation using Python script
+          # Reference: https://github.com/in-toto/attestation/blob/main/spec/predicates/scai.md
+          # Note: Uses github.server_url to support GitHub Enterprise Server
+          # Note: Analyzers are read from scan-summary.json (extracted from scanner output)
+          python3 scripts/mcp-scan/generate_scai_attestation.py \
+            /tmp/scan-results/scan-summary.json \
+            "${{ steps.meta.outputs.image_name }}" \
+            "${DIGEST}" \
+            --config-file "${{ matrix.config }}" \
+            --commit-sha "${{ github.sha }}" \
+            --run-id "${{ github.run_id }}" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --producer-uri "${{ github.server_url }}/${{ github.repository }}" \
+            --scanner-version "$SCANNER_VERSION" \
+            --scanner-uri "https://github.com/cisco-ai-defense/mcp-scanner" \
+            --validate \
+            --output /tmp/security-attestation.json
+
+          # Show the generated attestation for debugging
+          echo "Generated SCAI attestation:"
+          cat /tmp/security-attestation.json
+
+          # Attest the security scan results with SCAI predicate type
           cosign attest --yes \
             --predicate /tmp/security-attestation.json \
-            --type https://github.com/stacklok/dockyard/mcp-security-scan/v1 \
+            --type https://in-toto.io/attestation/scai/v0.3 \
             ${{ steps.meta.outputs.image_name }}@${DIGEST}
-          
-          echo "✅ Security scan attestation created" >> $GITHUB_STEP_SUMMARY
-          
+
+          # Extract attribute for summary
+          ATTRIBUTE=$(jq -r '.predicate.attributes[0].attribute' /tmp/security-attestation.json)
+          echo "✅ SCAI security scan attestation created (${ATTRIBUTE})" >> $GITHUB_STEP_SUMMARY
+
           # Clean up
           rm -f /tmp/security-attestation.json
 
