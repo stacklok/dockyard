@@ -421,50 +421,42 @@ jobs:
           path: /tmp/scan-results
         continue-on-error: false  # Fail if scan results are missing
 
-      - name: Create security scan attestation
+      - name: Create security scan attestation (SCAI format)
         if: github.event_name != 'pull_request'
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
         run: |
-          echo "Creating security scan attestation for ${{ steps.meta.outputs.image_name }}@${DIGEST}"
-          
-          # Read the scan summary
-          SCAN_SUMMARY=$(cat /tmp/scan-results/scan-summary.json)
-          SCAN_STATUS=$(echo "$SCAN_SUMMARY" | jq -r '.status')
-          
-          # Create custom attestation for security scan
-          cat > /tmp/security-attestation.json <<EOF
-          {
-            "_type": "https://in-toto.io/Statement/v0.1",
-            "predicateType": "https://github.com/stacklok/dockyard/mcp-security-scan/v1",
-            "subject": [
-              {
-                "name": "${{ steps.meta.outputs.image_name }}",
-                "digest": {
-                  "sha256": "${DIGEST#sha256:}"
-                }
-              }
-            ],
-            "predicate": {
-              "scanTool": "cisco-ai-mcp-scanner",
-              "scanDate": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
-              "scanResult": $SCAN_SUMMARY,
-              "repository": "${{ github.repository }}",
-              "commitSha": "${{ github.sha }}",
-              "workflowRun": "${{ github.run_id }}",
-              "configFile": "${{ matrix.config }}"
-            }
-          }
-          EOF
-          
-          # Attest the security scan results
+          echo "Creating SCAI security scan attestation for ${{ steps.meta.outputs.image_name }}@${DIGEST}"
+
+          # Generate SCAI attestation using Python script
+          # Reference: https://github.com/in-toto/attestation/blob/main/spec/predicates/scai.md
+          python3 scripts/mcp-scan/generate_scai_attestation.py \
+            /tmp/scan-results/scan-summary.json \
+            "${{ steps.meta.outputs.image_name }}" \
+            "${DIGEST}" \
+            --config-file "${{ matrix.config }}" \
+            --commit-sha "${{ github.sha }}" \
+            --run-id "${{ github.run_id }}" \
+            --run-url "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --repository "${{ github.repository }}" \
+            --analyzers "yara" \
+            --validate \
+            --output /tmp/security-attestation.json
+
+          # Show the generated attestation for debugging
+          echo "Generated SCAI attestation:"
+          cat /tmp/security-attestation.json
+
+          # Attest the security scan results with SCAI predicate type
           cosign attest --yes \
             --predicate /tmp/security-attestation.json \
-            --type https://github.com/stacklok/dockyard/mcp-security-scan/v1 \
+            --type https://in-toto.io/attestation/scai/v0.3 \
             ${{ steps.meta.outputs.image_name }}@${DIGEST}
-          
-          echo "✅ Security scan attestation created" >> $GITHUB_STEP_SUMMARY
-          
+
+          # Extract attribute for summary
+          ATTRIBUTE=$(jq -r '.predicate.attributes[0].attribute' /tmp/security-attestation.json)
+          echo "✅ SCAI security scan attestation created (${ATTRIBUTE})" >> $GITHUB_STEP_SUMMARY
+
           # Clean up
           rm -f /tmp/security-attestation.json
 
