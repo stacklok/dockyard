@@ -16,3 +16,8 @@ spec:
 provenance:
   repository_uri: "https://github.com/box-community/mcp-server-box"
   repository_ref: "refs/heads/main"  # Using main branch as the primary development branch
+
+# Security configuration
+security:
+  # Server requires Box API credentials to start - cannot be scanned in CI
+  insecure_ignore: true

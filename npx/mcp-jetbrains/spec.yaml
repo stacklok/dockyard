@@ -16,3 +16,8 @@ spec:
 provenance:
   repository_uri: "https://github.com/JetBrains/mcp-jetbrains"
   repository_ref: "refs/heads/main"
+
+# Security configuration
+security:
+  # Server is a proxy that requires a running JetBrains IDE to connect to - cannot be scanned in CI
+  insecure_ignore: true

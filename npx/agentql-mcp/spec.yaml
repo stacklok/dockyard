@@ -16,3 +16,8 @@ spec:
 provenance:
   repository_uri: "https://github.com/tinyfish-io/agentql-mcp"
   repository_ref: "refs/heads/main"
+
+# Security configuration
+security:
+  # Server requires AGENTQL_API_KEY to start - cannot be scanned in CI
+  insecure_ignore: true

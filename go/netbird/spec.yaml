@@ -16,3 +16,8 @@ spec:
 provenance:
   repository_uri: "https://github.com/aantti/mcp-netbird?tab=readme-ov-file"
   repository_ref: "refs/heads/main"
+
+# Security configuration
+security:
+  # Server requires Netbird management API token to start - cannot be scanned in CI
+  insecure_ignore: true
