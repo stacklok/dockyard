@@ -70,7 +70,8 @@ def build_scai_attestation(
     run_id: str,
     run_url: str,
     producer_uri: str,
-    analyzers: list[str] | None = None,
+    scanner_version: str | None = None,
+    scanner_uri: str | None = None,
     source_repository: str | None = None,
 ) -> dict[str, Any]:
     """
@@ -86,14 +87,15 @@ def build_scai_attestation(
         run_id: GitHub Actions run ID
         run_url: URL to the GitHub Actions run
         producer_uri: Full URI of the producer (e.g., https://github.com/stacklok/dockyard)
-        analyzers: List of analyzers used (default: ["yara"])
+        scanner_version: Version of the scanner (e.g., "4.1.0")
+        scanner_uri: URI to the scanner source (e.g., "https://github.com/cisco-ai-defense/mcp-scanner")
         source_repository: Optional URI of the MCP server's source repository
 
     Returns:
         Complete in-toto Statement with SCAI predicate
     """
-    if analyzers is None:
-        analyzers = ["yara"]
+    # Extract analyzers from scan summary (from scanner output)
+    analyzers = scan_summary.get("analyzers", ["yara"])
 
     # Extract scan results
     scan_status = scan_summary.get("status", "unknown")
@@ -115,7 +117,7 @@ def build_scai_attestation(
     if digest_value.startswith("sha256:"):
         digest_value = digest_value[7:]
 
-    # Build conditions - include source repository if available
+    # Build conditions - include scanner metadata and source repository if available
     conditions: dict[str, Any] = {
         "scanner": "cisco-ai-mcp-scanner",
         "analyzers": analyzers,
@@ -125,6 +127,14 @@ def build_scai_attestation(
         "scanDate": scan_date,
         "configFile": config_file
     }
+
+    # Add scanner version if provided
+    if scanner_version:
+        conditions["scannerVersion"] = scanner_version
+
+    # Add scanner URI if provided
+    if scanner_uri:
+        conditions["scannerUri"] = scanner_uri
 
     # Add source repository provenance if available
     if source_repository:
@@ -255,9 +265,13 @@ def main():
         help="Full URI of the attestation producer (e.g., https://github.com/stacklok/dockyard)"
     )
     parser.add_argument(
-        "--analyzers",
-        default="yara",
-        help="Comma-separated list of analyzers used (default: yara)"
+        "--scanner-version",
+        help="Version of the scanner (e.g., 4.1.0)"
+    )
+    parser.add_argument(
+        "--scanner-uri",
+        default="https://github.com/cisco-ai-defense/mcp-scanner",
+        help="URI to the scanner source (default: https://github.com/cisco-ai-defense/mcp-scanner)"
     )
     parser.add_argument(
         "--output",
@@ -282,9 +296,6 @@ def main():
         print(f"Error: Invalid JSON in scan summary: {e}", file=sys.stderr)
         sys.exit(1)
 
-    # Parse analyzers
-    analyzers = [a.strip() for a in args.analyzers.split(",") if a.strip()]
-
     # Load spec.yaml to extract source repository provenance
     source_repository = None
     try:
@@ -307,7 +318,8 @@ def main():
         run_id=args.run_id,
         run_url=args.run_url,
         producer_uri=args.producer_uri,
-        analyzers=analyzers,
+        scanner_version=args.scanner_version,
+        scanner_uri=args.scanner_uri,
         source_repository=source_repository,
     )
 

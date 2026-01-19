@@ -38,6 +38,8 @@ https://in-toto.io/attestation/scai/v0.3
       "attribute": "MCP_SECURITY_SCAN_PASSED",
       "conditions": {
         "scanner": "cisco-ai-mcp-scanner",
+        "scannerVersion": "4.1.0",
+        "scannerUri": "https://github.com/cisco-ai-defense/mcp-scanner",
         "analyzers": ["yara"],
         "toolsScanned": 5,
         "blockingIssues": 0,
@@ -75,6 +77,8 @@ https://in-toto.io/attestation/scai/v0.3
 | Field | Type | Description |
 |-------|------|-------------|
 | `scanner` | string | Scanner tool identifier (`cisco-ai-mcp-scanner`) |
+| `scannerVersion` | string | Version of the scanner (e.g., `4.1.0`) |
+| `scannerUri` | string | URI to the scanner source repository |
 | `analyzers` | array | List of analyzers used (`yara`, `llm`) |
 | `toolsScanned` | number | Number of MCP tools scanned |
 | `blockingIssues` | number | Count of blocking security issues |
