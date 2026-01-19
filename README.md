@@ -311,18 +311,24 @@ docker buildx imagetools inspect \
 
 Note: These attestations are stored as OCI artifacts in the registry, not as Sigstore attestations. They provide supply chain transparency but are verified differently than cosign attestations.
 
-#### Security Scan Attestation (Sigstore)
+#### Security Scan Attestation (SCAI)
 
-Our custom security scan attestations are created using cosign and can be verified when they exist:
+MCP security scan results are attested using the [SCAI (Software Supply Chain Attribute Integrity)](https://github.com/in-toto/attestation/blob/main/spec/predicates/scai.md) predicate type, an official in-toto format recognized by policy engines like Kyverno, OPA, and Gatekeeper.
 
 ```bash
 # Verify and retrieve security scan attestation (if available)
 cosign verify-attestation \
-  --type https://github.com/stacklok/dockyard/mcp-security-scan/v1 \
+  --type https://in-toto.io/attestation/scai/v0.3 \
   --certificate-identity-regexp "https://github.com/stacklok/dockyard/.github/workflows/build-containers.yml@refs/heads/.*" \
   --certificate-oidc-issuer https://token.actions.githubusercontent.com \
-  ghcr.io/stacklok/dockyard/npx/context7:1.0.14 2>/dev/null | jq '.payload | @base64d | fromjson | .predicate.scanResult'
+  ghcr.io/stacklok/dockyard/npx/context7:1.0.14
+
+# Extract scan conditions from attestation
+cosign download attestation ghcr.io/stacklok/dockyard/npx/context7:1.0.14 | \
+  jq -r 'select(.payloadType == "application/vnd.in-toto+json") | .payload | @base64d | fromjson | .predicate.attributes[0].conditions'
 ```
+
+For detailed attestation schema, policy examples, and verification commands, see [docs/attestations.md](docs/attestations.md).
 
 Note: Security scan attestations are only created when the MCP security scan runs and produces results for that specific image build.
 
