@@ -16,3 +16,16 @@ spec:
 provenance:
   repository_uri: "https://github.com/neondatabase-labs/mcp-server-neon"
   repository_ref: "refs/heads/main"
+
+security:
+  # Server requires NEON_API_KEY to start - cannot be scanned in CI
+  insecure_ignore: true
+  allowed_issues:
+    - code: "AITech-12.1"
+      reason: "Tool descriptions use structured XML-like documentation (e.g., <use_case>, <important_notes>) to provide AI assistants with workflow guidance. This is legitimate documentation pattern for MCP tools, not tool poisoning."
+    - code: "AITech-1.1"
+      reason: "Tool descriptions contain SQL examples and structured workflow instructions with MUST directives for database migration and query tuning tools. These are legitimate documentation patterns, not prompt injection attacks."
+    - code: "AITech-9.1"
+      reason: "SQL examples in prepare_database_migration tool description (e.g., ALTER TABLE, SELECT) are documentation showing usage patterns, not SQL injection payloads."
+    - code: "AITech-8.2"
+      reason: "The provision_neon_auth tool legitimately provisions authentication credentials and explains how to use them. References to credential names in documentation are necessary for proper tool usage, not credential harvesting."

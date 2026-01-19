@@ -1,9 +1,5 @@
 #!/usr/bin/env python3
-"""
-Generate MCP configuration from YAML file for mcp-scan.
-
-Usage: generate_mcp_config.py <config_file> <protocol> <server_name>
-"""
+"""Generate command/args for Cisco mcp-scanner stdio mode."""
 
 import yaml
 import json
@@ -13,47 +9,33 @@ def main():
     if len(sys.argv) != 4:
         print("Usage: generate_mcp_config.py <config_file> <protocol> <server_name>", file=sys.stderr)
         sys.exit(1)
-    
-    config_file = sys.argv[1]
-    protocol = sys.argv[2]
-    server_name = sys.argv[3]
-    
+
+    config_file, protocol, server_name = sys.argv[1], sys.argv[2], sys.argv[3]
+
     try:
         with open(config_file, 'r') as f:
             data = yaml.safe_load(f)
-        
+
         if not data or 'spec' not in data:
             print(f"Error: Invalid YAML structure in {config_file}", file=sys.stderr)
             sys.exit(1)
-        
+
         package = data['spec']['package']
         version = data['spec'].get('version', 'latest')
-        
-        # Determine command based on protocol
+
         if protocol in ['npx', 'uvx']:
             command = protocol
-            args = [f"{package}@{version}"]
+            args = f"{package}@{version}"
         elif protocol == 'go':
             command = 'go'
-            args = ['run', package]
+            args = f"run {package}"
         else:
             print(f"Error: Unknown protocol {protocol}", file=sys.stderr)
             sys.exit(1)
-        
-        # Create MCP server configuration
-        mcp_config = {
-            "mcpServers": {
-                server_name: {
-                    "command": command,
-                    "args": args,
-                    "env": {}
-                }
-            }
-        }
-        
-        # Output JSON configuration
-        print(json.dumps(mcp_config, indent=2))
-        
+
+        # Output JSON with command info
+        print(json.dumps({"command": command, "args": args, "server_name": server_name}))
+
     except FileNotFoundError:
         print(f"Error: File {config_file} not found", file=sys.stderr)
         sys.exit(1)

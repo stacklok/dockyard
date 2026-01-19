@@ -31,7 +31,7 @@ provenance:
 security:
   # Security allowlist for known issues that are acceptable in this context
   allowed_issues:
-    - code: "W001"
+    - code: "AITech-1.1"
       reason: "Tool description contains imperative instructions for AI agents which are necessary for proper operation"
-    - code: "TF002"
-      reason: "Destructive toxic flow is mitigated by container sandboxing - code execution is isolated from host system"
+    - code: "AITech-12.1"
+      reason: "Tool executes Python code to generate diagrams - this is core functionality, not tool poisoning. Code execution is isolated by container sandboxing"

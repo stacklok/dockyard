@@ -20,7 +20,7 @@ provenance:
 # Security allowlist for known acceptable risks
 security:
   allowed_issues:
-    - code: "TF001"
+    - code: "AITech-8.2"
       reason: "Data leak risk acceptable - tool designed for creative workflows where external content integration is essential. Users should be aware of potential data exposure through code execution capabilities."
-    - code: "TF002"
-      reason: "Destructive flow risk acceptable - execute_blender_code tool is core functionality for Blender automation. Users should only use with trusted prompts and in isolated environments."
+    - code: "AITech-12.1"
+      reason: "Tool exploitation risk acceptable - execute_blender_code tool is core functionality for Blender automation allowing arbitrary Python code execution. Users should only use with trusted prompts and in isolated environments."

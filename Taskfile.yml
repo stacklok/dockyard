@@ -4,14 +4,18 @@ tasks:
   scan:
     desc: "Run security scan on a specific MCP server"
     summary: |
-      Run mcp-scan on a specific MCP server configuration.
-      
+      Run Cisco AI Defense mcp-scanner on a specific MCP server configuration.
+
       Usage:
         task scan -- npx/browserbase-mcp-server
         task scan -- uvx/blender-mcp
         task scan -- npx/sentry-mcp-server
-      
+
       The server path should be relative to the project root and contain a spec.yaml file.
+
+      Environment variables:
+        MCP_SCANNER_ENABLE_LLM=true  - Enable LLM analyzer (requires API key)
+        MCP_SCANNER_LLM_API_KEY      - API key for LLM service
     requires:
       vars: [CLI_ARGS]
     vars:
@@ -28,15 +32,25 @@ tasks:
         fi
       - 'echo "🔍 Scanning MCP server: {{.SERVER_NAME}} ({{.PROTOCOL}})"'
       - |
-        python3 scripts/mcp-scan/generate_mcp_config.py \
+        # Generate config (outputs JSON with command/args)
+        config_json=$(python3 scripts/mcp-scan/generate_mcp_config.py \
           "{{.SERVER_PATH}}/spec.yaml" \
           "{{.PROTOCOL}}" \
-          "{{.SERVER_NAME}}" \
-          > "/tmp/{{.SERVER_NAME}}-mcp-config.json"
-      - |
-        python3 scripts/mcp-scan/run_scan.py \
-          "/tmp/{{.SERVER_NAME}}-mcp-config.json" \
-          > "/tmp/mcp-scan-{{.SERVER_NAME}}.json"
+          "{{.SERVER_NAME}}")
+
+        command=$(echo "$config_json" | jq -r '.command')
+        args=$(echo "$config_json" | jq -r '.args')
+
+        # Run scan using Cisco AI Defense mcp-scanner
+        # Note: stderr is redirected to a separate file to avoid corrupting JSON output
+        python3 scripts/mcp-scan/run_scan.py "$command" "$args" \
+          > "/tmp/mcp-scan-{{.SERVER_NAME}}.json" 2> "/tmp/mcp-scan-{{.SERVER_NAME}}.stderr" || true
+
+        # Show stderr if it exists (for debugging)
+        if [ -s "/tmp/mcp-scan-{{.SERVER_NAME}}.stderr" ]; then
+          echo "Scanner stderr:"
+          cat "/tmp/mcp-scan-{{.SERVER_NAME}}.stderr"
+        fi
       - |
         python3 scripts/mcp-scan/process_scan_results.py \
           "/tmp/mcp-scan-{{.SERVER_NAME}}.json" \
@@ -48,11 +62,11 @@ tasks:
   scan-all:
     desc: "Run security scan on all MCP servers"
     summary: |
-      Run mcp-scan on all MCP server configurations found in the project.
-      
+      Run Cisco AI Defense mcp-scanner on all MCP server configurations found in the project.
+
       This will scan all spec.yaml files found in:
       - npx/*/spec.yaml
-      - uvx/*/spec.yaml  
+      - uvx/*/spec.yaml
       - go/*/spec.yaml
     cmds:
       - |
@@ -83,15 +97,18 @@ tasks:
         echo "✅ All scans completed!"
 
   scan-setup:
-    desc: "Setup mcp-scan tool"
+    desc: "Setup Cisco AI Defense mcp-scanner"
     summary: |
-      Install and setup the mcp-scan tool.
+      Install and setup the Cisco AI Defense mcp-scanner tool.
       This only needs to be run once or when the tool needs updating.
+
+      Set MCP_SCANNER_ENABLE_LLM=true for LLM analysis (requires API key).
     cmds:
-      - echo "🔧 Setting up mcp-scan tool..."
-      - uv tool install mcp-scan
-      - echo "✅ mcp-scan setup completed"
-      - uv tool run mcp-scan --help || true
+      - echo "🔧 Setting up Cisco AI Defense mcp-scanner..."
+      - uv tool install cisco-ai-mcp-scanner
+      - echo "✅ mcp-scanner setup completed"
+      - echo "ℹ️  Set MCP_SCANNER_ENABLE_LLM=true for LLM analysis"
+      - mcp-scanner --help || true
 
   scan-clean:
     desc: "Clean up temporary scan files"
@@ -108,13 +125,13 @@ tasks:
       Display detailed help and examples for using the security scanning tasks.
     cmds:
       - |
-        echo "🔒 MCP Security Scanning Tasks"
-        echo "============================="
+        echo "🔒 MCP Security Scanning Tasks (Cisco AI Defense)"
+        echo "=================================================="
         echo ""
         echo "Available tasks:"
         echo "  scan        - Run security scan on a specific server"
         echo "  scan-all    - Run security scan on all servers"
-        echo "  scan-setup  - Setup mcp-scan tool (run once)"
+        echo "  scan-setup  - Setup mcp-scanner tool (run once)"
         echo "  scan-clean  - Clean up temporary files"
         echo "  scan-help   - Show this help"
         echo ""
@@ -124,11 +141,16 @@ tasks:
         echo "  task scan-all"
         echo "  task scan-setup"
         echo ""
+        echo "Environment variables:"
+        echo "  MCP_SCANNER_ENABLE_LLM=true  - Enable LLM analyzer"
+        echo "  MCP_SCANNER_LLM_API_KEY      - API key for LLM service"
+        echo ""
         echo "The scan results will show:"
         echo "  ✅ - No security issues found"
         echo "  ❌ - Security issues found (not allowlisted)"
         echo "  ⚠️  - Security issues found but allowlisted"
         echo ""
+        echo "Issue codes use AITech taxonomy (e.g., AITech-8.2 for data exposure)"
         echo "For detailed analysis, check the raw JSON output files in /tmp/"
 
   build:

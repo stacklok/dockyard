@@ -21,11 +21,13 @@ provenance:
 
 # Security allowlist for known false positives
 security:
+  # Server requires CONTEXT7_API_KEY to start - cannot be scanned in CI
+  insecure_ignore: true
   allowed_issues:
-    - code: "W001"
+    - code: "AITech-1.1"
       reason: |
-        Tool descriptions contain security warnings instructing users NOT to include
-        sensitive data (API keys, passwords, credentials) in queries. These are
-        defensive instructions added in v2.0.0 to protect user privacy, not prompt
-        injection attempts. The flagged keywords appear in a "Do not include..."
-        context, not in an extraction context.
+        YARA flags tool descriptions for coercive language patterns like "You MUST call"
+        and "Do not call this tool more than 3 times". These are legitimate operational
+        instructions for rate-limiting and proper API usage workflow (requiring
+        resolve-library-id before query-docs), not prompt injection attempts. LLM
+        analyzer confirms these are SAFE. Verified in v2.1.0.

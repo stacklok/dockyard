@@ -63,17 +63,18 @@ Check that all required CI checks pass:
    - `Trivy Vulnerability Scan` - Review findings
 
 3. **If MCP Security Scan fails**, check for:
-   - New security warnings (W001 prompt injection risks)
-   - Toxic flows (TF001, TF002 data leak/destructive combinations)
+   - Prompt injection risks (AITech-1.1)
+   - Data exfiltration (AITech-8.2) and system manipulation (AITech-9.1) flows
+   - Tool exploitation (AITech-12.1)
    - Whether a security allowlist entry is needed in `spec.yaml`
 
 ### Step 3a: Investigating Security Scan Failures
 
 When the MCP Security Scan fails, determine if issues are **real security concerns** or **false positives** before adding allowlist entries:
 
-1. **Get detailed scan output** by running mcp-scan directly:
+1. **Get detailed scan output** by running mcp-scanner directly:
    ```bash
-   uvx mcp-scan@latest <config-file> --json
+   uv tool run mcp-scanner stdio --stdio-command npx --stdio-arg "@package/name@version" --format raw
    ```
 
 2. **Examine the upstream source code** to understand what's triggering the warning:
@@ -130,17 +131,17 @@ If the `spec.yaml` includes provenance information:
 If the PR adds or modifies `security.allowed_issues`:
 
 1. **Verify each allowlist entry has:**
-   - A specific issue code (W001, TF001, TF002, etc.)
+   - A specific issue code (AITech-1.1, AITech-8.2, AITech-9.1, AITech-12.1, etc.)
    - A clear, justified reason explaining why it's acceptable
 
 2. **Common acceptable allowlist reasons:**
-   - W001: "Tool description contains legitimate usage instructions"
-   - TF001: "Data access flow is inherent to the server's design"
-   - TF002: "Destructive operations are essential for the server's purpose"
+   - AITech-1.1: "Tool description contains legitimate usage instructions"
+   - AITech-8.2: "Data access flow is inherent to the server's design"
+   - AITech-9.1: "Destructive operations are essential for the server's purpose"
 
 3. **Red flags requiring extra scrutiny:**
-   - Multiple new TF002 (destructive flow) entries
-   - Tool poisoning errors (E-series codes)
+   - Multiple new AITech-9.1 (destructive flow) entries
+   - Tool poisoning issues (AITech-12.1)
    - Cross-origin escalation warnings
 
 ## Output Format
@@ -206,7 +207,7 @@ provenance:
 
 security:
   allowed_issues:
-    - code: "W001|TF001|TF002|..."
+    - code: "AITech-1.1|AITech-8.2|AITech-9.1|..."
       reason: "Clear justification"
 ```
 
@@ -215,4 +216,4 @@ security:
 - [references/REGISTRY_CRITERIA.md](references/REGISTRY_CRITERIA.md) - Full ToolHive registry criteria
 - [references/INVESTIGATING_SECURITY_ISSUES.md](references/INVESTIGATING_SECURITY_ISSUES.md) - Detailed guide for investigating security scan failures
 - [ToolHive Registry Criteria (online)](https://docs.stacklok.com/toolhive/concepts/registry-criteria) - Official documentation
-- [MCP Security Scan (mcp-scan)](https://github.com/invariantlabs-ai/mcp-scan) - Security scanner documentation
+- [Cisco AI Defense mcp-scanner](https://github.com/cisco-ai-defense/mcp-scanner) - Security scanner documentation

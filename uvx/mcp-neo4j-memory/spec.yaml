@@ -16,3 +16,13 @@ spec:
 provenance:
   repository_uri: "https://github.com/neo4j-contrib/mcp-neo4j"
   repository_ref: "refs/tags/mcp-neo4j-memory-v0.2.0"
+
+# Security allowlist for known false positives from YARA-based scanning
+security:
+  # Server requires NEO4J_URL, NEO4J_USERNAME, NEO4J_PASSWORD to start - cannot be scanned in CI
+  insecure_ignore: true
+  allowed_issues:
+    - code: "AITech-9.1"
+      reason: "False positive - YARA rule 'system_manipulation' triggers on os.getenv() calls in utils.py. These are standard Python calls for reading Neo4j configuration from environment variables (NEO4J_URL, NEO4J_URI, NEO4J_USERNAME, NEO4J_PASSWORD, NEO4J_DATABASE). This is legitimate configuration handling, not system manipulation."
+    - code: "AITech-12.1"
+      reason: "False positive - YARA rule 'script_injection' triggers on asyncio.run() in __init__.py which matches the pattern for dangerous Run() functions. asyncio.run() is the standard Python function for running async code and poses no injection risk."

@@ -19,6 +19,6 @@ provenance:
 
 # Security allowlist for known acceptable issues
 security:
-  allowed_issues:
-    - code: "TF002"
-      reason: "Destructive toxic flow is acceptable for UI component generation use case. The server generates UI components from user descriptions, which requires both content generation and file system operations. Risk is mitigated by the specific use case of generating frontend components."
+  # Server requires API_KEY (21st.dev Magic) to start - cannot be scanned in CI
+  insecure_ignore: true
+  allowed_issues: []
