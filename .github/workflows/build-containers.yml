@@ -430,6 +430,7 @@ jobs:
 
           # Generate SCAI attestation using Python script
           # Reference: https://github.com/in-toto/attestation/blob/main/spec/predicates/scai.md
+          # Note: Uses github.server_url to support GitHub Enterprise Server
           python3 scripts/mcp-scan/generate_scai_attestation.py \
             /tmp/scan-results/scan-summary.json \
             "${{ steps.meta.outputs.image_name }}" \
@@ -437,8 +438,8 @@ jobs:
             --config-file "${{ matrix.config }}" \
             --commit-sha "${{ github.sha }}" \
             --run-id "${{ github.run_id }}" \
-            --run-url "https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --repository "${{ github.repository }}" \
+            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
+            --producer-uri "${{ github.server_url }}/${{ github.repository }}" \
             --analyzers "yara" \
             --validate \
             --output /tmp/security-attestation.json

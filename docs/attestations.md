@@ -43,7 +43,8 @@ https://in-toto.io/attestation/scai/v0.3
         "blockingIssues": 0,
         "allowedIssues": 1,
         "scanDate": "2026-01-19T12:00:00Z",
-        "configFile": "npx/context7/spec.yaml"
+        "configFile": "npx/context7/spec.yaml",
+        "sourceRepository": "https://github.com/upstash/context7"
       },
       "evidence": {
         "name": "scan-summary.json",
@@ -80,6 +81,7 @@ https://in-toto.io/attestation/scai/v0.3
 | `allowedIssues` | number | Count of allowed (non-blocking) issues |
 | `scanDate` | string | ISO 8601 timestamp of scan |
 | `configFile` | string | Path to the spec.yaml configuration |
+| `sourceRepository` | string | Source repository of the MCP server (from spec.yaml provenance) |
 
 ### Evidence
 

@@ -21,6 +21,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
+import yaml
+
 # SCAI predicate type and version
 # Reference: https://github.com/in-toto/attestation/blob/main/spec/predicates/scai.md
 SCAI_PREDICATE_TYPE = "https://in-toto.io/attestation/scai/v0.3"
@@ -42,6 +44,12 @@ def load_scan_summary(file_path: str) -> dict[str, Any]:
         return json.load(f)
 
 
+def load_spec_yaml(file_path: str) -> dict[str, Any]:
+    """Load and parse the spec.yaml configuration file."""
+    with open(file_path) as f:
+        return yaml.safe_load(f)
+
+
 def determine_attribute(scan_status: str) -> str:
     """Determine the SCAI attribute based on scan status."""
     if scan_status == "passed":
@@ -61,8 +69,9 @@ def build_scai_attestation(
     commit_sha: str,
     run_id: str,
     run_url: str,
-    repository: str,
+    producer_uri: str,
     analyzers: list[str] | None = None,
+    source_repository: str | None = None,
 ) -> dict[str, Any]:
     """
     Build a SCAI attestation for the MCP security scan.
@@ -76,8 +85,9 @@ def build_scai_attestation(
         commit_sha: Git commit SHA
         run_id: GitHub Actions run ID
         run_url: URL to the GitHub Actions run
-        repository: GitHub repository (owner/repo)
+        producer_uri: Full URI of the producer (e.g., https://github.com/stacklok/dockyard)
         analyzers: List of analyzers used (default: ["yara"])
+        source_repository: Optional URI of the MCP server's source repository
 
     Returns:
         Complete in-toto Statement with SCAI predicate
@@ -105,6 +115,21 @@ def build_scai_attestation(
     if digest_value.startswith("sha256:"):
         digest_value = digest_value[7:]
 
+    # Build conditions - include source repository if available
+    conditions: dict[str, Any] = {
+        "scanner": "cisco-ai-mcp-scanner",
+        "analyzers": analyzers,
+        "toolsScanned": tools_scanned,
+        "blockingIssues": blocking_count,
+        "allowedIssues": allowed_count,
+        "scanDate": scan_date,
+        "configFile": config_file
+    }
+
+    # Add source repository provenance if available
+    if source_repository:
+        conditions["sourceRepository"] = source_repository
+
     # Build the SCAI attestation following the spec
     # Reference: https://github.com/in-toto/attestation/blob/main/spec/predicates/scai.md
     attestation = {
@@ -122,15 +147,7 @@ def build_scai_attestation(
             "attributes": [
                 {
                     "attribute": attribute,
-                    "conditions": {
-                        "scanner": "cisco-ai-mcp-scanner",
-                        "analyzers": analyzers,
-                        "toolsScanned": tools_scanned,
-                        "blockingIssues": blocking_count,
-                        "allowedIssues": allowed_count,
-                        "scanDate": scan_date,
-                        "configFile": config_file
-                    },
+                    "conditions": conditions,
                     "evidence": {
                         "name": "scan-summary.json",
                         "digest": {
@@ -142,7 +159,7 @@ def build_scai_attestation(
                 }
             ],
             "producer": {
-                "uri": f"https://github.com/{repository}",
+                "uri": producer_uri,
                 "name": "dockyard-ci",
                 "digest": {
                     "gitCommit": commit_sha
@@ -233,9 +250,9 @@ def main():
         help="URL to the GitHub Actions run"
     )
     parser.add_argument(
-        "--repository",
+        "--producer-uri",
         required=True,
-        help="GitHub repository (owner/repo)"
+        help="Full URI of the attestation producer (e.g., https://github.com/stacklok/dockyard)"
     )
     parser.add_argument(
         "--analyzers",
@@ -268,6 +285,17 @@ def main():
     # Parse analyzers
     analyzers = [a.strip() for a in args.analyzers.split(",") if a.strip()]
 
+    # Load spec.yaml to extract source repository provenance
+    source_repository = None
+    try:
+        spec = load_spec_yaml(args.config_file)
+        provenance = spec.get("provenance", {})
+        source_repository = provenance.get("repository_uri")
+        if source_repository:
+            print(f"Source repository: {source_repository}", file=sys.stderr)
+    except (FileNotFoundError, yaml.YAMLError) as e:
+        print(f"Warning: Could not read spec.yaml for provenance: {e}", file=sys.stderr)
+
     # Build attestation
     attestation = build_scai_attestation(
         scan_summary=scan_summary,
@@ -278,8 +306,9 @@ def main():
         commit_sha=args.commit_sha,
         run_id=args.run_id,
         run_url=args.run_url,
-        repository=args.repository,
+        producer_uri=args.producer_uri,
         analyzers=analyzers,
+        source_repository=source_repository,
     )
 
     # Validate if requested
