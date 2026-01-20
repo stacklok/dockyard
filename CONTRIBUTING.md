@@ -1,92 +1,155 @@
-# Contributing to ToolHive <!-- omit from toc -->
+# Contributing to Dockyard
 
-First off, thank you for taking the time to contribute to ToolHive! :+1: :tada:
-ToolHive is released under the Apache 2.0 license. If you would like to
-contribute something or want to hack on the code, this document should help you
-get started. You can find some hints for starting development in ToolHive's
-[README](https://github.com/stacklok/toolhive/blob/main/README.md).
+Thank you for your interest in contributing to Dockyard! This document helps you get started.
 
-## Table of contents <!-- omit from toc -->
+## Table of Contents
 
-- [Code of conduct](#code-of-conduct)
-- [Reporting security vulnerabilities](#reporting-security-vulnerabilities)
-- [How to contribute](#how-to-contribute)
-  - [Using GitHub Issues](#using-github-issues)
-  - [Not sure how to start contributing?](#not-sure-how-to-start-contributing)
-  - [Pull request process](#pull-request-process)
-  - [Contributing to docs](#contributing-to-docs)
-  - [Commit message guidelines](#commit-message-guidelines)
+- [Code of Conduct](#code-of-conduct)
+- [Reporting Security Vulnerabilities](#reporting-security-vulnerabilities)
+- [Ways to Contribute](#ways-to-contribute)
+- [Adding an MCP Server](#adding-an-mcp-server)
+- [Development Setup](#development-setup)
+- [Pull Request Process](#pull-request-process)
+- [Commit Message Guidelines](#commit-message-guidelines)
 
-## Code of conduct
+## Code of Conduct
 
-This project adheres to the
-[Contributor Covenant](https://github.com/stacklok/toolhive/blob/main/CODE_OF_CONDUCT.md)
-code of conduct. By participating, you are expected to uphold this code. Please
-report unacceptable behavior to
-[code-of-conduct@stacklok.dev](mailto:code-of-conduct@stacklok.dev).
+This project adheres to the [Contributor Covenant](CODE_OF_CONDUCT.md) code of conduct. By participating, you are expected to uphold this code. Please report unacceptable behavior to [code-of-conduct@stacklok.dev](mailto:code-of-conduct@stacklok.dev).
 
-## Reporting security vulnerabilities
+## Reporting Security Vulnerabilities
 
-If you think you have found a security vulnerability in ToolHive please DO NOT
-disclose it publicly until we've had a chance to fix it. Please don't report
-security vulnerabilities using GitHub issues; instead, please follow this
-[process](https://github.com/stacklok/toolhive/blob/main/SECURITY.MD)
+If you think you have found a security vulnerability in Dockyard, please **DO NOT** disclose it publicly until we've had a chance to fix it. Please don't report security vulnerabilities using GitHub issues; instead, follow the process in [SECURITY.MD](SECURITY.MD).
 
-## How to contribute
+## Ways to Contribute
 
-### Using GitHub Issues
+### Add an MCP Server
 
-We use GitHub issues to track bugs and enhancements. If you have a general usage
-question, please ask in
-[ToolHive's discussion forum](https://discord.gg/stacklok).
+The most common contribution is adding a new MCP server to Dockyard. See [Adding an MCP Server](#adding-an-mcp-server) below.
 
-If you are reporting a bug, please help to speed up problem diagnosis by
-providing as much information as possible. Ideally, that would include a small
-sample project that reproduces the problem.
+### Report Bugs
 
-### Not sure how to start contributing?
+Use [GitHub Issues](https://github.com/stacklok/dockyard/issues) to report bugs. Please include:
+- Steps to reproduce the issue
+- Expected vs actual behavior
+- Container image name and version (if applicable)
 
-PRs to resolve existing issues are greatly appreciated, and issues labeled as
-["good first issue"](https://github.com/stacklok/toolhive/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
-are a great place to start!
+### Suggest Enhancements
 
-### Pull request process
+We welcome feature suggestions! Open an issue describing:
+- The problem you're trying to solve
+- Your proposed solution
+- Any alternatives you've considered
 
-- -All commits must include a Signed-off-by trailer at the end of each commit
-  message to indicate that the contributor agrees to the Developer Certificate
-  of Origin. For additional details, check out the [DCO instructions](dco.md).
-- Create an issue outlining the fix or feature.
-- Fork the ToolHive repository to your own GitHub account and clone it locally.
-- Hack on your changes.
-- Correctly format your commit messages, see
-  [Commit message guidelines](#commit-message-guidelines) below.
-- Open a PR by ensuring the title and its description reflect the content of the
-  PR.
-- Ensure that CI passes, if it fails, fix the failures.
-- Every pull request requires a review from the core ToolHive team before
-  merging.
-- Once approved, all of your commits will be squashed into a single commit with
-  your PR title.
+### Improve Documentation
 
-### Contributing to docs
+Documentation improvements are always welcome. See the [docs/](docs/) directory.
 
-The ToolHive user documentation website is maintained in the
-[docs-website](https://github.com/stacklok/docs-website) repository. If you want
-to contribute to the documentation, please open a PR in that repo.
+## Adding an MCP Server
 
-Please review the README and
-[STYLE-GUIDE](https://github.com/stacklok/docs-website/blob/main/STYLE-GUIDE.md)
-in the docs-website repository for more information on how to contribute to the
-documentation.
+To add your MCP server to Dockyard:
 
-### Commit message guidelines
+1. Create a directory: `{protocol}/{server-name}/`
+2. Add a `spec.yaml` configuration file
+3. Submit a pull request
 
-We follow the commit formatting recommendations found on
-[Chris Beams' How to Write a Git Commit Message article](https://chris.beams.io/posts/git-commit/):
+**Full guide:** [Adding MCP Servers](docs/adding-servers.md)
+
+**Quick example:**
+
+```yaml
+metadata:
+  name: my-server
+  description: "What my server does"
+  protocol: npx
+
+spec:
+  package: "@my-org/mcp-server"
+  version: "1.0.0"
+```
+
+## Development Setup
+
+### Prerequisites
+
+- Go 1.21+
+- Docker or Podman
+- [Task](https://taskfile.dev/) (optional, for convenience)
+
+### Build the CLI
+
+```bash
+go build -o build/dockhand ./cmd/dockhand
+```
+
+### Run Tests
+
+```bash
+go test ./...
+```
+
+### Generate a Dockerfile
+
+```bash
+./build/dockhand build -c npx/context7/spec.yaml
+```
+
+### Verify Provenance
+
+```bash
+./build/dockhand verify-provenance -c npx/context7/spec.yaml -v
+```
+
+## Pull Request Process
+
+1. **Fork and clone** the repository
+2. **Create a branch** for your changes
+3. **Make your changes** with clear, focused commits
+4. **Test locally** if adding an MCP server:
+   ```bash
+   task build -- {protocol}/{server-name}
+   task scan -- {protocol}/{server-name}
+   ```
+5. **Submit a PR** with a clear description
+
+### PR Requirements
+
+- All commits must include a Signed-off-by trailer (DCO)
+- CI checks must pass (security scan, build, etc.)
+- One approval from a maintainer is required
+
+### For MCP Server PRs
+
+Include in your PR description:
+- What the MCP server does
+- Link to the package registry (npm/PyPI)
+- Link to the source repository
+
+## Commit Message Guidelines
+
+Follow [Chris Beams' guidelines](https://chris.beams.io/posts/git-commit/):
 
 1. Separate subject from body with a blank line
-1. Limit the subject line to 50 characters
-1. Capitalize the subject line
-1. Do not end the subject line with a period
-1. Use the imperative mood in the subject line
-1. Use the body to explain what and why vs. how
+2. Limit the subject line to 50 characters
+3. Capitalize the subject line
+4. Do not end the subject line with a period
+5. Use the imperative mood in the subject line
+6. Use the body to explain what and why vs. how
+
+**Example:**
+
+```
+Add context7 MCP server
+
+Add packaging for context7 v1.0.14 from Upstash.
+This server provides vector search and context management.
+
+Package: https://www.npmjs.com/package/@upstash/context7-mcp
+Repository: https://github.com/upstash/context7-mcp
+
+Signed-off-by: Your Name <your.email@example.com>
+```
+
+## Questions?
+
+- Open a [GitHub Discussion](https://github.com/stacklok/dockyard/discussions)
+- Join the [Stacklok Discord](https://discord.gg/stacklok)
