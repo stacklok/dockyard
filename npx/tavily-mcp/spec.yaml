@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "tavily-mcp"
-  version: "0.2.12"
+  version: "0.2.13"
 
 provenance:
   repository_uri: "https://github.com/tavily-ai/tavily-mcp"
