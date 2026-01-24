@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@browserbasehq/mcp-server-browserbase"
-  version: "2.4.1"
+  version: "2.4.3"
 
 provenance:
   repository_uri: "https://github.com/browserbase/mcp-server-browserbase"
