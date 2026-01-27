@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "arxiv-mcp-server"
-  version: "0.3.1"
+  version: "0.3.2"
 
 provenance:
   repository_uri: "https://github.com/blazickjp/arxiv-mcp-server"
