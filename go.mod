@@ -1,11 +1,11 @@
 module github.com/stacklok/dockyard
 
-go 1.25.5
+go 1.25.6
 
 require (
 	github.com/sigstore/sigstore-go v1.1.4
 	github.com/spf13/cobra v1.10.2
-	github.com/stacklok/toolhive v0.8.2
+	github.com/stacklok/toolhive v0.8.3
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -81,7 +81,7 @@ require (
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gofrs/flock v0.13.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
-	github.com/golang-jwt/jwt/v5 v5.3.0 // indirect
+	github.com/golang-jwt/jwt/v5 v5.3.1 // indirect
 	github.com/golang/mock v1.7.0-rc.1 // indirect
 	github.com/google/btree v1.1.3 // indirect
 	github.com/google/certificate-transparency-go v1.3.2 // indirect
