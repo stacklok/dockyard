@@ -48,7 +48,7 @@ jobs:
         uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6
 
       - name: Install yq
-        uses: mikefarah/yq@065b200af9851db0d5132f50bc10b1406ea5c0a8 # v4.50.1
+        uses: mikefarah/yq@2be0094729a1006f61e8339ce9934bfb3cbb549f # v4.52.2
 
       - name: Extract metadata from config
         id: meta
