@@ -1,0 +1,19 @@
+---
+# SearXNG MCP Server Configuration
+# MCP server for SearXNG search engine integration
+# Package: https://www.npmjs.com/package/mcp-searxng
+# Repository: https://github.com/ihor-sokoliuk/mcp-searxng
+# Will build as: ghcr.io/stacklok/dockyard/npx/mcp-searxng:0.8.0
+
+metadata:
+  name: mcp-searxng
+  description: "MCP server for SearXNG search engine integration"
+  protocol: npx
+
+spec:
+  package: "mcp-searxng"
+  version: "0.8.0"
+
+provenance:
+  repository_uri: "https://github.com/ihor-sokoliuk/mcp-searxng"
+  repository_ref: "refs/tags/v0.8.0"
