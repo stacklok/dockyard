@@ -19,12 +19,25 @@ python3 generate_mcp_config.py npx/context7/spec.yaml npx context7
 ```
 
 **Output:**
-Outputs a JSON configuration with command/args for mcp-scanner:
+Outputs a JSON configuration with command/args/mock_env for mcp-scanner:
 ```json
 {
   "command": "npx",
   "args": "@upstash/context7-mcp@2.1.0",
-  "server_name": "context7"
+  "server_name": "context7",
+  "mock_env": []
+}
+```
+
+For servers with `security.mock_env` defined in spec.yaml:
+```json
+{
+  "command": "npx",
+  "args": "mcp-searxng@0.8.0",
+  "server_name": "mcp-searxng",
+  "mock_env": [
+    {"name": "SEARXNG_URL", "value": "https://mock-searxng.example.com", "description": "..."}
+  ]
 }
 ```
 
@@ -34,13 +47,34 @@ Wrapper script to run Cisco AI Defense mcp-scanner with proper configuration.
 
 **Usage:**
 ```bash
+# Recommended: config file mode (supports mock_env)
+python3 run_scan.py --config <config.json>
+
+# Legacy: positional arguments (no mock_env support)
 python3 run_scan.py <command> <package_arg>
 ```
 
 **Example:**
 ```bash
+# Using config file (recommended)
+python3 run_scan.py --config /tmp/scan-config.json
+
+# Legacy mode
 python3 run_scan.py npx "@upstash/context7-mcp@2.1.0"
 ```
+
+**Config file format:**
+```json
+{
+  "command": "npx",
+  "args": "mcp-searxng@0.8.0",
+  "mock_env": [
+    {"name": "SEARXNG_URL", "value": "https://mock.example.com"}
+  ]
+}
+```
+
+When `mock_env` is provided, the script passes `--stdio-env KEY=VALUE` arguments to mcp-scanner for each entry, allowing servers that require environment variables to start and be scanned.
 
 **Environment Variables:**
 - `MCP_SCANNER_ENABLE_LLM`: Set to `true` to enable LLM analyzer (optional)
@@ -123,16 +157,29 @@ To test the scanning process locally:
 uv tool install cisco-ai-mcp-scanner
 pip install pyyaml
 
-# Generate config
-config_json=$(python3 scripts/mcp-scan/generate_mcp_config.py npx/context7/spec.yaml npx context7)
-command=$(echo "$config_json" | jq -r '.command')
-args=$(echo "$config_json" | jq -r '.args')
+# Generate config and save to file
+python3 scripts/mcp-scan/generate_mcp_config.py npx/context7/spec.yaml npx context7 > /tmp/scan-config.json
 
-# Run scan
-python3 scripts/mcp-scan/run_scan.py "$command" "$args" > /tmp/scan-output.json
+# Run scan using config file
+python3 scripts/mcp-scan/run_scan.py --config /tmp/scan-config.json > /tmp/scan-output.json
 
 # Process results
 python3 scripts/mcp-scan/process_scan_results.py /tmp/scan-output.json context7 npx/context7/spec.yaml
+```
+
+### Testing with Mock Environment Variables
+
+For servers that require environment variables:
+
+```bash
+# Generate config (will include mock_env if defined in spec.yaml)
+python3 scripts/mcp-scan/generate_mcp_config.py npx/mcp-searxng/spec.yaml npx mcp-searxng > /tmp/scan-config.json
+
+# Verify mock_env is in the config
+cat /tmp/scan-config.json | jq '.mock_env'
+
+# Run scan - mock_env values will be passed to mcp-scanner via --stdio-env
+python3 scripts/mcp-scan/run_scan.py --config /tmp/scan-config.json > /tmp/scan-output.json
 ```
 
 ## Analyzers

@@ -224,21 +224,22 @@ jobs:
         run: |
           echo "🔍 Scanning MCP server: ${{ steps.meta.outputs.server_name }}"
 
-          # Generate config (outputs JSON with command/args)
+          # Generate config (outputs JSON with command/args/mock_env)
           config_json=$(python3 scripts/mcp-scan/generate_mcp_config.py \
             "${{ matrix.config }}" \
             "${{ steps.meta.outputs.protocol }}" \
             "${{ steps.meta.outputs.server_name }}")
 
-          command=$(echo "$config_json" | jq -r '.command')
-          args=$(echo "$config_json" | jq -r '.args')
+          # Write config to file for run_scan.py
+          scan_config="/tmp/scan-config-${{ steps.meta.outputs.server_name }}.json"
+          echo "$config_json" > "$scan_config"
 
           # Run scan using Cisco AI Defense mcp-scanner
           # Note: stderr is redirected to a separate file to avoid corrupting JSON output
           scan_output="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.json"
           scan_stderr="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.stderr"
 
-          if python3 scripts/mcp-scan/run_scan.py "$command" "$args" \
+          if python3 scripts/mcp-scan/run_scan.py --config "$scan_config" \
             > "$scan_output" 2> "$scan_stderr"; then
             echo "scan_passed=true" >> $GITHUB_OUTPUT
           else

@@ -23,6 +23,9 @@ def main():
         package = data['spec']['package']
         version = data['spec'].get('version', 'latest')
 
+        # Extract mock_env from security section (for MCP servers requiring env vars)
+        mock_env = data.get('security', {}).get('mock_env', [])
+
         if protocol in ['npx', 'uvx']:
             command = protocol
             args = f"{package}@{version}"
@@ -33,8 +36,14 @@ def main():
             print(f"Error: Unknown protocol {protocol}", file=sys.stderr)
             sys.exit(1)
 
-        # Output JSON with command info
-        print(json.dumps({"command": command, "args": args, "server_name": server_name}))
+        # Output JSON with command info and mock_env for security scanning
+        output = {
+            "command": command,
+            "args": args,
+            "server_name": server_name,
+            "mock_env": mock_env
+        }
+        print(json.dumps(output))
 
     except FileNotFoundError:
         print(f"Error: File {config_file} not found", file=sys.stderr)
