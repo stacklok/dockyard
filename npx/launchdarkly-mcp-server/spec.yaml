@@ -20,8 +20,11 @@ provenance:
   repository_ref: "refs/heads/main"
 
 security:
-  # Server requires LD_ACCESS_TOKEN to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: LD_ACCESS_TOKEN
+      value: "api-mock-token-for-scanning"
+      description: "LaunchDarkly access token - mock value for security scanning"
   allowed_issues:
     - code: "AITech-1.1"
       reason: "False positive - The update-ai-config-variation tool is designed to modify AI model configurations (prompts, parameters) as core LaunchDarkly functionality. This is the intended purpose of the AI config management feature, not a prompt injection vulnerability."

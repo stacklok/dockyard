@@ -53,16 +53,15 @@ def main():
                   file=sys.stderr)
 
     # Build scanner arguments
-    # Use 'stdio' subcommand with --stdio-arg
-    # Note: --stdio-arg is deprecated but --stdio-args has different behavior
-    # that causes issues with some package names
+    # Use 'stdio' subcommand with --stdio-args (plural)
+    # --stdio-args accepts multiple space-separated arguments
     scanner_args = [
         "--analyzers", ",".join(analyzers),
         "--format", "raw",
         "stdio",
         "--stdio-command", command,
-        "--stdio-arg", package_arg
-    ]
+        "--stdio-args",
+    ] + package_arg.split()  # Split and add each arg as positional
 
     # Add mock environment variables for servers that require them
     # mcp-scanner supports --stdio-env KEY=VALUE (can be repeated)
