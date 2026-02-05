@@ -19,5 +19,9 @@ provenance:
 
 # Security configuration
 security:
-  # Server requires TAVILY_API_KEY to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: TAVILY_API_KEY
+      value: "mock-tavily-api-key-for-scanning"
+      description: "Tavily API key - mock value for security scanning"
+  allowed_issues: []
