@@ -54,11 +54,17 @@ provenance:                        # Optional but recommended
       repository: "user/repo"     # Publisher repository
       workflow: "release.yml"     # Publishing workflow (optional)
 
-# Optional: Security scan allowlist
+# Optional: Security scan configuration
 security:
+  # Allowlist for known false positives or acceptable issues
   allowed_issues:
     - code: "AITech-1.1"
       reason: "Explanation of why this issue is acceptable"
+  # Mock environment variables for servers that require them during scanning
+  mock_env:
+    - name: API_URL
+      value: "https://mock-api.example.com"
+      description: "Required for server startup - mock value for scanning"
 ```
 
 ## Protocol-Specific Examples
@@ -221,6 +227,27 @@ security:
     - code: "AITech-9.1"
       reason: "Destructive flow mitigated by container sandboxing"
 ```
+
+### Servers Requiring Environment Variables
+
+Some MCP servers require environment variables to start (e.g., API URLs, tokens). Since the security scanner needs to start the server to discover its tools, you can provide mock values that allow the server to start without functional credentials:
+
+```yaml
+security:
+  mock_env:
+    - name: SEARXNG_URL
+      value: "https://mock-searxng.example.com"
+      description: "SearXNG instance URL - mock for scanning"
+    - name: API_TOKEN
+      value: "mock-token-for-scanning-00000000"
+      description: "API token - mock value, not a real credential"
+```
+
+**Important notes about mock_env:**
+- Mock values are **not secrets** - they are committed to the repository
+- Values should be obviously fake (use `mock-`, placeholder UUIDs, example.com domains)
+- Purpose is to allow server startup for scanning, not functional operation
+- Servers still need to pass security scans or allowlist known issues
 
 See [Security Overview](security.md) for more details on what we scan for.
 
