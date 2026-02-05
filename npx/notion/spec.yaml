@@ -20,8 +20,11 @@ provenance:
 
 # Optional: Security allowlist
 security:
-  # Server requires NOTION_TOKEN to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: NOTION_TOKEN
+      value: "ntn_mock_token_for_security_scanning_00000000000"
+      description: "Notion API token - mock value for security scanning"
   allowed_issues:
     - code: "AITech-8.2"
       reason: |
