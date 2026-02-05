@@ -19,8 +19,11 @@ provenance:
 
 # Security allowlist for known false positives
 security:
-  # Server requires SENTRY_ACCESS_TOKEN to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: SENTRY_ACCESS_TOKEN
+      value: "sntrys_mock_token_for_security_scanning_00000"
+      description: "Sentry access token - mock value for security scanning"
   allowed_issues:
     - code: "AITech-9.1"
       reason: |
