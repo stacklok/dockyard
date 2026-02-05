@@ -26,12 +26,20 @@ def main():
         # Extract mock_env from security section (for MCP servers requiring env vars)
         mock_env = data.get('security', {}).get('mock_env', [])
 
+        # Extract additional args from spec (e.g., ["start"] for LaunchDarkly)
+        spec_args = data['spec'].get('args', [])
+        spec_args_str = ' '.join(spec_args) if spec_args else ''
+
         if protocol in ['npx', 'uvx']:
             command = protocol
             args = f"{package}@{version}"
+            if spec_args_str:
+                args = f"{args} {spec_args_str}"
         elif protocol == 'go':
             command = 'go'
             args = f"run {package}"
+            if spec_args_str:
+                args = f"{args} {spec_args_str}"
         else:
             print(f"Error: Unknown protocol {protocol}", file=sys.stderr)
             sys.exit(1)
