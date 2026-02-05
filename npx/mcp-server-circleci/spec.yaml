@@ -19,8 +19,11 @@ provenance:
 
 # Optional: Security allowlist
 security:
-  # Server requires CIRCLECI_API_TOKEN to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: CIRCLECI_TOKEN
+      value: "mock-circleci-token-for-scanning"
+      description: "CircleCI API token - mock value for security scanning"
   allowed_issues:
     - code: "AITech-1.1"
       reason: "CI/CD operations require specific terminology for pipeline control (run, rollback, rerun) that may trigger prompt injection warnings"
