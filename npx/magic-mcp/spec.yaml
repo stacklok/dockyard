@@ -19,6 +19,9 @@ provenance:
 
 # Security allowlist for known acceptable issues
 security:
-  # Server requires API_KEY (21st.dev Magic) to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: API_KEY
+      value: "mock-21st-dev-api-key-for-scanning"
+      description: "21st.dev Magic API key - mock value for security scanning"
   allowed_issues: []
