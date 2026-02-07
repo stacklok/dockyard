@@ -1,0 +1,20 @@
+---
+# Octocode MCP Server Configuration
+# MCP server for advanced GitHub repository analysis and code discovery
+# Package: https://www.npmjs.com/package/octocode-mcp
+# Repository: https://github.com/bgauryy/octocode-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/octocode-mcp:12.0.0
+
+metadata:
+  name: octocode-mcp
+  description: "MCP server for GitHub repository analysis and code discovery"
+  protocol: npx
+
+spec:
+  package: "octocode-mcp"
+  version: "12.0.0"
+
+provenance:
+  # Monorepo with multiple packages; npm versions don't match git tags
+  repository_uri: "https://github.com/bgauryy/octocode-mcp"
+  repository_ref: "refs/heads/main"
