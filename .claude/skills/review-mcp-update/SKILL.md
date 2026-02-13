@@ -9,7 +9,7 @@ license: Apache-2.0
 compatibility: Requires GitHub MCP server for API access
 metadata:
   author: stacklok
-  version: "1.0"
+  version: "1.1"
 ---
 
 # MCP Server Update PR Review Skill
@@ -26,15 +26,44 @@ Use this skill when:
 
 ## Review Process
 
-### Step 1: Identify the PR and Changed Files
+### Step 1: Verify CI Status (HARD GATE — Do This First)
 
-First, get the PR details and identify what changed:
+**Always check CI before any other analysis. If CI is red, stop — do not approve.**
+
+**IMPORTANT:** Do NOT use `mcp__github__pull_request_read` with method `get_status` — it only returns legacy commit statuses and misses GitHub Actions check runs entirely (returns `total_count: 0`).
+
+**Use this `gh` command via Bash to get actual check run results:**
+```bash
+gh pr list --repo {owner}/{repo} --state open --json number,title,statusCheckRollup \
+  --jq '.[] | {number, title, checks: [.statusCheckRollup[]? | {name: .name, status: .status, conclusion: .conclusion}]}'
+```
+
+When reviewing a single PR, add `| select(.number == {PR_NUMBER})` to the jq filter.
+
+**Required checks — FAILURE on any of these blocks the PR:**
+| Check | FAILURE | SUCCESS | NEUTRAL | SKIPPED |
+|-------|---------|---------|---------|---------|
+| `mcp-security-scan` | BLOCK | OK | OK | OK |
+| `build-containers` | BLOCK | OK | — | OK |
+| `Build` | BLOCK | OK | — | — |
+| `Lint` | BLOCK | OK | — | — |
+
+**Informational checks (do not block merge):**
+- `verify-provenance` — note regressions but don't block
+- `Trivy` — NEUTRAL is normal; review only if FAILURE
+- `summary`, `discover-configs`, `save-pr-number` — infrastructure, ignore
+
+**HARD GATE:** If ANY required check has `conclusion: "FAILURE"`, do NOT approve or recommend merging that PR. Report the failure and stop the review for that PR. Continue reviewing other PRs.
+
+### Step 2: Identify the PR and Changed Files
+
+Get the PR details and identify what changed:
 
 1. Use `mcp__github__pull_request_read` with method `get` to get PR details
 2. Use `mcp__github__pull_request_read` with method `get_files` to see changed files
 3. Look for changes to `spec.yaml` files in `npx/`, `uvx/`, or `go/` directories
 
-### Step 2: Analyze Version Changes
+### Step 3: Analyze Version Changes
 
 For each changed `spec.yaml`:
 
@@ -51,24 +80,7 @@ For each changed `spec.yaml`:
    - Authentication requirements
    - API endpoints
 
-### Step 3: Verify CI Status
-
-Check that all required CI checks pass:
-
-1. Use `mcp__github__pull_request_read` with method `get_status` to check CI status
-2. **Required checks:**
-   - `MCP Security Scan` - Must pass (blocks merge if failed)
-   - `Verify Provenance` - Informational, check for regressions
-   - `Build Containers` - Must pass
-   - `Trivy Vulnerability Scan` - Review findings
-
-3. **If MCP Security Scan fails**, check for:
-   - Prompt injection risks (AITech-1.1)
-   - Data exfiltration (AITech-8.2) and system manipulation (AITech-9.1) flows
-   - Tool exploitation (AITech-12.1)
-   - Whether a security allowlist entry is needed in `spec.yaml`
-
-### Step 3a: Investigating Security Scan Failures
+### Step 3a: Investigating Security Scan Failures (when mcp-security-scan fails)
 
 When the MCP Security Scan fails, determine if issues are **real security concerns** or **false positives** before adding allowlist entries:
 
@@ -89,7 +101,7 @@ When the MCP Security Scan fails, determine if issues are **real security concer
 
 See [references/INVESTIGATING_SECURITY_ISSUES.md](references/INVESTIGATING_SECURITY_ISSUES.md) for detailed investigation procedures, issue code meanings, and examples of identifying false positives.
 
-### Step 4: Evaluate Upstream Repository Health
+### Step 4: Evaluate Upstream Repository Health (for new servers or major updates)
 
 For new servers or major version updates, evaluate against ToolHive registry criteria:
 
@@ -151,17 +163,21 @@ After completing the review, provide a structured summary:
 ```markdown
 ## MCP Server Update Review: [Server Name]
 
+### CI Status (checked first)
+- Build: [Pass/Fail]
+- Lint: [Pass/Fail]
+- MCP Security Scan: [Pass/Fail/Skipped]
+- Container Build: [Pass/Fail/Skipped]
+- Provenance Verification: [Pass/Fail] (informational)
+- Trivy: [Neutral/Findings] (informational)
+
+> If any required check FAILED, stop here: **DO NOT MERGE**
+
 ### Change Summary
 - **Package:** [package name]
 - **Version:** [old version] → [new version]
 - **Change Type:** [Patch/Minor/Major]
 - **Protocol:** [npx/uvx/go]
-
-### CI Status
-- MCP Security Scan: [Pass/Fail/Pending]
-- Provenance Verification: [Verified/Signatures/None]
-- Container Build: [Pass/Fail/Pending]
-- Vulnerability Scan: [Clean/Findings]
 
 ### Breaking Changes
 [List any breaking changes from release notes]
@@ -169,7 +185,7 @@ After completing the review, provide a structured summary:
 ### Security Considerations
 [Any new security allowlist entries or concerns]
 
-### Upstream Health (for major updates)
+### Upstream Health (for major updates only)
 - License: [license type]
 - Recent Activity: [active/stale]
 - Open Issues: [count]
