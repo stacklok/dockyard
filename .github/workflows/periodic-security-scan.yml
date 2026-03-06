@@ -5,6 +5,8 @@ on:
     - cron: '0 2 * * 1'  # Weekly on Monday at 2am UTC
   workflow_dispatch:  # Allow manual trigger
 
+permissions: {}
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -12,6 +14,8 @@ env:
 jobs:
   discover-published-images:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       configs: ${{ steps.find-configs.outputs.configs }}
     steps:
@@ -52,8 +56,10 @@ jobs:
 
       - name: Extract metadata from config
         id: meta
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
         run: |
-          config_file="${{ matrix.config }}"
+          config_file="$CONFIG_FILE"
           protocol=$(echo "$config_file" | cut -d'/' -f1)
           server_name=$(echo "$config_file" | cut -d'/' -f2)
 
@@ -70,7 +76,7 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
           # Generate image name
-          image_name="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${protocol}/${server_name}"
+          image_name="${REGISTRY}/${IMAGE_NAME}/${protocol}/${server_name}"
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
           echo "image_ref=${image_name}:${version}" >> $GITHUB_OUTPUT
 
@@ -215,6 +221,7 @@ jobs:
   summary:
     needs: scan-images
     runs-on: ubuntu-latest
+    permissions: {}
     if: always()
     steps:
       - name: Generate summary
