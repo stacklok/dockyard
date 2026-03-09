@@ -5,7 +5,7 @@ go 1.25.5
 require (
 	github.com/sigstore/sigstore-go v1.1.4
 	github.com/spf13/cobra v1.10.2
-	github.com/stacklok/toolhive v0.8.2
+	github.com/stacklok/toolhive v0.11.2
 	gopkg.in/yaml.v3 v3.0.1
 )
 
