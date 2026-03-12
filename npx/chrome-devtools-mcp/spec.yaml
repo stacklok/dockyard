@@ -18,6 +18,8 @@ provenance:
   repository_ref: "refs/heads/main"
 
 security:
+  # Server requires a running Chrome instance to connect to - cannot complete startup in CI
+  insecure_ignore: true
   allowed_issues:
     - code: "AITech-1.1"
       reason: "False positive - the evaluate_script tool allows JavaScript evaluation in browser pages which is core DevTools debugging functionality. The LLM analyzer flags this as prompt injection but it is legitimate browser automation capability, not malicious instruction manipulation. YARA did not flag this tool."

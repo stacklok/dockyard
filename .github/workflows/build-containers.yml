@@ -21,6 +21,8 @@ on:
       - 'go.sum'
   workflow_dispatch:
 
+permissions: {}
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -28,9 +30,12 @@ env:
 jobs:
   discover-configs:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       configs: ${{ steps.find-configs.outputs.configs }}
       changed-configs: ${{ steps.find-configs.outputs.changed-configs }}
+      scan-configs: ${{ steps.find-configs.outputs.scan-configs }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -39,61 +44,71 @@ jobs:
 
       - name: Find configuration files to build
         id: find-configs
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
         run: |
           # Find all spec.yaml files in protocol directories
           all_configs=$(find npx uvx go -name "spec.yaml" -type f 2>/dev/null | sort)
-          
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
+
+          if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
             # For manual triggers, build all configs
             configs_to_build="$all_configs"
+            configs_to_scan="$all_configs"
             echo "Manual trigger - building all configurations"
-          elif [ "${{ github.event_name }}" == "pull_request" ]; then
+          elif [ "$EVENT_NAME" == "pull_request" ]; then
             # For PRs, build configs that changed compared to target branch
-            changed_files=$(git diff --name-only origin/${{ github.base_ref }}...HEAD)
+            changed_files=$(git diff --name-only origin/"$BASE_REF"...HEAD)
             configs_to_build=""
-            
-            # Check if dockhand source, go.mod, or go.sum changed (rebuild all)
+            configs_to_scan=""
+
+            # Find configs whose spec.yaml files actually changed
+            for config in $all_configs; do
+              config_dir=$(dirname "$config")
+              if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
+                configs_to_build="$configs_to_build$config"$'\n'
+                configs_to_scan="$configs_to_scan$config"$'\n'
+              fi
+            done
+
+            # If dockhand source, go.mod, or go.sum changed, rebuild all containers
+            # but only scan the spec.yaml files that actually changed
             if echo "$changed_files" | grep -E "(cmd/dockhand/|go\.mod|go\.sum)"; then
-              echo "Core files changed - building all configurations"
+              echo "Core files changed - rebuilding all containers (scanning only changed specs)"
               configs_to_build="$all_configs"
-            else
-              # Only build configs whose spec.yaml files changed or their parent directories changed
-              for config in $all_configs; do
-                config_dir=$(dirname "$config")
-                # Check if spec.yaml itself changed or any file in its directory changed
-                if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
-                  configs_to_build="$configs_to_build$config"$'\n'
-                fi
-              done
             fi
           else
             # For pushes to main, build configs that changed in this push
             changed_files=$(git diff --name-only HEAD~1..HEAD)
             configs_to_build=""
-            
-            # Check if dockhand source, go.mod, or go.sum changed (rebuild all)
+            configs_to_scan=""
+
+            # Find configs whose spec.yaml files actually changed
+            for config in $all_configs; do
+              config_dir=$(dirname "$config")
+              if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
+                configs_to_build="$configs_to_build$config"$'\n'
+                configs_to_scan="$configs_to_scan$config"$'\n'
+              fi
+            done
+
+            # If dockhand source, go.mod, or go.sum changed, rebuild all containers
+            # but only scan the spec.yaml files that actually changed
             if echo "$changed_files" | grep -E "(cmd/dockhand/|go\.mod|go\.sum)"; then
-              echo "Core files changed - building all configurations"
+              echo "Core files changed - rebuilding all containers (scanning only changed specs)"
               configs_to_build="$all_configs"
-            else
-              # Only build configs whose spec.yaml files changed or their parent directories changed
-              for config in $all_configs; do
-                config_dir=$(dirname "$config")
-                # Check if spec.yaml itself changed or any file in its directory changed
-                if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
-                  configs_to_build="$configs_to_build$config"$'\n'
-                fi
-              done
             fi
           fi
-          
+
           # Convert to JSON array, filtering out empty lines
           configs_json=$(echo "$configs_to_build" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
+          scan_configs_json=$(echo "$configs_to_scan" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
           all_configs_json=$(echo "$all_configs" | jq -R -s -c 'split("\n")[:-1]')
-          
+
           echo "configs=$all_configs_json" >> $GITHUB_OUTPUT
           echo "changed-configs=$configs_json" >> $GITHUB_OUTPUT
-          
+          echo "scan-configs=$scan_configs_json" >> $GITHUB_OUTPUT
+
           echo "All configurations: $all_configs_json"
           echo "Configurations to build: $configs_json"
 
@@ -121,8 +136,10 @@ jobs:
 
       - name: Extract metadata from config
         id: meta
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
         run: |
-          config_file="${{ matrix.config }}"
+          config_file="$CONFIG_FILE"
           protocol=$(echo "$config_file" | cut -d'/' -f1)
           server_name=$(echo "$config_file" | cut -d'/' -f2)
 
@@ -135,11 +152,14 @@ jobs:
 
       - name: Verify package provenance
         id: provenance
+        env:
+          SERVER_NAME: ${{ steps.meta.outputs.server_name }}
+          CONFIG_FILE: ${{ matrix.config }}
         run: |
-          echo "🔍 Verifying package provenance for ${{ steps.meta.outputs.server_name }}"
+          echo "🔍 Verifying package provenance for $SERVER_NAME"
 
           # Run provenance verification
-          if /tmp/dockhand verify-provenance -c "${{ matrix.config }}" > /tmp/provenance-${{ steps.meta.outputs.server_name }}.txt 2>&1; then
+          if /tmp/dockhand verify-provenance -c "$CONFIG_FILE" > "/tmp/provenance-${SERVER_NAME}.txt" 2>&1; then
             echo "provenance_passed=true" >> $GITHUB_OUTPUT
             echo "✅ Provenance verification passed" >> $GITHUB_STEP_SUMMARY
           else
@@ -148,10 +168,10 @@ jobs:
           fi
 
           # Display results
-          cat /tmp/provenance-${{ steps.meta.outputs.server_name }}.txt
+          cat "/tmp/provenance-${SERVER_NAME}.txt"
 
           # Save for artifact
-          cp /tmp/provenance-${{ steps.meta.outputs.server_name }}.txt .
+          cp "/tmp/provenance-${SERVER_NAME}.txt" .
 
       - name: Upload provenance verification results
         if: always()
@@ -164,11 +184,13 @@ jobs:
   mcp-security-scan:
     needs: [discover-configs, verify-provenance]
     runs-on: ubuntu-latest
-    # Always run security scans when we have configs to build
-    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
+    timeout-minutes: 10
+    # Only scan configs whose spec.yaml files actually changed
+    # (not all configs when only go.mod/dockhand changed, since scans don't use dockhand)
+    if: ${{ needs.discover-configs.outputs.scan-configs != '[]' }}
     strategy:
       matrix:
-        config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
+        config: ${{ fromJson(needs.discover-configs.outputs.scan-configs) }}
       fail-fast: false
 
     permissions:
@@ -204,12 +226,14 @@ jobs:
 
       - name: Extract metadata from config
         id: meta
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
         run: |
-          config_file="${{ matrix.config }}"
+          config_file="$CONFIG_FILE"
           # Extract protocol and server name from path like "npx/context7/spec.yaml"
           protocol=$(echo "$config_file" | cut -d'/' -f1)
           server_name=$(echo "$config_file" | cut -d'/' -f2)
-          
+
           echo "config_file=$config_file" >> $GITHUB_OUTPUT
           echo "protocol=$protocol" >> $GITHUB_OUTPUT
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
@@ -220,23 +244,27 @@ jobs:
           MCP_SCANNER_ENABLE_LLM: ${{ vars.MCP_SCANNER_ENABLE_LLM || 'false' }}
           MCP_SCANNER_LLM_API_KEY: ${{ secrets.MCP_SCANNER_LLM_API_KEY }}
           MCP_SCANNER_LLM_MODEL: ${{ vars.MCP_SCANNER_LLM_MODEL || '' }}
+          SERVER_NAME: ${{ steps.meta.outputs.server_name }}
+          PROTOCOL: ${{ steps.meta.outputs.protocol }}
+          CONFIG_FILE: ${{ matrix.config }}
+          SCANNER_VERSION: ${{ steps.install-deps.outputs.scanner_version }}
         run: |
-          echo "🔍 Scanning MCP server: ${{ steps.meta.outputs.server_name }}"
+          echo "🔍 Scanning MCP server: $SERVER_NAME"
 
           # Generate config (outputs JSON with command/args/mock_env)
           config_json=$(python3 scripts/mcp-scan/generate_mcp_config.py \
-            "${{ matrix.config }}" \
-            "${{ steps.meta.outputs.protocol }}" \
-            "${{ steps.meta.outputs.server_name }}")
+            "$CONFIG_FILE" \
+            "$PROTOCOL" \
+            "$SERVER_NAME")
 
           # Write config to file for run_scan.py
-          scan_config="/tmp/scan-config-${{ steps.meta.outputs.server_name }}.json"
+          scan_config="/tmp/scan-config-${SERVER_NAME}.json"
           echo "$config_json" > "$scan_config"
 
           # Run scan using Cisco AI Defense mcp-scanner
           # Note: stderr is redirected to a separate file to avoid corrupting JSON output
-          scan_output="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.json"
-          scan_stderr="/tmp/mcp-scan-${{ steps.meta.outputs.server_name }}.stderr"
+          scan_output="/tmp/mcp-scan-${SERVER_NAME}.json"
+          scan_stderr="/tmp/mcp-scan-${SERVER_NAME}.stderr"
 
           if python3 scripts/mcp-scan/run_scan.py --config "$scan_config" \
             > "$scan_output" 2> "$scan_stderr"; then
@@ -253,15 +281,15 @@ jobs:
           # Process results (pass the config file to check for allowed issues)
           python3 scripts/mcp-scan/process_scan_results.py \
             "$scan_output" \
-            "${{ steps.meta.outputs.server_name }}" \
-            "${{ matrix.config }}" \
+            "$SERVER_NAME" \
+            "$CONFIG_FILE" \
             > scan-summary.json
 
           # Copy scan output to current directory for artifact upload
-          cp "$scan_output" "mcp-scan-${{ steps.meta.outputs.server_name }}.json"
+          cp "$scan_output" "mcp-scan-${SERVER_NAME}.json"
 
           # Save scanner version for attestation (from install-deps step)
-          echo "${{ steps.install-deps.outputs.scanner_version }}" > scanner-version.txt
+          echo "$SCANNER_VERSION" > scanner-version.txt
 
       - name: Upload scan results
         if: always()
@@ -278,8 +306,8 @@ jobs:
     needs: [discover-configs, verify-provenance, mcp-security-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # Only proceed if security scans passed (provenance check is informational only)
-    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' && needs.mcp-security-scan.result == 'success' }}
+    # Only proceed if security scans passed or were skipped (provenance check is informational only)
+    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' && (needs.mcp-security-scan.result == 'success' || needs.mcp-security-scan.result == 'skipped') }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
@@ -324,21 +352,23 @@ jobs:
 
       - name: Extract metadata from config
         id: meta
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
         run: |
-          config_file="${{ matrix.config }}"
+          config_file="$CONFIG_FILE"
           echo "config_file=$config_file" >> $GITHUB_OUTPUT
-          
+
           # Extract protocol from directory name (first part of path)
           protocol=$(echo "$config_file" | cut -d'/' -f1)
           echo "protocol=$protocol" >> $GITHUB_OUTPUT
-          
+
           # Extract server name from directory name (second part of path)
           server_name=$(echo "$config_file" | cut -d'/' -f2)
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
-          
+
           # Extract version from YAML file (spec.version)
           spec_version=$(yq '.spec.version' "$config_file" 2>/dev/null || echo "")
-          
+
           # Use spec.version if available, otherwise "latest"
           if [ -n "$spec_version" ]; then
             version="$spec_version"
@@ -346,23 +376,25 @@ jobs:
             version="latest"
           fi
           echo "version=$version" >> $GITHUB_OUTPUT
-          
+
           # Generate image name
-          image_name="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${protocol}/${server_name}"
+          image_name="${REGISTRY}/${IMAGE_NAME}/${protocol}/${server_name}"
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
 
       - name: Generate Dockerfile
         id: dockerfile
+        env:
+          CONFIG_FILE: ${{ steps.meta.outputs.config_file }}
         run: |
-          echo "Generating Dockerfile for ${{ steps.meta.outputs.config_file }}"
-          
+          echo "Generating Dockerfile for $CONFIG_FILE"
+
           # Create a temporary directory for the Dockerfile
           dockerfile_dir=$(mktemp -d)
           dockerfile_path="${dockerfile_dir}/Dockerfile"
-          
+
           # Build and run dockhand to generate the Dockerfile
           go build -o /tmp/dockhand ./cmd/dockhand
-          /tmp/dockhand build --config "${{ steps.meta.outputs.config_file }}" --output "${dockerfile_path}"
+          /tmp/dockhand build --config "$CONFIG_FILE" --output "${dockerfile_path}"
           
           echo "dockerfile_dir=$dockerfile_dir" >> $GITHUB_OUTPUT
           echo "dockerfile_path=$dockerfile_path" >> $GITHUB_OUTPUT
@@ -409,14 +441,16 @@ jobs:
         if: github.event_name != 'pull_request'
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
+          VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          echo "Signing image ${{ steps.meta.outputs.image_name }}@${DIGEST}"
-          cosign sign --yes ${{ steps.meta.outputs.image_name }}@${DIGEST}
-          
+          echo "Signing image ${IMAGE_NAME}@${DIGEST}"
+          cosign sign --yes "${IMAGE_NAME}@${DIGEST}"
+
           # Also sign the tagged versions for better UX
-          cosign sign --yes ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
-          cosign sign --yes ${{ steps.meta.outputs.image_name }}:latest
-          
+          cosign sign --yes "${IMAGE_NAME}:${VERSION}"
+          cosign sign --yes "${IMAGE_NAME}:latest"
+
           echo "✅ Images signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
 
       - name: Download MCP security scan results
@@ -432,8 +466,14 @@ jobs:
         if: github.event_name != 'pull_request'
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
+          CONFIG_FILE: ${{ matrix.config }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
         run: |
-          echo "Creating SCAI security scan attestation for ${{ steps.meta.outputs.image_name }}@${DIGEST}"
+          echo "Creating SCAI security scan attestation for ${IMAGE_NAME}@${DIGEST}"
 
           # Read scanner version from scan results
           SCANNER_VERSION=""
@@ -448,13 +488,13 @@ jobs:
           # Note: Analyzers are read from scan-summary.json (extracted from scanner output)
           python3 scripts/mcp-scan/generate_scai_attestation.py \
             /tmp/scan-results/scan-summary.json \
-            "${{ steps.meta.outputs.image_name }}" \
+            "$IMAGE_NAME" \
             "${DIGEST}" \
-            --config-file "${{ matrix.config }}" \
-            --commit-sha "${{ github.sha }}" \
-            --run-id "${{ github.run_id }}" \
-            --run-url "${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}" \
-            --producer-uri "${{ github.server_url }}/${{ github.repository }}" \
+            --config-file "$CONFIG_FILE" \
+            --commit-sha "$COMMIT_SHA" \
+            --run-id "$RUN_ID" \
+            --run-url "${SERVER_URL}/${REPO}/actions/runs/${RUN_ID}" \
+            --producer-uri "${SERVER_URL}/${REPO}" \
             --scanner-version "$SCANNER_VERSION" \
             --scanner-uri "https://github.com/cisco-ai-defense/mcp-scanner" \
             --validate \
@@ -468,7 +508,7 @@ jobs:
           cosign attest --yes \
             --predicate /tmp/security-attestation.json \
             --type https://in-toto.io/attestation/scai/v0.3 \
-            ${{ steps.meta.outputs.image_name }}@${DIGEST}
+            "${IMAGE_NAME}@${DIGEST}"
 
           # Extract attribute for summary
           ATTRIBUTE=$(jq -r '.predicate.attributes[0].attribute' /tmp/security-attestation.json)
@@ -478,7 +518,7 @@ jobs:
           rm -f /tmp/security-attestation.json
 
       - name: Run Trivy vulnerability scanner
-        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # 0.34.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           image-ref: local-scan:${{ steps.meta.outputs.server_name }}-${{ steps.meta.outputs.version }}
           format: 'sarif'
@@ -493,16 +533,24 @@ jobs:
           category: 'trivy-${{ steps.meta.outputs.server_name }}'
 
       - name: Generate image summary
+        env:
+          CONFIG_FILE: ${{ steps.meta.outputs.config_file }}
+          PROTOCOL: ${{ steps.meta.outputs.protocol }}
+          SERVER_NAME: ${{ steps.meta.outputs.server_name }}
+          IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+          EVENT_NAME: ${{ github.event_name }}
         run: |
           echo "## Container Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Config**: ${{ steps.meta.outputs.config_file }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Protocol**: ${{ steps.meta.outputs.protocol }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Server**: ${{ steps.meta.outputs.server_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Image**: ${{ steps.meta.outputs.image_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Version**: ${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Config**: $CONFIG_FILE" >> $GITHUB_STEP_SUMMARY
+          echo "- **Protocol**: $PROTOCOL" >> $GITHUB_STEP_SUMMARY
+          echo "- **Server**: $SERVER_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- **Image**: $IMAGE_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- **Version**: $VERSION" >> $GITHUB_STEP_SUMMARY
           echo "- **Platforms**: linux/amd64, linux/arm64" >> $GITHUB_STEP_SUMMARY
 
-          if [ "${{ github.event_name }}" != "pull_request" ]; then
+          if [ "$EVENT_NAME" != "pull_request" ]; then
             echo "- **SBOM**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
             echo "- **Build Provenance**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
             echo "- **Security Scan**: ✅ Attested" >> $GITHUB_STEP_SUMMARY
@@ -510,9 +558,9 @@ jobs:
             echo "- **Trivy Scan**: ✅ Completed (see Security tab)" >> $GITHUB_STEP_SUMMARY
             echo "- **Status**: ✅ Built, pushed, signed, and attested" >> $GITHUB_STEP_SUMMARY
             echo "- **Tags**:" >> $GITHUB_STEP_SUMMARY
-            echo "  - ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}" >> $GITHUB_STEP_SUMMARY
-            echo "  - ${{ steps.meta.outputs.image_name }}:latest" >> $GITHUB_STEP_SUMMARY
-            echo "- **Digest**: ${{ steps.build.outputs.digest }}" >> $GITHUB_STEP_SUMMARY
+            echo "  - ${IMAGE_NAME}:${VERSION}" >> $GITHUB_STEP_SUMMARY
+            echo "  - ${IMAGE_NAME}:latest" >> $GITHUB_STEP_SUMMARY
+            echo "- **Digest**: $DIGEST" >> $GITHUB_STEP_SUMMARY
           else
             echo "- **Trivy Scan**: ✅ Completed (see Security tab)" >> $GITHUB_STEP_SUMMARY
             echo "- **Status**: ✅ Built (not pushed - PR)" >> $GITHUB_STEP_SUMMARY
@@ -522,10 +570,13 @@ jobs:
   # This is needed because workflow_run doesn't reliably provide PR info for fork PRs.
   save-pr-number:
     runs-on: ubuntu-latest
+    permissions: {}
     if: github.event_name == 'pull_request'
     steps:
       - name: Save PR number
-        run: echo "${{ github.event.pull_request.number }}" > pr-number.txt
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: echo "$PR_NUMBER" > pr-number.txt
 
       - name: Upload PR number
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
@@ -537,33 +588,42 @@ jobs:
   summary:
     needs: [discover-configs, verify-provenance, mcp-security-scan, build-containers]
     runs-on: ubuntu-latest
+    permissions: {}
     if: always()
     steps:
       - name: Build Summary
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          REF: ${{ github.ref }}
+          ALL_CONFIGS: ${{ needs.discover-configs.outputs.configs }}
+          CHANGED_CONFIGS: ${{ needs.discover-configs.outputs.changed-configs }}
+          PROVENANCE_RESULT: ${{ needs.verify-provenance.result }}
+          SCAN_RESULT: ${{ needs.mcp-security-scan.result }}
+          BUILD_RESULT: ${{ needs.build-containers.result }}
         run: |
           echo "## Dockyard Build Summary" >> $GITHUB_STEP_SUMMARY
-          echo "- **Trigger**: ${{ github.event_name }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Ref**: ${{ github.ref }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Total Configs**: ${{ needs.discover-configs.outputs.configs }}" >> $GITHUB_STEP_SUMMARY
-          echo "- **Changed Configs**: ${{ needs.discover-configs.outputs.changed-configs }}" >> $GITHUB_STEP_SUMMARY
+          echo "- **Trigger**: $EVENT_NAME" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ref**: $REF" >> $GITHUB_STEP_SUMMARY
+          echo "- **Total Configs**: $ALL_CONFIGS" >> $GITHUB_STEP_SUMMARY
+          echo "- **Changed Configs**: $CHANGED_CONFIGS" >> $GITHUB_STEP_SUMMARY
 
-          if [ "${{ needs.verify-provenance.result }}" == "success" ]; then
+          if [ "$PROVENANCE_RESULT" == "success" ]; then
             echo "- **Provenance Verification**: ✅ All packages verified" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.verify-provenance.result }}" == "failure" ]; then
+          elif [ "$PROVENANCE_RESULT" == "failure" ]; then
             echo "- **Provenance Verification**: ⚠️ Some packages have provenance issues (non-blocking)" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.verify-provenance.result }}" == "skipped" ]; then
+          elif [ "$PROVENANCE_RESULT" == "skipped" ]; then
             echo "- **Provenance Verification**: ⏭️ Skipped" >> $GITHUB_STEP_SUMMARY
           fi
 
-          if [ "${{ needs.mcp-security-scan.result }}" == "success" ]; then
+          if [ "$SCAN_RESULT" == "success" ]; then
             echo "- **Security Scan**: ✅ All MCP servers passed security scanning" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.mcp-security-scan.result }}" == "failure" ]; then
+          elif [ "$SCAN_RESULT" == "failure" ]; then
             echo "- **Security Scan**: ❌ Some MCP servers have security issues" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.mcp-security-scan.result }}" == "skipped" ]; then
+          elif [ "$SCAN_RESULT" == "skipped" ]; then
             echo "- **Security Scan**: ⏭️ Skipped" >> $GITHUB_STEP_SUMMARY
           fi
-          
-          if [ "${{ needs.build-containers.result }}" == "success" ]; then
+
+          if [ "$BUILD_RESULT" == "success" ]; then
             echo "- **Build Status**: ✅ All changed containers built successfully" >> $GITHUB_STEP_SUMMARY
             echo "- **Features**:" >> $GITHUB_STEP_SUMMARY
             echo "  - 🏗️ Multi-architecture support (amd64, arm64)" >> $GITHUB_STEP_SUMMARY
@@ -571,15 +631,15 @@ jobs:
             echo "  - 🔐 Provenance attestation for supply chain security" >> $GITHUB_STEP_SUMMARY
             echo "  - ✍️ Sigstore/Cosign signatures for image verification" >> $GITHUB_STEP_SUMMARY
             echo "  - 🚀 GitHub Actions cache for faster builds" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.build-containers.result }}" == "failure" ]; then
+          elif [ "$BUILD_RESULT" == "failure" ]; then
             echo "- **Build Status**: ❌ Some containers failed to build" >> $GITHUB_STEP_SUMMARY
-          elif [ "${{ needs.build-containers.result }}" == "skipped" ]; then
+          elif [ "$BUILD_RESULT" == "skipped" ]; then
             echo "- **Build Status**: ⏭️ No configuration changes detected" >> $GITHUB_STEP_SUMMARY
           else
             echo "- **Build Status**: ⚠️ Build status unknown" >> $GITHUB_STEP_SUMMARY
           fi
-          
+
           # Add efficiency note
-          changed_count=$(echo '${{ needs.discover-configs.outputs.changed-configs }}' | jq length)
-          total_count=$(echo '${{ needs.discover-configs.outputs.configs }}' | jq length)
+          changed_count=$(echo "$CHANGED_CONFIGS" | jq length)
+          total_count=$(echo "$ALL_CONFIGS" | jq length)
           echo "- **Efficiency**: Built $changed_count out of $total_count configurations" >> $GITHUB_STEP_SUMMARY
