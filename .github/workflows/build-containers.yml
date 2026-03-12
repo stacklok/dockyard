@@ -238,6 +238,23 @@ jobs:
           echo "protocol=$protocol" >> $GITHUB_OUTPUT
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
 
+      - name: Pre-install npm package
+        if: steps.meta.outputs.protocol == 'npx'
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          # mcp-scanner has a 60s timeout for server startup. npx downloading
+          # a package can exceed this, so pre-install it globally first.
+          package=$(python3 -c "
+          import yaml
+          with open('$CONFIG_FILE') as f:
+              data = yaml.safe_load(f)
+          spec = data['spec']
+          print(spec['package'] + '@' + spec.get('version', 'latest'))
+          ")
+          echo "Pre-installing $package..."
+          npm install --global "$package"
+
       - name: Run MCP Security Scan
         id: scan
         env:
@@ -526,7 +543,7 @@ jobs:
           severity: 'CRITICAL,HIGH,MEDIUM'
 
       - name: Upload Trivy results to GitHub Security
-        uses: github/codeql-action/upload-sarif@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2 # v4
+        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
