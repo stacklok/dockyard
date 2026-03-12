@@ -25,6 +25,9 @@ on:
       - 'go/**/spec.yml'
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 jobs:
   validate-config:
     name: Validate Renovate Configuration
@@ -77,6 +80,7 @@ jobs:
         env:
           LOG_LEVEL: debug
           RENOVATE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_REPO: ${{ github.repository }}
         run: |
           npx --yes --package renovate -- renovate \
             --platform=github \
@@ -84,7 +88,7 @@ jobs:
             --dry-run=full \
             --print-config \
             --autodiscover=false \
-            ${{ github.repository }} || {
+            "$GITHUB_REPO" || {
             echo "::warning::Dry run failed. This might be due to missing permissions or configuration issues."
             exit 0
           }

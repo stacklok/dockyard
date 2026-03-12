@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"time"
 
 	"github.com/sigstore/sigstore-go/pkg/verify"
@@ -138,12 +139,16 @@ func (v *Verifier) verifyAttestations(
 	}
 
 	// Fetch the attestation bundle from URL
+	if err := validateNpmURL(bundleURL); err != nil {
+		return false, nil, fmt.Errorf("SSRF protection: %w", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, bundleURL, nil)
 	if err != nil {
 		return false, nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := v.httpClient.Do(req)
+	resp, err := v.httpClient.Do(req) //nolint:gosec // G704 — URL validated against allowlist by validateNpmURL
 	if err != nil {
 		return false, nil, fmt.Errorf("failed to fetch attestation: %w", err)
 	}
@@ -199,14 +204,38 @@ func (v *Verifier) verifyBundleData(
 	return true, publisher, nil
 }
 
+// allowedHosts is the set of hostnames that the verifier is permitted to contact.
+var allowedHosts = map[string]bool{
+	"registry.npmjs.org": true,
+}
+
+// validateNpmURL checks that a URL is HTTPS and targets an allowed npm host.
+func validateNpmURL(rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL %q: %w", rawURL, err)
+	}
+	if u.Scheme != "https" {
+		return fmt.Errorf("URL %q uses disallowed scheme %q (only https is allowed)", rawURL, u.Scheme)
+	}
+	if !allowedHosts[u.Hostname()] {
+		return fmt.Errorf("URL %q targets disallowed host %q", rawURL, u.Hostname())
+	}
+	return nil
+}
+
 // calculateTarballDigest downloads and hashes the tarball
 func (v *Verifier) calculateTarballDigest(ctx context.Context, tarballURL string) ([]byte, error) {
+	if err := validateNpmURL(tarballURL); err != nil {
+		return nil, fmt.Errorf("SSRF protection: %w", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, tarballURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := v.httpClient.Do(req)
+	resp, err := v.httpClient.Do(req) //nolint:gosec // G704 — URL validated against allowlist by validateNpmURL
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch tarball: %w", err)
 	}
@@ -227,14 +256,18 @@ func (v *Verifier) calculateTarballDigest(ctx context.Context, tarballURL string
 
 // fetchPackageMetadata fetches the package metadata from the npm registry
 func (v *Verifier) fetchPackageMetadata(ctx context.Context, packageName string) (*PackageMetadata, error) {
-	url := fmt.Sprintf("%s/%s", v.registryURL, packageName)
+	targetURL := fmt.Sprintf("%s/%s", v.registryURL, packageName)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err := validateNpmURL(targetURL); err != nil {
+		return nil, fmt.Errorf("SSRF protection: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := v.httpClient.Do(req)
+	resp, err := v.httpClient.Do(req) //nolint:gosec // G704 — URL validated against allowlist by validateNpmURL
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch package metadata: %w", err)
 	}
