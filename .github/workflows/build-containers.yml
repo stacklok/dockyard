@@ -238,6 +238,23 @@ jobs:
           echo "protocol=$protocol" >> $GITHUB_OUTPUT
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
 
+      - name: Pre-install npm package
+        if: steps.meta.outputs.protocol == 'npx'
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          # mcp-scanner has a 60s timeout for server startup. npx downloading
+          # a package can exceed this, so pre-install it globally first.
+          package=$(python3 -c "
+          import yaml
+          with open('$CONFIG_FILE') as f:
+              data = yaml.safe_load(f)
+          spec = data['spec']
+          print(spec['package'] + '@' + spec.get('version', 'latest'))
+          ")
+          echo "Pre-installing $package..."
+          npm install --global "$package"
+
       - name: Run MCP Security Scan
         id: scan
         env:
