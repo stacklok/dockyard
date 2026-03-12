@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"net/url"
 	"strings"
 	"time"
 
@@ -195,11 +196,38 @@ func (v *Verifier) verifyProvenance(ctx context.Context, file File) (bool, *doma
 	return true, publisher, nil
 }
 
+// allowedHosts is the set of hostnames that the verifier is permitted to contact.
+var allowedHosts = map[string]bool{
+	"pypi.org":                    true,
+	"files.pythonhosted.org":      true,
+	"test.pypi.org":               true,
+	"test-files.pythonhosted.org": true,
+}
+
+// validatePyPIURL checks that a URL is HTTPS and targets an allowed PyPI host.
+func validatePyPIURL(rawURL string) error {
+	u, err := url.Parse(rawURL)
+	if err != nil {
+		return fmt.Errorf("invalid URL %q: %w", rawURL, err)
+	}
+	if u.Scheme != "https" {
+		return fmt.Errorf("URL %q uses disallowed scheme %q (only https is allowed)", rawURL, u.Scheme)
+	}
+	if !allowedHosts[u.Hostname()] {
+		return fmt.Errorf("URL %q targets disallowed host %q", rawURL, u.Hostname())
+	}
+	return nil
+}
+
 // fetchSimpleMetadata fetches package metadata from PyPI Simple JSON API
 func (v *Verifier) fetchSimpleMetadata(ctx context.Context, packageName string) (*SimpleMetadata, error) {
-	url := fmt.Sprintf("%s/%s/", v.simpleURL, packageName)
+	targetURL := fmt.Sprintf("%s/%s/", v.simpleURL, packageName)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
+	if err := validatePyPIURL(targetURL); err != nil {
+		return nil, fmt.Errorf("SSRF protection: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, targetURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -207,7 +235,7 @@ func (v *Verifier) fetchSimpleMetadata(ctx context.Context, packageName string) 
 	// Use PEP 691 JSON format
 	req.Header.Set("Accept", "application/vnd.pypi.simple.v1+json")
 
-	resp, err := v.httpClient.Do(req)
+	resp, err := v.httpClient.Do(req) //nolint:gosec // G704 — URL validated against allowlist by validatePyPIURL
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch package metadata: %w", err)
 	}
@@ -228,12 +256,16 @@ func (v *Verifier) fetchSimpleMetadata(ctx context.Context, packageName string) 
 
 // fetchProvenanceData fetches the provenance object from PyPI
 func (v *Verifier) fetchProvenanceData(ctx context.Context, provenanceURL string) (*ProvenanceObject, error) {
+	if err := validatePyPIURL(provenanceURL); err != nil {
+		return nil, fmt.Errorf("SSRF protection: %w", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, provenanceURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := v.httpClient.Do(req)
+	resp, err := v.httpClient.Do(req) //nolint:gosec // G704 — URL validated against allowlist by validatePyPIURL
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch provenance: %w", err)
 	}
@@ -253,12 +285,16 @@ func (v *Verifier) fetchProvenanceData(ctx context.Context, provenanceURL string
 
 // downloadAndHashFile downloads a file and returns its SHA256 hash
 func (v *Verifier) downloadAndHashFile(ctx context.Context, fileURL string) ([]byte, error) {
+	if err := validatePyPIURL(fileURL); err != nil {
+		return nil, fmt.Errorf("SSRF protection: %w", err)
+	}
+
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, fileURL, nil)
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	resp, err := v.httpClient.Do(req)
+	resp, err := v.httpClient.Do(req) //nolint:gosec // G704 — URL validated against allowlist by validatePyPIURL
 	if err != nil {
 		return nil, fmt.Errorf("failed to fetch file: %w", err)
 	}
