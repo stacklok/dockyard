@@ -82,12 +82,15 @@ def main():
         cmd = ["uv", "run", "--with", "cisco-ai-mcp-scanner", "mcp-scanner"] + scanner_args
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=300)
         if result.stdout:
             print(result.stdout)
         if result.stderr:
             print(result.stderr, file=sys.stderr)
         sys.exit(result.returncode)
+    except subprocess.TimeoutExpired:
+        print("Error running mcp-scanner: scan timed out after 300 seconds", file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
         print(f"Error running mcp-scanner: {e}", file=sys.stderr)
         sys.exit(1)

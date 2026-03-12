@@ -176,6 +176,7 @@ jobs:
   mcp-security-scan:
     needs: [discover-configs, verify-provenance]
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     # Always run security scans when we have configs to build
     if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
     strategy:
