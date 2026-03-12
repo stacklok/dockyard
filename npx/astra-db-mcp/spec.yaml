@@ -17,8 +17,14 @@ provenance:
   repository_uri: "https://github.com/datastax/astra-db-mcp"
   repository_ref: "refs/heads/main"
 
-# Security allowlist - No issues found in scan
+# Security configuration
 security:
-  # Server requires Astra DB credentials to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: ASTRA_DB_APPLICATION_TOKEN
+      value: "AstraCS:mock-token-for-scanning:0000000000000000"
+      description: "Astra DB token - mock value for security scanning"
+    - name: ASTRA_DB_API_ENDPOINT
+      value: "https://mock-db-id.apps.astra.datastax.com"
+      description: "Astra DB endpoint - mock value for security scanning"
   allowed_issues: []
