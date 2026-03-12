@@ -8,9 +8,11 @@ import (
 	"path/filepath"
 	"strings"
 
+	"log/slog"
+
 	"github.com/spf13/cobra"
+	"github.com/stacklok/toolhive-core/logging"
 	"github.com/stacklok/toolhive/pkg/container/images"
-	"github.com/stacklok/toolhive/pkg/logger"
 	"github.com/stacklok/toolhive/pkg/runner"
 	"gopkg.in/yaml.v3"
 
@@ -90,7 +92,7 @@ var (
 
 func main() {
 	// Initialize the logger
-	logger.Initialize()
+	slog.SetDefault(logging.New(logging.WithFormat(logging.FormatText)))
 
 	rootCmd := &cobra.Command{
 		Use:   "dockhand",
@@ -321,6 +323,7 @@ func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag stri
 		"", // caCertPath - empty for now
 		imageTag,
 		spec.Spec.Args, // Pass args from spec if present
+		nil,            // runtimeOverride - use defaults
 		true,           // always dryRun to generate Dockerfile
 	)
 	if err != nil {
