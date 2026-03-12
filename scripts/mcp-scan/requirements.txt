@@ -1,5 +1,5 @@
 # Python dependencies for MCP scan scripts
 # These are pinned for reproducible builds and supply chain security
 
-cisco-ai-mcp-scanner==4.1.0
+cisco-ai-mcp-scanner==4.2.0
 pyyaml==6.0.3
