@@ -53,15 +53,16 @@ def main():
                   file=sys.stderr)
 
     # Build scanner arguments
-    # Use 'stdio' subcommand with --stdio-args (plural)
-    # --stdio-args accepts multiple space-separated arguments
+    # Use 'stdio' subcommand with --stdio-arg (singular, repeatable) for each argument
+    # This avoids issues with --stdio-args positional parsing when extra args like "start" are present
     scanner_args = [
         "--analyzers", ",".join(analyzers),
         "--format", "raw",
         "stdio",
         "--stdio-command", command,
-        "--stdio-args",
-    ] + package_arg.split()  # Split and add each arg as positional
+    ]
+    for arg in package_arg.split():
+        scanner_args.extend(["--stdio-arg", arg])
 
     # Add mock environment variables for servers that require them
     # mcp-scanner supports --stdio-env KEY=VALUE (can be repeated)
