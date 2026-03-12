@@ -4,11 +4,10 @@ package main
 import (
 	"context"
 	"fmt"
+	"log/slog"
 	"os"
 	"path/filepath"
 	"strings"
-
-	"log/slog"
 
 	"github.com/spf13/cobra"
 	"github.com/stacklok/toolhive-core/logging"
