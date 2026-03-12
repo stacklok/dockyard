@@ -35,6 +35,7 @@ jobs:
     outputs:
       configs: ${{ steps.find-configs.outputs.configs }}
       changed-configs: ${{ steps.find-configs.outputs.changed-configs }}
+      scan-configs: ${{ steps.find-configs.outputs.scan-configs }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -53,54 +54,61 @@ jobs:
           if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
             # For manual triggers, build all configs
             configs_to_build="$all_configs"
+            configs_to_scan="$all_configs"
             echo "Manual trigger - building all configurations"
           elif [ "$EVENT_NAME" == "pull_request" ]; then
             # For PRs, build configs that changed compared to target branch
             changed_files=$(git diff --name-only origin/"$BASE_REF"...HEAD)
             configs_to_build=""
-            
-            # Check if dockhand source, go.mod, or go.sum changed (rebuild all)
+            configs_to_scan=""
+
+            # Find configs whose spec.yaml files actually changed
+            for config in $all_configs; do
+              config_dir=$(dirname "$config")
+              if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
+                configs_to_build="$configs_to_build$config"$'\n'
+                configs_to_scan="$configs_to_scan$config"$'\n'
+              fi
+            done
+
+            # If dockhand source, go.mod, or go.sum changed, rebuild all containers
+            # but only scan the spec.yaml files that actually changed
             if echo "$changed_files" | grep -E "(cmd/dockhand/|go\.mod|go\.sum)"; then
-              echo "Core files changed - building all configurations"
+              echo "Core files changed - rebuilding all containers (scanning only changed specs)"
               configs_to_build="$all_configs"
-            else
-              # Only build configs whose spec.yaml files changed or their parent directories changed
-              for config in $all_configs; do
-                config_dir=$(dirname "$config")
-                # Check if spec.yaml itself changed or any file in its directory changed
-                if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
-                  configs_to_build="$configs_to_build$config"$'\n'
-                fi
-              done
             fi
           else
             # For pushes to main, build configs that changed in this push
             changed_files=$(git diff --name-only HEAD~1..HEAD)
             configs_to_build=""
-            
-            # Check if dockhand source, go.mod, or go.sum changed (rebuild all)
+            configs_to_scan=""
+
+            # Find configs whose spec.yaml files actually changed
+            for config in $all_configs; do
+              config_dir=$(dirname "$config")
+              if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
+                configs_to_build="$configs_to_build$config"$'\n'
+                configs_to_scan="$configs_to_scan$config"$'\n'
+              fi
+            done
+
+            # If dockhand source, go.mod, or go.sum changed, rebuild all containers
+            # but only scan the spec.yaml files that actually changed
             if echo "$changed_files" | grep -E "(cmd/dockhand/|go\.mod|go\.sum)"; then
-              echo "Core files changed - building all configurations"
+              echo "Core files changed - rebuilding all containers (scanning only changed specs)"
               configs_to_build="$all_configs"
-            else
-              # Only build configs whose spec.yaml files changed or their parent directories changed
-              for config in $all_configs; do
-                config_dir=$(dirname "$config")
-                # Check if spec.yaml itself changed or any file in its directory changed
-                if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
-                  configs_to_build="$configs_to_build$config"$'\n'
-                fi
-              done
             fi
           fi
-          
+
           # Convert to JSON array, filtering out empty lines
           configs_json=$(echo "$configs_to_build" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
+          scan_configs_json=$(echo "$configs_to_scan" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
           all_configs_json=$(echo "$all_configs" | jq -R -s -c 'split("\n")[:-1]')
-          
+
           echo "configs=$all_configs_json" >> $GITHUB_OUTPUT
           echo "changed-configs=$configs_json" >> $GITHUB_OUTPUT
-          
+          echo "scan-configs=$scan_configs_json" >> $GITHUB_OUTPUT
+
           echo "All configurations: $all_configs_json"
           echo "Configurations to build: $configs_json"
 
@@ -177,11 +185,12 @@ jobs:
     needs: [discover-configs, verify-provenance]
     runs-on: ubuntu-latest
     timeout-minutes: 10
-    # Always run security scans when we have configs to build
-    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
+    # Only scan configs whose spec.yaml files actually changed
+    # (not all configs when only go.mod/dockhand changed, since scans don't use dockhand)
+    if: ${{ needs.discover-configs.outputs.scan-configs != '[]' }}
     strategy:
       matrix:
-        config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
+        config: ${{ fromJson(needs.discover-configs.outputs.scan-configs) }}
       fail-fast: false
 
     permissions:
@@ -297,8 +306,8 @@ jobs:
     needs: [discover-configs, verify-provenance, mcp-security-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # Only proceed if security scans passed (provenance check is informational only)
-    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' && needs.mcp-security-scan.result == 'success' }}
+    # Only proceed if security scans passed or were skipped (provenance check is informational only)
+    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' && (needs.mcp-security-scan.result == 'success' || needs.mcp-security-scan.result == 'skipped') }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
