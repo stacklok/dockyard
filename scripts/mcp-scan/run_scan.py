@@ -53,15 +53,16 @@ def main():
                   file=sys.stderr)
 
     # Build scanner arguments
-    # Use 'stdio' subcommand with --stdio-args (plural)
-    # --stdio-args accepts multiple space-separated arguments
+    # Use 'stdio' subcommand with --stdio-arg (singular, repeatable) for each argument
+    # This avoids issues with --stdio-args positional parsing when extra args like "start" are present
     scanner_args = [
         "--analyzers", ",".join(analyzers),
         "--format", "raw",
         "stdio",
         "--stdio-command", command,
-        "--stdio-args",
-    ] + package_arg.split()  # Split and add each arg as positional
+    ]
+    for arg in package_arg.split():
+        scanner_args.extend(["--stdio-arg", arg])
 
     # Add mock environment variables for servers that require them
     # mcp-scanner supports --stdio-env KEY=VALUE (can be repeated)
@@ -82,12 +83,15 @@ def main():
         cmd = ["uv", "run", "--with", "cisco-ai-mcp-scanner", "mcp-scanner"] + scanner_args
 
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=300)
         if result.stdout:
             print(result.stdout)
         if result.stderr:
             print(result.stderr, file=sys.stderr)
         sys.exit(result.returncode)
+    except subprocess.TimeoutExpired:
+        print("Error running mcp-scanner: scan timed out after 300 seconds", file=sys.stderr)
+        sys.exit(1)
     except Exception as e:
         print(f"Error running mcp-scanner: {e}", file=sys.stderr)
         sys.exit(1)
