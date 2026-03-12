@@ -5,6 +5,8 @@ on:
     - cron: '0 2 * * 1'  # Weekly on Monday at 2am UTC
   workflow_dispatch:  # Allow manual trigger
 
+permissions: {}
+
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
@@ -12,6 +14,8 @@ env:
 jobs:
   discover-published-images:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     outputs:
       configs: ${{ steps.find-configs.outputs.configs }}
     steps:
@@ -52,8 +56,10 @@ jobs:
 
       - name: Extract metadata from config
         id: meta
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
         run: |
-          config_file="${{ matrix.config }}"
+          config_file="$CONFIG_FILE"
           protocol=$(echo "$config_file" | cut -d'/' -f1)
           server_name=$(echo "$config_file" | cut -d'/' -f2)
 
@@ -70,7 +76,7 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
           # Generate image name
-          image_name="${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}/${protocol}/${server_name}"
+          image_name="${REGISTRY}/${IMAGE_NAME}/${protocol}/${server_name}"
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
           echo "image_ref=${image_name}:${version}" >> $GITHUB_OUTPUT
 
@@ -82,7 +88,7 @@ jobs:
           password: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Run Trivy comprehensive scan
-        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # 0.34.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           image-ref: ${{ steps.meta.outputs.image_ref }}
           format: 'sarif'
@@ -92,14 +98,14 @@ jobs:
           timeout: '15m'
 
       - name: Upload SARIF to GitHub Security
-        uses: github/codeql-action/upload-sarif@45cbd0c69e560cd9e7cd7f8c32362050c9b7ded2 # v4
+        uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4
         if: always()
         with:
           sarif_file: 'trivy-results.sarif'
           category: 'periodic-trivy-${{ steps.meta.outputs.server_name }}'
 
       - name: Run Trivy for detailed JSON report
-        uses: aquasecurity/trivy-action@c1824fd6edce30d7ab345a9989de00bbd46ef284 # 0.34.0
+        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
         with:
           image-ref: ${{ steps.meta.outputs.image_ref }}
           format: 'json'
@@ -215,6 +221,7 @@ jobs:
   summary:
     needs: scan-images
     runs-on: ubuntu-latest
+    permissions: {}
     if: always()
     steps:
       - name: Generate summary
