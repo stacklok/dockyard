@@ -61,6 +61,11 @@ def main():
         "stdio",
         "--stdio-command", command,
     ]
+    # npx prompts for confirmation before installing packages, which blocks on
+    # stdin (owned by mcp-scanner for the MCP protocol). Pass --yes to auto-accept.
+    # Use --stdio-arg=VALUE syntax because --yes looks like a flag to argparse.
+    if command == "npx":
+        scanner_args.append("--stdio-arg=--yes")
     for arg in package_arg.split():
         scanner_args.extend(["--stdio-arg", arg])
 
