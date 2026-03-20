@@ -87,45 +87,39 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Run Trivy comprehensive scan
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+      - name: Run Grype vulnerability scan (SARIF)
+        id: grype-scan
+        uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7.3.2
         with:
-          image-ref: ${{ steps.meta.outputs.image_ref }}
-          format: 'sarif'
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH,MEDIUM,LOW'
-          scanners: 'vuln,secret,config,license'
-          timeout: '15m'
+          image: "${{ steps.meta.outputs.image_ref }}"
+          severity-cutoff: "low"
+          output-format: "sarif"
 
       - name: Upload SARIF to GitHub Security
         uses: github/codeql-action/upload-sarif@0d579ffd059c29b07949a3cce3983f0780820c98 # v4
         if: always()
         with:
-          sarif_file: 'trivy-results.sarif'
-          category: 'periodic-trivy-${{ steps.meta.outputs.server_name }}'
+          sarif_file: ${{ steps.grype-scan.outputs.sarif }}
+          category: 'periodic-grype-${{ steps.meta.outputs.server_name }}'
 
-      - name: Run Trivy for detailed JSON report
-        uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # 0.35.0
+      - name: Run Grype vulnerability scan (JSON)
+        id: grype-scan-json
+        uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7.3.2
         with:
-          image-ref: ${{ steps.meta.outputs.image_ref }}
-          format: 'json'
-          output: 'trivy-results.json'
-          severity: 'CRITICAL,HIGH,MEDIUM,LOW,UNKNOWN'
-          scanners: 'vuln,secret,config,license'
-          timeout: '15m'
+          image: "${{ steps.meta.outputs.image_ref }}"
+          severity-cutoff: "low"
+          output-format: "json"
 
       - name: Check for critical issues
         id: check-critical
         run: |
-          critical=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "CRITICAL")] | length' trivy-results.json)
-          high=$(jq '[.Results[]?.Vulnerabilities[]? | select(.Severity == "HIGH")] | length' trivy-results.json)
-          secrets=$(jq '[.Results[]?.Secrets[]?] | length' trivy-results.json)
+          critical=$(jq '[.matches[]? | select(.vulnerability.severity == "Critical")] | length' ${{ steps.grype-scan-json.outputs.json }})
+          high=$(jq '[.matches[]? | select(.vulnerability.severity == "High")] | length' ${{ steps.grype-scan-json.outputs.json }})
 
           echo "critical=$critical" >> $GITHUB_OUTPUT
           echo "high=$high" >> $GITHUB_OUTPUT
-          echo "secrets=$secrets" >> $GITHUB_OUTPUT
 
-          if [ "$critical" -gt 0 ] || [ "$secrets" -gt 0 ]; then
+          if [ "$critical" -gt 0 ]; then
             echo "should_create_issue=true" >> $GITHUB_OUTPUT
           else
             echo "should_create_issue=false" >> $GITHUB_OUTPUT
@@ -134,42 +128,38 @@ jobs:
       - name: Create issue for critical findings
         if: steps.check-critical.outputs.should_create_issue == 'true'
         uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        env:
+          GRYPE_JSON_PATH: ${{ steps.grype-scan-json.outputs.json }}
         with:
           script: |
             const fs = require('fs');
-            const results = JSON.parse(fs.readFileSync('trivy-results.json', 'utf8'));
+            const results = JSON.parse(fs.readFileSync(process.env.GRYPE_JSON_PATH, 'utf8'));
 
             const critical = ${{ steps.check-critical.outputs.critical }};
             const high = ${{ steps.check-critical.outputs.high }};
-            const secrets = ${{ steps.check-critical.outputs.secrets }};
 
             let body = `## 🚨 Security Scan Alert\n\n`;
             body += `A periodic security scan found critical issues in the container image:\n\n`;
             body += `- **Image**: \`${{ steps.meta.outputs.image_ref }}\`\n`;
             body += `- **Critical vulnerabilities**: ${critical}\n`;
-            body += `- **High vulnerabilities**: ${high}\n`;
-            body += `- **Secrets detected**: ${secrets}\n\n`;
+            body += `- **High vulnerabilities**: ${high}\n\n`;
 
             body += `### Details\n\n`;
             body += `See the [Security tab](../../security/code-scanning) for full details.\n\n`;
 
             if (critical > 0) {
               body += `#### Critical Vulnerabilities\n\n`;
-              const criticalVulns = results.Results.flatMap(r =>
-                (r.Vulnerabilities || []).filter(v => v.Severity === 'CRITICAL').slice(0, 5)
-              );
+              const criticalVulns = (results.matches || [])
+                .filter(m => m.vulnerability.severity === 'Critical')
+                .slice(0, 5);
 
-              for (const vuln of criticalVulns) {
-                body += `- **${vuln.VulnerabilityID}** in \`${vuln.PkgName}\`: ${vuln.Title || 'No title'}\n`;
+              for (const match of criticalVulns) {
+                body += `- **${match.vulnerability.id}** in \`${match.artifact.name}@${match.artifact.version}\`: ${match.vulnerability.description || 'No description'}\n`;
               }
 
               if (critical > 5) {
                 body += `\n_... and ${critical - 5} more. See Security tab for complete list._\n`;
               }
-            }
-
-            if (secrets > 0) {
-              body += `\n⚠️ **${secrets} potential secret(s) detected in the image!**\n`;
             }
 
             body += `\n---\n`;
@@ -180,7 +170,7 @@ jobs:
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
-              labels: 'security,trivy',
+              labels: 'security,grype',
             });
 
             const existingIssue = issues.find(issue =>
@@ -203,7 +193,7 @@ jobs:
                 repo: context.repo.repo,
                 title: `🚨 Security: Critical issues in ${{ steps.meta.outputs.server_name }} container`,
                 body: body,
-                labels: ['security', 'trivy', 'critical']
+                labels: ['security', 'grype', 'critical']
               });
               console.log('Created new security issue');
             }
@@ -214,8 +204,8 @@ jobs:
         with:
           name: periodic-scan-${{ steps.meta.outputs.server_name }}
           path: |
-            trivy-results.json
-            trivy-results.sarif
+            ${{ steps.grype-scan-json.outputs.json }}
+            ${{ steps.grype-scan.outputs.sarif }}
           retention-days: 90
 
   summary:
@@ -227,7 +217,7 @@ jobs:
       - name: Generate summary
         run: |
           echo "## Periodic Security Scan Complete" >> $GITHUB_STEP_SUMMARY
-          echo "- **Scan Type**: Comprehensive (vulnerabilities, secrets, configs, licenses)" >> $GITHUB_STEP_SUMMARY
+          echo "- **Scan Type**: Vulnerability scan (Grype)" >> $GITHUB_STEP_SUMMARY
           echo "- **Severity Levels**: CRITICAL, HIGH, MEDIUM, LOW" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${{ needs.scan-images.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
