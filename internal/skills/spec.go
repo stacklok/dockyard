@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"net/url"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"gopkg.in/yaml.v3"
@@ -29,10 +28,10 @@ type SkillMetadata struct {
 
 // SkillSourceSpec defines the git source for a skill.
 type SkillSourceSpec struct {
-	Repository string `yaml:"repository"` // HTTPS clone URL (e.g., "https://github.com/org/repo")
-	Ref        string `yaml:"ref"`        // Git tag, branch, or commit hash
+	Repository string `yaml:"repository"`     // HTTPS clone URL (e.g., "https://github.com/org/repo")
+	Ref        string `yaml:"ref"`            // Git tag, branch, or commit hash
 	Path       string `yaml:"path,omitempty"` // Subdirectory within repo (empty = repo root)
-	Version    string `yaml:"version"`    // Version for OCI artifact tag
+	Version    string `yaml:"version"`        // Version for OCI artifact tag
 }
 
 // SkillProvenance contains supply chain provenance information for a skill.
@@ -66,12 +65,8 @@ func LoadSkillSpec(configPath string) (*SkillSpec, error) {
 
 // validateSkillConfigPath ensures the config path is safe.
 func validateSkillConfigPath(configPath string) error {
-	cleanPath := filepath.Clean(configPath)
-	if strings.Contains(cleanPath, "..") {
+	if strings.Contains(configPath, "..") {
 		return fmt.Errorf("config path %q contains directory traversal", configPath)
-	}
-	if !strings.HasPrefix(cleanPath, "skills/") && !strings.HasPrefix(cleanPath, "/") {
-		// Allow absolute paths and relative paths starting with skills/
 	}
 	return nil
 }

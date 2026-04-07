@@ -30,7 +30,7 @@ type BuildResult struct {
 // Cleanup removes the temporary directory containing the OCI store and skill files.
 func (r *BuildResult) Cleanup() {
 	if r != nil && r.tmpDir != "" {
-		os.RemoveAll(r.tmpDir)
+		_ = os.RemoveAll(r.tmpDir) //#nosec G104 -- best-effort cleanup of temp directory
 	}
 }
 
@@ -70,7 +70,7 @@ func BuildSkill(ctx context.Context, spec *SkillSpec) (*BuildResult, error) {
 		return nil, fmt.Errorf("creating temp directory: %w", err)
 	}
 
-	cleanupOnError := func() { os.RemoveAll(tmpDir) }
+	cleanupOnError := func() { _ = os.RemoveAll(tmpDir) } //#nosec G104 -- best-effort cleanup on error
 
 	skillDir := filepath.Join(tmpDir, "skill")
 	if err := gitresolver.WriteFiles(resolveResult.Files, skillDir, true); err != nil {
