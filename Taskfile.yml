@@ -310,6 +310,56 @@ tasks:
       - echo "✅ dockhand CLI built successfully"
       - build/dockhand --help
 
+  validate-skill:
+    desc: "Validate a skill from a git repository"
+    summary: |
+      Validate a skill specification by cloning the git repo and checking the SKILL.md.
+
+      Usage:
+        task validate-skill -- skills/claude-api
+
+      The skill path should be relative to the project root and contain a spec.yaml file.
+    requires:
+      vars: [CLI_ARGS]
+    vars:
+      SKILL_PATH: '{{.CLI_ARGS}}'
+    deps: [build-setup]
+    cmds:
+      - |
+        if [ ! -f "{{.SKILL_PATH}}/spec.yaml" ]; then
+          echo "Error: spec.yaml not found at {{.SKILL_PATH}}/spec.yaml"
+          exit 1
+        fi
+        build/dockhand validate-skill --config "{{.SKILL_PATH}}/spec.yaml"
+
+  build-skill:
+    desc: "Build an OCI skill artifact from a skill specification"
+    summary: |
+      Build an OCI skill artifact by cloning a skill from git and packaging it.
+
+      Usage:
+        task build-skill -- skills/claude-api
+
+      Add --push to also push to the registry (requires authentication):
+        PUSH=true task build-skill -- skills/claude-api
+    requires:
+      vars: [CLI_ARGS]
+    vars:
+      SKILL_PATH: '{{.CLI_ARGS}}'
+      PUSH: '{{.PUSH | default "false"}}'
+    deps: [build-setup]
+    cmds:
+      - |
+        if [ ! -f "{{.SKILL_PATH}}/spec.yaml" ]; then
+          echo "Error: spec.yaml not found at {{.SKILL_PATH}}/spec.yaml"
+          exit 1
+        fi
+        push_flag=""
+        if [ "{{.PUSH}}" = "true" ]; then
+          push_flag="--push"
+        fi
+        build/dockhand build-skill --config "{{.SKILL_PATH}}/spec.yaml" $push_flag
+
   build-help:
     desc: "Show help for build tasks"
     summary: |
@@ -320,23 +370,29 @@ tasks:
         echo "========================"
         echo ""
         echo "Available tasks:"
-        echo "  build        - Generate Dockerfile to stdout"
-        echo "  build-file   - Generate Dockerfile and save to file"
-        echo "  build-tag    - Generate Dockerfile with custom tag"
-        echo "  test-build   - Generate, build, and test container"
-        echo "  build-setup  - Build dockhand CLI tool"
-        echo "  build-help   - Show this help"
+        echo "  build           - Generate Dockerfile to stdout"
+        echo "  build-file      - Generate Dockerfile and save to file"
+        echo "  build-tag       - Generate Dockerfile with custom tag"
+        echo "  test-build      - Generate, build, and test container"
+        echo "  build-setup     - Build dockhand CLI tool"
+        echo "  validate-skill  - Validate a skill from git"
+        echo "  build-skill     - Build an OCI skill artifact"
+        echo "  build-help      - Show this help"
         echo ""
-        echo "Examples:"
+        echo "MCP Server Examples:"
         echo "  task build -- npx/context7"
         echo "  task build-file -- npx/context7 Dockerfile"
         echo "  task build-tag -- uvx/mcp-clickhouse myregistry/image:v1.0.0"
         echo "  task test-build -- npx/context7"
-        echo "  task build-setup"
+        echo ""
+        echo "Skill Examples:"
+        echo "  task validate-skill -- skills/claude-api"
+        echo "  task build-skill -- skills/claude-api"
+        echo "  PUSH=true task build-skill -- skills/claude-api"
         echo ""
         echo "Prerequisites:"
         echo "  - Run 'task build-setup' first to build the dockhand CLI"
         echo "  - Ensure podman is running and 'dev' container exists"
         echo ""
         echo "The generated Dockerfiles can be used with:"
-        echo "  podman build -t my-image:tag -f Dockerfile ."
+        echo "  podman build -t my-image:tag -f Dockerfile .

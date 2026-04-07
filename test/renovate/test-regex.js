@@ -80,7 +80,9 @@ async function findSpecFiles() {
     'uvx/**/spec.yaml',
     'uvx/**/spec.yml',
     'go/**/spec.yaml',
-    'go/**/spec.yml'
+    'go/**/spec.yml',
+    'skills/**/spec.yaml',
+    'skills/**/spec.yml'
   ];
   
   const files = [];
@@ -97,6 +99,7 @@ function getDatasourceForFile(filePath) {
   if (filePath.startsWith('npx/')) return 'npm';
   if (filePath.startsWith('uvx/')) return 'pypi';
   if (filePath.startsWith('go/')) return 'go';
+  if (filePath.startsWith('skills/')) return 'git-refs';
   return null;
 }
 

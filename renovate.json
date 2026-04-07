@@ -33,6 +33,17 @@
         "spec:\\s*\\n\\s*package:\\s*[\"']?(?<depName>[^\"'\\n]+?)\\s*[\"']?\\s*(?:#.*)?\\n\\s*version:\\s*[\"']?(?<currentValue>[\\d\\.\\w-]+)[\"']?\\s*(?:#.*)?"
       ],
       "datasourceTemplate": "go"
+    },
+    {
+      "customType": "regex",
+      "description": "Update skill versions from git commit references",
+      "fileMatch": ["^skills/.*/spec\\.ya?ml$"],
+      "matchStrings": [
+        "spec:\\s*\\n\\s*repository:\\s*[\"']?https://github\\.com/(?<depName>[^\"'\\s]+?)(?:\\.git)?\\s*[\"']?\\s*(?:#.*)?\\n\\s*ref:\\s*[\"']?(?<currentDigest>[0-9a-f]{40})[\"']?"
+      ],
+      "currentValueTemplate": "main",
+      "datasourceTemplate": "git-refs",
+      "packageNameTemplate": "https://github.com/{{{depName}}}"
     }
   ]
 }

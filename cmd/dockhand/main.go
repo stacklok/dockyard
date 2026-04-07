@@ -19,6 +19,7 @@ import (
 	"github.com/stacklok/dockyard/internal/provenance/npm"
 	"github.com/stacklok/dockyard/internal/provenance/pypi"
 	"github.com/stacklok/dockyard/internal/provenance/service"
+	skillpkg "github.com/stacklok/dockyard/internal/skills"
 )
 
 // MCPServerSpec defines the structure of our YAML configuration files
@@ -160,8 +161,61 @@ by verifying the authenticity and origin of the package.`,
 		panic(fmt.Sprintf("failed to mark config flag as required: %v", err))
 	}
 
+	// Add build-skill command
+	var skillConfigFile string
+	var skillTag string
+	var skillPush bool
+
+	buildSkillCmd := &cobra.Command{
+		Use:   "build-skill",
+		Short: "Build an OCI skill artifact from a skill specification",
+		Long: `Build-skill reads a skill spec.yaml that references a skill in a git repository,
+clones the repo, validates the SKILL.md, and packages it as an OCI skill artifact.
+
+The configuration file should follow the structure:
+  skills/{name}/spec.yaml`,
+		Example: `  # Build a skill artifact (dry run, no push)
+  dockhand build-skill -c skills/my-skill/spec.yaml
+
+  # Build and push to GHCR
+  dockhand build-skill -c skills/my-skill/spec.yaml --push
+
+  # Build with custom OCI tag
+  dockhand build-skill -c skills/my-skill/spec.yaml -t ghcr.io/myorg/skills/my-skill:v1.0.0`,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runBuildSkill(cmd, skillConfigFile, skillTag, skillPush)
+		},
+	}
+
+	buildSkillCmd.Flags().StringVarP(&skillConfigFile, "config", "c", "", "Path to the skill spec.yaml file (required)")
+	buildSkillCmd.Flags().StringVarP(&skillTag, "tag", "t", "", "Custom OCI artifact tag (optional)")
+	buildSkillCmd.Flags().BoolVar(&skillPush, "push", false, "Push the artifact to the registry")
+	if err := buildSkillCmd.MarkFlagRequired("config"); err != nil {
+		panic(fmt.Sprintf("failed to mark config flag as required: %v", err))
+	}
+
+	// Add validate-skill command
+	var validateSkillConfigFile string
+
+	validateSkillCmd := &cobra.Command{
+		Use:   "validate-skill",
+		Short: "Validate a skill from a git repository",
+		Long: `Validate-skill reads a skill spec.yaml, clones the referenced git repository,
+and validates the SKILL.md without packaging. Useful for PR checks.`,
+		Example: `  # Validate a skill spec
+  dockhand validate-skill -c skills/my-skill/spec.yaml`,
+		RunE: func(cmd *cobra.Command, _ []string) error {
+			return runValidateSkill(cmd, validateSkillConfigFile)
+		},
+	}
+
+	validateSkillCmd.Flags().StringVarP(&validateSkillConfigFile, "config", "c", "", "Path to the skill spec.yaml file (required)")
+	if err := validateSkillCmd.MarkFlagRequired("config"); err != nil {
+		panic(fmt.Sprintf("failed to mark config flag as required: %v", err))
+	}
+
 	// Add commands to root
-	rootCmd.AddCommand(buildCmd, verifyCmd)
+	rootCmd.AddCommand(buildCmd, verifyCmd, buildSkillCmd, validateSkillCmd)
 
 	// Execute
 	if err := rootCmd.Execute(); err != nil {
@@ -236,11 +290,11 @@ func validateConfigPath(configPath string) error {
 		return fmt.Errorf("config file must be named 'spec.yaml'")
 	}
 
-	// Ensure it's in one of the expected protocol directories
-	validPrefixes := []string{"npx/", "uvx/", "go/"}
+	// Ensure it's in one of the expected directories
+	validPrefixes := []string{"npx/", "uvx/", "go/", "skills/"}
 	for _, prefix := range validPrefixes {
 		if strings.HasPrefix(cleanPath, prefix) {
-			// Validate the structure: protocol/name/spec.yaml
+			// Validate the structure: {type}/{name}/spec.yaml
 			parts := strings.Split(cleanPath, "/")
 			if len(parts) == 3 && parts[2] == "spec.yaml" {
 				return nil
@@ -248,7 +302,7 @@ func validateConfigPath(configPath string) error {
 		}
 	}
 
-	return fmt.Errorf("config file must follow the structure: {protocol}/{name}/spec.yaml where protocol is npx/, uvx/, or go/")
+	return fmt.Errorf("config file must follow the structure: {type}/{name}/spec.yaml where type is npx/, uvx/, go/, or skills/")
 }
 
 // loadMCPServerSpec reads and parses a YAML configuration file
@@ -534,4 +588,66 @@ func printVerboseDetails(cmd *cobra.Command, result *domain.ProvenanceResult) {
 			cmd.Printf("  %s: %v\n", key, value)
 		}
 	}
+}
+
+// runBuildSkill builds an OCI skill artifact from a skill spec.yaml.
+func runBuildSkill(cmd *cobra.Command, cfgFile, customTag string, push bool) error {
+	spec, err := skillpkg.LoadSkillSpec(cfgFile)
+	if err != nil {
+		return fmt.Errorf("failed to load skill spec: %w", err)
+	}
+
+	if customTag != "" {
+		// Override the image tag if custom tag is provided
+		spec.Spec.Version = "" // will use custom tag instead
+	}
+
+	ctx := context.Background()
+	result, err := skillpkg.BuildSkill(ctx, spec)
+	if err != nil {
+		return fmt.Errorf("failed to build skill: %w", err)
+	}
+	defer result.Cleanup()
+
+	// Override image ref if custom tag was provided
+	if customTag != "" {
+		result.ImageRef = customTag
+	}
+
+	cmd.Printf("Skill: %s\n", result.SkillName)
+	cmd.Printf("Commit: %s\n", result.CommitHash)
+	cmd.Printf("Digest: %s\n", result.PackageResult.IndexDigest.String())
+	cmd.Printf("Reference: %s\n", result.ImageRef)
+
+	if push {
+		if err := skillpkg.PushSkill(ctx, result); err != nil {
+			return fmt.Errorf("failed to push skill: %w", err)
+		}
+		cmd.Printf("Pushed: %s\n", result.ImageRef)
+	}
+
+	return nil
+}
+
+// runValidateSkill validates a skill from a git repository without packaging.
+func runValidateSkill(cmd *cobra.Command, cfgFile string) error {
+	spec, err := skillpkg.LoadSkillSpec(cfgFile)
+	if err != nil {
+		return fmt.Errorf("failed to load skill spec: %w", err)
+	}
+
+	ctx := context.Background()
+	result, err := skillpkg.ValidateSkill(ctx, spec)
+	if err != nil {
+		return fmt.Errorf("skill validation failed: %w", err)
+	}
+
+	cmd.Printf("Skill: %s\n", result.SkillConfig.Name)
+	cmd.Printf("Description: %s\n", result.SkillConfig.Description)
+	cmd.Printf("Version: %s\n", result.SkillConfig.Version)
+	cmd.Printf("Commit: %s\n", result.CommitHash)
+	cmd.Printf("Files: %d\n", len(result.Files))
+	cmd.Printf("Status: VALID\n")
+
+	return nil
 }

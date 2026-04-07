@@ -1,0 +1,18 @@
+# Anthropic Claude API Skill
+# This skill teaches agents how to build apps with the Claude API
+# Source: https://github.com/anthropics/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/claude-api:0.1.0
+
+metadata:
+  name: claude-api
+  description: "Build apps with the Claude API or Anthropic SDK - covers tool use, streaming, batches, and agent SDK patterns"
+
+spec:
+  repository: "https://github.com/anthropics/skills"
+  ref: "98669c11ca63e9c81c11501e1437e5c47b556621"  # main as of 2026-04-07
+  path: "skills/claude-api"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/anthropics/skills"
+  repository_ref: "refs/heads/main"
