@@ -1,0 +1,260 @@
+name: Build Skill Artifacts
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'skills/**/*.yaml'
+      - 'cmd/dockhand/**'
+      - 'internal/skills/**'
+      - 'go.mod'
+      - 'go.sum'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'skills/**/*.yaml'
+      - 'cmd/dockhand/**'
+      - 'internal/skills/**'
+      - 'go.mod'
+      - 'go.sum'
+  workflow_dispatch:
+
+permissions: {}
+
+env:
+  REGISTRY: ghcr.io
+
+jobs:
+  discover-skill-configs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed-configs: ${{ steps.find-configs.outputs.changed-configs }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+
+      - name: Find skill configurations to build
+        id: find-configs
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          # Find all skill spec.yaml files
+          all_configs=$(find skills -name "spec.yaml" -type f 2>/dev/null | sort)
+
+          if [ -z "$all_configs" ]; then
+            echo "No skill configurations found"
+            echo "changed-configs=[]" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
+          if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
+            configs_to_build="$all_configs"
+            echo "Manual trigger - building all skill configurations"
+          elif [ "$EVENT_NAME" == "pull_request" ]; then
+            changed_files=$(git diff --name-only origin/"$BASE_REF"...HEAD)
+            configs_to_build=""
+
+            for config in $all_configs; do
+              config_dir=$(dirname "$config")
+              if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
+                configs_to_build="$configs_to_build$config"$'\n'
+              fi
+            done
+
+            # If dockhand source, internal/skills, go.mod, or go.sum changed, rebuild all
+            if echo "$changed_files" | grep -E "(cmd/dockhand/|internal/skills/|go\.mod|go\.sum)"; then
+              echo "Core files changed - rebuilding all skill configurations"
+              configs_to_build="$all_configs"
+            fi
+          else
+            changed_files=$(git diff --name-only HEAD~1..HEAD)
+            configs_to_build=""
+
+            for config in $all_configs; do
+              config_dir=$(dirname "$config")
+              if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
+                configs_to_build="$configs_to_build$config"$'\n'
+              fi
+            done
+
+            if echo "$changed_files" | grep -E "(cmd/dockhand/|internal/skills/|go\.mod|go\.sum)"; then
+              echo "Core files changed - rebuilding all skill configurations"
+              configs_to_build="$all_configs"
+            fi
+          fi
+
+          configs_json=$(echo "$configs_to_build" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
+          echo "changed-configs=$configs_json" >> $GITHUB_OUTPUT
+          echo "Skill configurations to build: $configs_json"
+
+  validate-skills:
+    needs: discover-skill-configs
+    runs-on: ubuntu-latest
+    if: ${{ needs.discover-skill-configs.outputs.changed-configs != '[]' }}
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}
+      fail-fast: false
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Build dockhand
+        run: go build -o /tmp/dockhand ./cmd/dockhand
+
+      - name: Validate skill
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          echo "Validating skill: $CONFIG_FILE"
+          /tmp/dockhand validate-skill --config "$CONFIG_FILE"
+
+  build-skill-artifacts:
+    needs: [discover-skill-configs, validate-skills]
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    if: ${{ needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' }}
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}
+      fail-fast: false
+
+    permissions:
+      contents: read
+      packages: write
+      id-token: write  # Needed for OIDC token (cosign keyless signing)
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Set up Go
+        uses: actions/setup-go@7a3fe6cf4cb3a834922a1244abfce67bcef6a0c5 # v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Install Cosign
+        if: github.event_name != 'pull_request'
+        uses: sigstore/cosign-installer@398d4b0eeef1380460a10c8013a76f728fb906ac # v3
+
+      - name: Install yq
+        uses: mikefarah/yq@5a7e72a743649b1b3a47d1a1d8214f3453173c51 # v4.52.4
+
+      - name: Log in to Container Registry
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@b45d80f862d83dbcd57f89517bcf500b2ab88fb2 # v4
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata from config
+        id: meta
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          echo "config_file=$CONFIG_FILE" >> $GITHUB_OUTPUT
+
+          skill_name=$(echo "$CONFIG_FILE" | cut -d'/' -f2)
+          echo "skill_name=$skill_name" >> $GITHUB_OUTPUT
+
+          version=$(yq '.spec.version' "$CONFIG_FILE" 2>/dev/null || echo "latest")
+          echo "version=$version" >> $GITHUB_OUTPUT
+
+          ref=$(yq '.spec.ref' "$CONFIG_FILE" 2>/dev/null || echo "")
+          echo "ref=$ref" >> $GITHUB_OUTPUT
+
+          image_name="${REGISTRY}/${{ github.repository }}/skills/${skill_name}"
+          echo "image_name=$image_name" >> $GITHUB_OUTPUT
+
+      - name: Build dockhand
+        run: go build -o /tmp/dockhand ./cmd/dockhand
+
+      - name: Build skill artifact
+        id: build
+        env:
+          CONFIG_FILE: ${{ steps.meta.outputs.config_file }}
+          IMAGE_REF: ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
+          PUSH: ${{ github.event_name != 'pull_request' }}
+        run: |
+          echo "Building skill artifact for $CONFIG_FILE"
+
+          build_args="--config $CONFIG_FILE --tag $IMAGE_REF"
+          if [ "$PUSH" = "true" ]; then
+            build_args="$build_args --push"
+          fi
+
+          output=$(/tmp/dockhand build-skill $build_args 2>&1)
+          echo "$output"
+
+          # Extract digest from output
+          digest=$(echo "$output" | grep "^Digest:" | awk '{print $2}')
+          echo "digest=$digest" >> $GITHUB_OUTPUT
+
+      - name: Sign skill artifact with Cosign
+        if: github.event_name != 'pull_request'
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
+          VERSION: ${{ steps.meta.outputs.version }}
+        run: |
+          if [ -n "$DIGEST" ]; then
+            echo "Signing skill artifact ${IMAGE_NAME}@${DIGEST}"
+            cosign sign --yes "${IMAGE_NAME}@${DIGEST}"
+            echo "Signed: ${IMAGE_NAME}@${DIGEST}" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "No digest available, skipping signing"
+          fi
+
+      - name: Build summary
+        env:
+          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
+          VERSION: ${{ steps.meta.outputs.version }}
+          IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
+          DIGEST: ${{ steps.build.outputs.digest }}
+        run: |
+          echo "## Skill Build: ${SKILL_NAME}" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Skill | ${SKILL_NAME} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Version | ${VERSION} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Image | \`${IMAGE_NAME}:${VERSION}\` |" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$DIGEST" ]; then
+            echo "| Digest | \`${DIGEST}\` |" >> $GITHUB_STEP_SUMMARY
+          fi
+          echo "| Status | ${{ github.event_name != 'pull_request' && 'Published' || 'Built (dry run)' }} |" >> $GITHUB_STEP_SUMMARY
+
+  summary:
+    needs: [discover-skill-configs, validate-skills, build-skill-artifacts]
+    runs-on: ubuntu-latest
+    if: always()
+    permissions:
+      contents: read
+    steps:
+      - name: Build summary
+        env:
+          CONFIGS: ${{ needs.discover-skill-configs.outputs.changed-configs }}
+          VALIDATE_RESULT: ${{ needs.validate-skills.result }}
+          BUILD_RESULT: ${{ needs.build-skill-artifacts.result }}
+        run: |
+          echo "## Skill Build Pipeline Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Stage | Result |" >> $GITHUB_STEP_SUMMARY
+          echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Trigger | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Skills to build | $(echo "$CONFIGS" | jq '. | length') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Validation | ${VALIDATE_RESULT} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Build | ${BUILD_RESULT} |" >> $GITHUB_STEP_SUMMARY
