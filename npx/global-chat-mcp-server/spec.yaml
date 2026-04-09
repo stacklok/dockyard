@@ -1,0 +1,18 @@
+# Global Chat MCP Server Configuration
+# Cross-protocol AI agent discovery — search, validate, and register agents
+# Package: https://www.npmjs.com/package/@global-chat/mcp-server
+# Repository: https://github.com/pumanitro/global-chat
+# Will build as: ghcr.io/stacklok/dockyard/npx/global-chat-mcp-server:0.1.1
+
+metadata:
+  name: global-chat-mcp-server
+  description: "Cross-protocol AI agent discovery for MCP, A2A, and agents.txt"
+  protocol: npx
+
+spec:
+  package: "@global-chat/mcp-server"
+  version: "0.1.1"
+
+provenance:
+  repository_uri: "https://github.com/pumanitro/global-chat"
+  repository_ref: "refs/tags/v0.1.1"
