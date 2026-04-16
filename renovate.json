@@ -10,7 +10,9 @@
     {
       "customType": "regex",
       "description": "Update npm package versions in npx YAML configurations",
-      "fileMatch": ["^npx/.*/spec\\.ya?ml$"],
+      "managerFilePatterns": [
+        "/^npx/.*/spec\\.ya?ml$/"
+      ],
       "matchStrings": [
         "spec:\\s*\\n\\s*package:\\s*[\"']?(?<depName>[^\"'\\n]+?)\\s*[\"']?\\s*(?:#.*)?\\n\\s*version:\\s*[\"']?(?<currentValue>[\\d\\.\\w-]+)[\"']?\\s*(?:#.*)?"
       ],
@@ -19,7 +21,9 @@
     {
       "customType": "regex",
       "description": "Update Python package versions in uvx YAML configurations",
-      "fileMatch": ["^uvx/.*/spec\\.ya?ml$"],
+      "managerFilePatterns": [
+        "/^uvx/.*/spec\\.ya?ml$/"
+      ],
       "matchStrings": [
         "spec:\\s*\\n\\s*package:\\s*[\"']?(?<depName>[^\"'\\n]+?)\\s*[\"']?\\s*(?:#.*)?\\n\\s*version:\\s*[\"']?(?<currentValue>[\\d\\.\\w-]+)[\"']?\\s*(?:#.*)?"
       ],
@@ -28,7 +32,9 @@
     {
       "customType": "regex",
       "description": "Update Go package versions in go YAML configurations",
-      "fileMatch": ["^go/.*/spec\\.ya?ml$"],
+      "managerFilePatterns": [
+        "/^go/.*/spec\\.ya?ml$/"
+      ],
       "matchStrings": [
         "spec:\\s*\\n\\s*package:\\s*[\"']?(?<depName>[^\"'\\n]+?)\\s*[\"']?\\s*(?:#.*)?\\n\\s*version:\\s*[\"']?(?<currentValue>[\\d\\.\\w-]+)[\"']?\\s*(?:#.*)?"
       ],
@@ -37,7 +43,9 @@
     {
       "customType": "regex",
       "description": "Update skill versions from git commit references",
-      "fileMatch": ["^skills/.*/spec\\.ya?ml$"],
+      "managerFilePatterns": [
+        "/^skills/.*/spec\\.ya?ml$/"
+      ],
       "matchStrings": [
         "spec:\\s*\\n\\s*repository:\\s*[\"']?https://github\\.com/(?<depName>[^\"'\\s]+?)(?:\\.git)?\\s*[\"']?\\s*(?:#.*)?\\n\\s*ref:\\s*[\"']?(?<currentDigest>[0-9a-f]{40})[\"']?"
       ],
