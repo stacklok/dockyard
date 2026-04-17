@@ -423,7 +423,7 @@ jobs:
       - name: Build and push Docker image
         id: build
         timeout-minutes: 30
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7
         with:
           context: ${{ steps.dockerfile.outputs.dockerfile_dir }}
           file: ${{ steps.dockerfile.outputs.dockerfile_path }}
@@ -446,7 +446,7 @@ jobs:
 
       - name: Build single-platform image for Grype scan
         id: build-for-scan
-        uses: docker/build-push-action@d08e5c354a6adb9ed34480a06d141179aa583294 # v7
+        uses: docker/build-push-action@bcafcacb16a39f128d818304e6c9c0c18556b85f # v7
         with:
           context: ${{ steps.dockerfile.outputs.dockerfile_dir }}
           file: ${{ steps.dockerfile.outputs.dockerfile_path }}
