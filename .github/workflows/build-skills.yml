@@ -134,7 +134,8 @@ jobs:
     permissions:
       contents: read
       packages: write
-      id-token: write  # Needed for OIDC token (cosign keyless signing)
+      id-token: write  # Needed for OIDC token (cosign keyless signing, attestations)
+      attestations: write  # Needed for actions/attest-* to publish attestations
 
     steps:
       - name: Checkout repository
@@ -176,6 +177,12 @@ jobs:
           ref=$(yq '.spec.ref' "$CONFIG_FILE" 2>/dev/null || echo "")
           echo "ref=$ref" >> $GITHUB_OUTPUT
 
+          repository=$(yq '.spec.repository' "$CONFIG_FILE" 2>/dev/null || echo "")
+          echo "repository=$repository" >> $GITHUB_OUTPUT
+
+          skill_path=$(yq '.spec.path // ""' "$CONFIG_FILE" 2>/dev/null || echo "")
+          echo "skill_path=$skill_path" >> $GITHUB_OUTPUT
+
           image_name="${REGISTRY}/${{ github.repository }}/skills/${skill_name}"
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
 
@@ -210,13 +217,60 @@ jobs:
           IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
-          if [ -n "$DIGEST" ]; then
-            echo "Signing skill artifact ${IMAGE_NAME}@${DIGEST}"
-            cosign sign --yes "${IMAGE_NAME}@${DIGEST}"
-            echo "Signed: ${IMAGE_NAME}@${DIGEST}" >> $GITHUB_STEP_SUMMARY
-          else
+          if [ -z "$DIGEST" ]; then
             echo "No digest available, skipping signing"
+            exit 0
           fi
+          echo "Signing skill artifact ${IMAGE_NAME}@${DIGEST}"
+          cosign sign --yes "${IMAGE_NAME}@${DIGEST}"
+          cosign sign --yes "${IMAGE_NAME}:${VERSION}"
+          echo "Signed: ${IMAGE_NAME}@${DIGEST} and ${IMAGE_NAME}:${VERSION}" >> $GITHUB_STEP_SUMMARY
+
+      - name: Check out skill source for SBOM
+        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        id: skill-src
+        env:
+          SKILL_REPO: ${{ steps.meta.outputs.repository }}
+          SKILL_REF: ${{ steps.meta.outputs.ref }}
+          SKILL_PATH: ${{ steps.meta.outputs.skill_path }}
+        run: |
+          rm -rf /tmp/skill-src
+          mkdir -p /tmp/skill-src
+          git clone --filter=tree:0 --no-checkout "$SKILL_REPO" /tmp/skill-src/repo
+          git -C /tmp/skill-src/repo checkout "$SKILL_REF"
+          if [ -n "$SKILL_PATH" ]; then
+            src_dir="/tmp/skill-src/repo/$SKILL_PATH"
+          else
+            src_dir="/tmp/skill-src/repo"
+          fi
+          echo "source_dir=$src_dir" >> $GITHUB_OUTPUT
+
+      - name: Generate SBOM from skill source
+        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
+        with:
+          path: ${{ steps.skill-src.outputs.source_dir }}
+          format: spdx-json
+          output-file: /tmp/skill-sbom.spdx.json
+          upload-artifact: false
+          upload-release-assets: false
+
+      - name: Attest SBOM for skill artifact
+        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
+        with:
+          subject-name: ${{ steps.meta.outputs.image_name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          sbom-path: /tmp/skill-sbom.spdx.json
+          push-to-registry: true
+
+      - name: Attest build provenance for skill artifact
+        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        uses: actions/attest-build-provenance@a2bbfa25375fe432b6a289bc6b6cd05ecd0c4c32 # v4.1.0
+        with:
+          subject-name: ${{ steps.meta.outputs.image_name }}
+          subject-digest: ${{ steps.build.outputs.digest }}
+          push-to-registry: true
 
       - name: Build summary
         env:
@@ -236,6 +290,10 @@ jobs:
             echo "| Digest | \`${DIGEST}\` |" >> $GITHUB_STEP_SUMMARY
           fi
           echo "| Status | ${{ github.event_name != 'pull_request' && 'Published' || 'Built (dry run)' }} |" >> $GITHUB_STEP_SUMMARY
+          if [ "${{ github.event_name }}" != "pull_request" ] && [ -n "$DIGEST" ]; then
+            echo "| SBOM | Attested (SPDX) |" >> $GITHUB_STEP_SUMMARY
+            echo "| Provenance | Attested (SLSA) |" >> $GITHUB_STEP_SUMMARY
+          fi
 
   summary:
     needs: [discover-skill-configs, validate-skills, build-skill-artifacts]
