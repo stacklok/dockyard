@@ -1,0 +1,25 @@
+# Trail of Bits sarif-parsing Skill
+# Parses and processes SARIF files from static analysis tools.
+# Source: https://github.com/trailofbits/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/sarif-parsing:0.1.0
+
+metadata:
+  name: sarif-parsing
+  description: "Parse, filter, deduplicate, and convert SARIF files from CodeQL, Semgrep, and other scanners — for CI/CD integration and findings aggregation (does not run scans — pair with the codeql or semgrep skills for that)"
+
+spec:
+  repository: "https://github.com/trailofbits/skills"
+  ref: "e8cc5baf9329ccb491bfa200e82eacbac83b1ead"  # main as of 2026-04-17
+  path: "plugins/static-analysis/skills/sarif-parsing"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/trailofbits/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
+    - rule_id: ALLOWED_TOOLS_WRITE_VIOLATION
+      reason: "SKILL.md declares Bash in allowed-tools, which transitively permits filesystem writes (e.g. via redirection); the scanner flags bundled scripts as writing without recognizing Bash as the intended mechanism."

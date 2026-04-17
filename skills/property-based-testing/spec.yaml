@@ -1,0 +1,23 @@
+# Trail of Bits property-based-testing Skill
+# Guidance for property-based testing across languages and smart contracts.
+# Source: https://github.com/trailofbits/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/property-based-testing:0.1.0
+
+metadata:
+  name: property-based-testing
+  description: "Property-based testing guidance across multiple languages and smart contracts — use when writing tests, designing features with serialization/validation/parsing, or when stronger coverage than example-based tests is needed"
+
+spec:
+  repository: "https://github.com/trailofbits/skills"
+  ref: "e8cc5baf9329ccb491bfa200e82eacbac83b1ead"  # main as of 2026-04-17
+  path: "plugins/property-based-testing/skills/property-based-testing"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/trailofbits/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
