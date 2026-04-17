@@ -1,0 +1,23 @@
+# Trail of Bits codeql Skill
+# Scans a codebase for security vulnerabilities using CodeQL.
+# Source: https://github.com/trailofbits/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/codeql:0.1.0
+
+metadata:
+  name: codeql
+  description: "Scan a codebase for security vulnerabilities using CodeQL's interprocedural data flow and taint tracking — supports security-and-quality suites or high-precision findings, plus SARIF output handling"
+
+spec:
+  repository: "https://github.com/trailofbits/skills"
+  ref: "e8cc5baf9329ccb491bfa200e82eacbac83b1ead"  # main as of 2026-04-17
+  path: "plugins/static-analysis/skills/codeql"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/trailofbits/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."

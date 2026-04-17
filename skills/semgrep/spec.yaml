@@ -1,0 +1,25 @@
+# Trail of Bits semgrep Skill
+# Runs Semgrep static analysis with parallel subagents.
+# Source: https://github.com/trailofbits/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/semgrep:0.1.0
+
+metadata:
+  name: semgrep
+  description: "Run Semgrep static analysis with parallel subagents — full ruleset or high-confidence security findings only; auto-detects Semgrep Pro for cross-file taint analysis across multi-language codebases"
+
+spec:
+  repository: "https://github.com/trailofbits/skills"
+  ref: "e8cc5baf9329ccb491bfa200e82eacbac83b1ead"  # main as of 2026-04-17
+  path: "plugins/static-analysis/skills/semgrep"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/trailofbits/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
+    - rule_id: ALLOWED_TOOLS_GREP_VIOLATION
+      reason: "SKILL.md declares Bash in allowed-tools, which transitively covers regex search via shell tooling; the scanner does not account for this capability."
