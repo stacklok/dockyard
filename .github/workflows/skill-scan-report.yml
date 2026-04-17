@@ -1,0 +1,172 @@
+# Runs in the base repository context so it can comment on PRs from forks.
+# Triggered after Build Skill Artifacts completes; downloads scan artifacts
+# and upserts a single "Skill Security Scan Results" PR comment.
+name: Skill Scan Report
+
+on:
+  workflow_run:
+    workflows: ["Build Skill Artifacts"]
+    types: [completed]
+
+permissions:
+  pull-requests: write
+
+jobs:
+  skill-scan-report:
+    runs-on: ubuntu-latest
+    if: github.event.workflow_run.event == 'pull_request'
+    steps:
+      - name: Download PR number artifact
+        id: pr-number
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: skill-pr-number
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Read PR number
+        id: read-pr
+        run: |
+          PR_NUMBER=$(cat pr-number.txt)
+          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
+          echo "PR number: $PR_NUMBER"
+
+      - name: Download scan results
+        id: scan-results
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          pattern: skill-scan-*
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          path: scan-artifacts
+        continue-on-error: true
+
+      - name: Comment PR with scan results
+        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        with:
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const prNumber = parseInt('${{ steps.read-pr.outputs.pr_number }}');
+            console.log('Commenting on PR:', prNumber);
+
+            let comment = '## 🛡️ Skill Security Scan Results\n\n';
+            let hasAnyIssues = false;
+            let totalSkillsScanned = 0;
+            let totalBlocking = 0;
+
+            const summaryFiles = [];
+            const artifactsDir = 'scan-artifacts';
+
+            if (fs.existsSync(artifactsDir)) {
+              for (const item of fs.readdirSync(artifactsDir)) {
+                const itemPath = path.join(artifactsDir, item);
+                const stat = fs.statSync(itemPath);
+                if (stat.isDirectory()) {
+                  const summaryFile = path.join(itemPath, 'scan-summary.json');
+                  if (fs.existsSync(summaryFile)) summaryFiles.push(summaryFile);
+                } else if (stat.isFile() && item === 'scan-summary.json') {
+                  summaryFiles.push(itemPath);
+                }
+              }
+            }
+
+            if (summaryFiles.length === 0) {
+              comment += '⚠️ No skills were scanned in this PR.\n';
+            } else {
+              for (const file of summaryFiles) {
+                try {
+                  const summary = JSON.parse(fs.readFileSync(file, 'utf8'));
+                  totalSkillsScanned++;
+                  const name = summary.skill || 'unknown';
+
+                  if (summary.status === 'passed') {
+                    comment += `### ✅ ${name}\n`;
+                    comment += `- **Status**: Passed\n`;
+                    comment += `- **Findings**: ${summary.findings_count || 0}\n`;
+                    if (summary.allowed_issues && summary.allowed_issues.length > 0) {
+                      comment += `- **Allowed (not blocking)**: ${summary.allowed_count}\n`;
+                      for (const issue of summary.allowed_issues) {
+                        comment += `  - \`${issue.code}\` _(Allowed: ${issue.allowed_reason})_\n`;
+                      }
+                    }
+                    comment += '\n';
+                  } else if (summary.status === 'failed') {
+                    hasAnyIssues = true;
+                    totalBlocking += summary.blocking_count || 0;
+                    comment += `### ❌ ${name}\n`;
+                    comment += `- **Status**: Failed\n`;
+                    comment += `- **Findings**: ${summary.findings_count || 0}\n`;
+                    comment += `- **Blocking**: ${summary.blocking_count || 0}\n\n`;
+                    comment += '**Blocking issues:**\n';
+                    if (summary.blocking_issues) {
+                      for (const issue of summary.blocking_issues) {
+                        const loc = issue.file_path
+                          ? ` _(${issue.file_path}${issue.line_number ? ':' + issue.line_number : ''})_`
+                          : '';
+                        comment += `- **[${issue.code}]** (${issue.severity}) ${issue.message}${loc}\n`;
+                      }
+                    }
+                    if (summary.allowed_issues && summary.allowed_issues.length > 0) {
+                      comment += '\n**Allowlisted (not blocking):**\n';
+                      for (const issue of summary.allowed_issues) {
+                        comment += `- \`${issue.code}\` _(Allowed: ${issue.allowed_reason})_\n`;
+                      }
+                    }
+                    comment += '\n';
+                  } else if (summary.status === 'warning') {
+                    comment += `### ⚠️ ${name}\n`;
+                    comment += `- **Status**: Warning\n`;
+                    comment += `- **Message**: ${summary.message}\n\n`;
+                  } else {
+                    comment += `### ⚠️ ${name}\n`;
+                    comment += `- **Status**: Error\n`;
+                    comment += `- **Message**: ${summary.message || 'Unknown error'}\n\n`;
+                  }
+                } catch (error) {
+                  console.error(`Error parsing ${file}:`, error);
+                  comment += `### ⚠️ Error parsing scan results\n`;
+                  comment += `Could not parse ${file}: ${error.message}\n\n`;
+                }
+              }
+
+              if (totalSkillsScanned > 0) {
+                comment += '---\n';
+                comment += `**Summary**: Scanned ${totalSkillsScanned} skill(s)`;
+                if (hasAnyIssues) {
+                  comment += `, found ${totalBlocking} blocking issue(s).\n\n`;
+                  comment += '⚠️ **Action Required**: Review the blocking findings. Add a justified entry to the skill\'s `security.allowed_issues[]` in its `spec.yaml` if the finding is a false positive.\n';
+                } else {
+                  comment += ', all passed security checks. ✅\n';
+                }
+              }
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+
+            const botComment = comments.find(c =>
+              c.user.type === 'Bot' && c.body.includes('Skill Security Scan Results')
+            );
+
+            if (botComment) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: botComment.id,
+                body: comment
+              });
+              console.log(`Updated existing comment #${botComment.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: comment
+              });
+              console.log('Created new comment');
+            }

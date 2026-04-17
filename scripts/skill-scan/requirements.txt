@@ -1,0 +1,5 @@
+# Python dependencies for skill scan scripts
+# Pinned for reproducible builds and supply chain security
+
+cisco-ai-skill-scanner==2.0.9
+pyyaml==6.0.3

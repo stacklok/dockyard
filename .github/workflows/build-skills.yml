@@ -7,6 +7,9 @@ on:
       - 'skills/**/*.yaml'
       - 'cmd/dockhand/**'
       - 'internal/skills/**'
+      - 'scripts/skill-scan/**'
+      - '.github/workflows/build-skills.yml'
+      - '.github/workflows/skill-scan-report.yml'
       - 'go.mod'
       - 'go.sum'
   pull_request:
@@ -15,6 +18,9 @@ on:
       - 'skills/**/*.yaml'
       - 'cmd/dockhand/**'
       - 'internal/skills/**'
+      - 'scripts/skill-scan/**'
+      - '.github/workflows/build-skills.yml'
+      - '.github/workflows/skill-scan-report.yml'
       - 'go.mod'
       - 'go.sum'
   workflow_dispatch:
@@ -31,6 +37,7 @@ jobs:
       contents: read
     outputs:
       changed-configs: ${{ steps.find-configs.outputs.changed-configs }}
+      scan-configs: ${{ steps.find-configs.outputs.scan-configs }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
@@ -49,48 +56,58 @@ jobs:
           if [ -z "$all_configs" ]; then
             echo "No skill configurations found"
             echo "changed-configs=[]" >> $GITHUB_OUTPUT
+            echo "scan-configs=[]" >> $GITHUB_OUTPUT
             exit 0
           fi
 
           if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
             configs_to_build="$all_configs"
+            configs_to_scan="$all_configs"
             echo "Manual trigger - building all skill configurations"
           elif [ "$EVENT_NAME" == "pull_request" ]; then
             changed_files=$(git diff --name-only origin/"$BASE_REF"...HEAD)
             configs_to_build=""
+            configs_to_scan=""
 
+            # Scan only specs that actually changed; build the superset below.
             for config in $all_configs; do
               config_dir=$(dirname "$config")
               if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
                 configs_to_build="$configs_to_build$config"$'\n'
+                configs_to_scan="$configs_to_scan$config"$'\n'
               fi
             done
 
-            # If dockhand source, internal/skills, go.mod, or go.sum changed, rebuild all
-            if echo "$changed_files" | grep -E "(cmd/dockhand/|internal/skills/|go\.mod|go\.sum)"; then
-              echo "Core files changed - rebuilding all skill configurations"
+            # If core build inputs changed, rebuild all skills — but only scan specs that truly changed.
+            if echo "$changed_files" | grep -E "(cmd/dockhand/|internal/skills/|scripts/skill-scan/|\.github/workflows/build-skills\.yml|go\.mod|go\.sum)"; then
+              echo "Core files changed - rebuilding all skill configurations (scan only changed specs)"
               configs_to_build="$all_configs"
             fi
           else
             changed_files=$(git diff --name-only HEAD~1..HEAD)
             configs_to_build=""
+            configs_to_scan=""
 
             for config in $all_configs; do
               config_dir=$(dirname "$config")
               if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
                 configs_to_build="$configs_to_build$config"$'\n'
+                configs_to_scan="$configs_to_scan$config"$'\n'
               fi
             done
 
-            if echo "$changed_files" | grep -E "(cmd/dockhand/|internal/skills/|go\.mod|go\.sum)"; then
-              echo "Core files changed - rebuilding all skill configurations"
+            if echo "$changed_files" | grep -E "(cmd/dockhand/|internal/skills/|scripts/skill-scan/|\.github/workflows/build-skills\.yml|go\.mod|go\.sum)"; then
+              echo "Core files changed - rebuilding all skill configurations (scan only changed specs)"
               configs_to_build="$all_configs"
             fi
           fi
 
           configs_json=$(echo "$configs_to_build" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
+          scan_configs_json=$(echo "$configs_to_scan" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
           echo "changed-configs=$configs_json" >> $GITHUB_OUTPUT
+          echo "scan-configs=$scan_configs_json" >> $GITHUB_OUTPUT
           echo "Skill configurations to build: $configs_json"
+          echo "Skill configurations to scan: $scan_configs_json"
 
   validate-skills:
     needs: discover-skill-configs
@@ -121,11 +138,131 @@ jobs:
           echo "Validating skill: $CONFIG_FILE"
           /tmp/dockhand validate-skill --config "$CONFIG_FILE"
 
+  skill-security-scan:
+    needs: discover-skill-configs
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    if: ${{ needs.discover-skill-configs.outputs.scan-configs != '[]' }}
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-skill-configs.outputs.scan-configs) }}
+      fail-fast: false
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+
+      - name: Install yq
+        uses: mikefarah/yq@5a7e72a743649b1b3a47d1a1d8214f3453173c51 # v4.52.4
+
+      - name: Set up Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6
+        with:
+          python-version: '3.13'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@e06108dd0aef18192324c70427afc47652e63a82 # v7
+        with:
+          enable-cache: true
+
+      - name: Install dependencies
+        id: install-deps
+        run: |
+          uv pip install --system -r scripts/skill-scan/requirements.txt
+          skill-scanner --version || true
+          SCANNER_VERSION=$(uv pip show cisco-ai-skill-scanner | grep "^Version:" | cut -d' ' -f2)
+          echo "scanner_version=$SCANNER_VERSION" >> $GITHUB_OUTPUT
+          echo "Installed skill-scanner version: $SCANNER_VERSION"
+
+      - name: Extract metadata from config
+        id: meta
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          skill_name=$(echo "$CONFIG_FILE" | cut -d'/' -f2)
+          echo "skill_name=$skill_name" >> $GITHUB_OUTPUT
+          echo "config_file=$CONFIG_FILE" >> $GITHUB_OUTPUT
+
+          repository=$(yq '.spec.repository' "$CONFIG_FILE")
+          ref=$(yq '.spec.ref' "$CONFIG_FILE")
+          skill_path=$(yq '.spec.path // ""' "$CONFIG_FILE")
+          echo "repository=$repository" >> $GITHUB_OUTPUT
+          echo "ref=$ref" >> $GITHUB_OUTPUT
+          echo "skill_path=$skill_path" >> $GITHUB_OUTPUT
+
+      - name: Check out skill source
+        id: skill-src
+        env:
+          SKILL_REPO: ${{ steps.meta.outputs.repository }}
+          SKILL_REF: ${{ steps.meta.outputs.ref }}
+          SKILL_PATH: ${{ steps.meta.outputs.skill_path }}
+          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
+        run: |
+          workdir="/tmp/skill-scan-${SKILL_NAME}"
+          rm -rf "$workdir"
+          mkdir -p "$workdir"
+          git clone --filter=tree:0 --no-checkout --quiet "$SKILL_REPO" "$workdir/repo"
+          git -C "$workdir/repo" checkout --quiet "$SKILL_REF"
+          if [ -n "$SKILL_PATH" ]; then
+            src_dir="$workdir/repo/$SKILL_PATH"
+          else
+            src_dir="$workdir/repo"
+          fi
+          if [ ! -d "$src_dir" ]; then
+            echo "Error: skill source directory not found at $src_dir" >&2
+            exit 1
+          fi
+          echo "source_dir=$src_dir" >> $GITHUB_OUTPUT
+
+      - name: Run skill security scan
+        id: scan
+        env:
+          SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'false' }}
+          SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
+          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
+          SOURCE_DIR: ${{ steps.skill-src.outputs.source_dir }}
+          CONFIG_FILE: ${{ matrix.config }}
+          SCANNER_VERSION: ${{ steps.install-deps.outputs.scanner_version }}
+        run: |
+          scan_output="skill-scan-${SKILL_NAME}.json"
+          scan_stderr="skill-scan-${SKILL_NAME}.stderr"
+
+          python3 scripts/skill-scan/run_scan.py \
+            --source "$SOURCE_DIR" \
+            --output "$scan_output" \
+            2> "$scan_stderr" || true
+
+          if [ -s "$scan_stderr" ]; then
+            echo "Scanner stderr output:"
+            cat "$scan_stderr"
+          fi
+
+          # process_scan_results.py exits 1 on unallowlisted findings — that fails the job.
+          python3 scripts/skill-scan/process_scan_results.py \
+            "$scan_output" \
+            "$SKILL_NAME" \
+            "$CONFIG_FILE" \
+            > scan-summary.json
+
+          echo "$SCANNER_VERSION" > scanner-version.txt
+
+      - name: Upload scan results
+        if: always()
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: skill-scan-${{ steps.meta.outputs.skill_name }}
+          path: |
+            skill-scan-${{ steps.meta.outputs.skill_name }}.json
+            scan-summary.json
+            scanner-version.txt
+          retention-days: 30
+
   build-skill-artifacts:
-    needs: [discover-skill-configs, validate-skills]
+    needs: [discover-skill-configs, validate-skills, skill-security-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: ${{ needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' }}
+    if: ${{ needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' && (needs.skill-security-scan.result == 'success' || needs.skill-security-scan.result == 'skipped') }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}
@@ -272,6 +409,60 @@ jobs:
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
+      - name: Download skill security scan results
+        id: download-scan
+        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7
+        with:
+          name: skill-scan-${{ steps.meta.outputs.skill_name }}
+          path: /tmp/skill-scan-results
+        continue-on-error: false
+
+      - name: Create security scan attestation (SCAI format)
+        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        env:
+          DIGEST: ${{ steps.build.outputs.digest }}
+          IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
+          CONFIG_FILE: ${{ matrix.config }}
+          COMMIT_SHA: ${{ github.sha }}
+          RUN_ID: ${{ github.run_id }}
+          SERVER_URL: ${{ github.server_url }}
+          REPO: ${{ github.repository }}
+        run: |
+          set -euo pipefail
+
+          SCANNER_VERSION=""
+          if [ -f /tmp/skill-scan-results/scanner-version.txt ]; then
+            SCANNER_VERSION=$(tr -d '\n' < /tmp/skill-scan-results/scanner-version.txt)
+            echo "Scanner version: $SCANNER_VERSION"
+          fi
+
+          python3 scripts/skill-scan/generate_scai_attestation.py \
+            /tmp/skill-scan-results/scan-summary.json \
+            "$IMAGE_NAME" \
+            "$DIGEST" \
+            --config-file "$CONFIG_FILE" \
+            --commit-sha "$COMMIT_SHA" \
+            --run-id "$RUN_ID" \
+            --run-url "${SERVER_URL}/${REPO}/actions/runs/${RUN_ID}" \
+            --producer-uri "${SERVER_URL}/${REPO}" \
+            --scanner-version "$SCANNER_VERSION" \
+            --scanner-uri "https://github.com/cisco-ai-defense/skill-scanner" \
+            --validate \
+            --output /tmp/skill-scai.json
+
+          echo "Generated SCAI attestation:"
+          cat /tmp/skill-scai.json
+
+          cosign attest --yes \
+            --predicate /tmp/skill-scai.json \
+            --type https://in-toto.io/attestation/scai/v0.3 \
+            "${IMAGE_NAME}@${DIGEST}"
+
+          ATTRIBUTE=$(python3 -c "import json,sys;print(json.load(open('/tmp/skill-scai.json'))['predicate']['attributes'][0]['attribute'])")
+          echo "SCAI security scan attestation created (${ATTRIBUTE})" >> $GITHUB_STEP_SUMMARY
+          rm -f /tmp/skill-scai.json
+
       - name: Build summary
         env:
           SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
@@ -295,8 +486,25 @@ jobs:
             echo "| Provenance | Attested (SLSA) |" >> $GITHUB_STEP_SUMMARY
           fi
 
+  save-pr-number:
+    runs-on: ubuntu-latest
+    permissions: {}
+    if: github.event_name == 'pull_request'
+    steps:
+      - name: Save PR number
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: echo "$PR_NUMBER" > pr-number.txt
+
+      - name: Upload PR number
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6
+        with:
+          name: skill-pr-number
+          path: pr-number.txt
+          retention-days: 5
+
   summary:
-    needs: [discover-skill-configs, validate-skills, build-skill-artifacts]
+    needs: [discover-skill-configs, validate-skills, skill-security-scan, build-skill-artifacts]
     runs-on: ubuntu-latest
     if: always()
     permissions:
@@ -305,7 +513,9 @@ jobs:
       - name: Build summary
         env:
           CONFIGS: ${{ needs.discover-skill-configs.outputs.changed-configs }}
+          SCAN_CONFIGS: ${{ needs.discover-skill-configs.outputs.scan-configs }}
           VALIDATE_RESULT: ${{ needs.validate-skills.result }}
+          SCAN_RESULT: ${{ needs.skill-security-scan.result }}
           BUILD_RESULT: ${{ needs.build-skill-artifacts.result }}
         run: |
           echo "## Skill Build Pipeline Summary" >> $GITHUB_STEP_SUMMARY
@@ -314,5 +524,7 @@ jobs:
           echo "|-------|--------|" >> $GITHUB_STEP_SUMMARY
           echo "| Trigger | ${{ github.event_name }} |" >> $GITHUB_STEP_SUMMARY
           echo "| Skills to build | $(echo "$CONFIGS" | jq '. | length') |" >> $GITHUB_STEP_SUMMARY
+          echo "| Skills to scan | $(echo "$SCAN_CONFIGS" | jq '. | length') |" >> $GITHUB_STEP_SUMMARY
           echo "| Validation | ${VALIDATE_RESULT} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Security scan | ${SCAN_RESULT} |" >> $GITHUB_STEP_SUMMARY
           echo "| Build | ${BUILD_RESULT} |" >> $GITHUB_STEP_SUMMARY

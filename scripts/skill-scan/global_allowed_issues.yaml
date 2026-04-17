@@ -1,0 +1,13 @@
+# Global allowed issues for skill security scanning (Cisco AITech taxonomy)
+# See: https://github.com/cisco-ai-defense/skill-scanner
+#
+# Common AITech codes (shared with the MCP scanner's taxonomy):
+#   AITech-1.1  - Prompt injection
+#   AITech-8.2  - Data exfiltration/exposure
+#   AITech-9.1  - System manipulation
+#   AITech-12.1 - Tool exploitation/poisoning
+#
+# These issues are allowed for ALL skills in the registry.
+# For skill-specific exceptions, add them to the skill's spec.yaml file instead.
+
+allowed_issues: []
