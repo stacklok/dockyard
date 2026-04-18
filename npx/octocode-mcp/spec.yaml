@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "octocode-mcp"
-  version: "13.0.0"
+  version: "13.0.1"
 
 provenance:
   # Monorepo with multiple packages; npm versions don't match git tags
