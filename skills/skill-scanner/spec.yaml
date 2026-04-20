@@ -1,0 +1,29 @@
+# Sentry skill-scanner Skill
+# Scans agent skills for prompt injection, malicious code, excessive permissions.
+# Source: https://github.com/getsentry/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/skill-scanner:0.1.0
+
+metadata:
+  name: skill-scanner
+  description: "Scan agent skills for security issues — prompt injection, malicious scripts, excessive permissions, secret exposure, supply-chain risks; combines static pattern scanner with agent behavioral analysis"
+
+spec:
+  repository: "https://github.com/getsentry/skills"
+  ref: "94ea2a26c70f3f646f07a613ffe5cd3d4eca1955"  # main as of 2026-04-20
+  path: "skills/skill-scanner"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/getsentry/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: OBFUSCATION_BASE64_LARGE
+      reason: "This is a meta-skill that teaches detection of malicious patterns. Its reference material cites `exec(base64.b64decode(...))` as an example of obfuscated code the scanner should flag in other skills — the skill documents the pattern it hunts, it does not execute it."
+    - rule_id: PROMPT_INJECTION_UNRESTRICTED_MODE
+      reason: "The skill's reference material on prompt-injection patterns cites 'Enter developer mode' as an example jailbreak pattern the skill teaches to detect. Documenting the pattern is the skill's purpose."
+    - rule_id: YARA_prompt_injection_unicode_steganography
+      reason: "The skill documents invisible Unicode steganography (`\\U000e0001` tag characters) as a prompt-injection vector. Describing the attack class is required for the skill to teach detection of it."
