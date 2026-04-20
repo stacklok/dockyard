@@ -43,7 +43,7 @@ function extractRegexPatterns(config) {
   
   config.customManagers.forEach((manager, index) => {
     const datasource = manager.datasourceTemplate;
-    const fileMatch = manager.fileMatch;
+    const fileMatch = manager.managerFilePatterns || manager.fileMatch;
     const matchStrings = manager.matchStrings;
     
     if (!patterns[datasource]) {
@@ -54,9 +54,12 @@ function extractRegexPatterns(config) {
       };
     }
     
-    // Convert fileMatch patterns to RegExp
+    // managerFilePatterns wraps regex entries in forward slashes to
+    // distinguish them from globs; strip those before compiling to RegExp.
     fileMatch.forEach(pattern => {
-      patterns[datasource].filePatterns.push(new RegExp(pattern));
+      const regexMatch = pattern.match(/^\/(.*)\/$/);
+      const source = regexMatch ? regexMatch[1] : pattern;
+      patterns[datasource].filePatterns.push(new RegExp(source));
     });
     
     // Convert matchStrings to RegExp
