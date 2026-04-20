@@ -1,0 +1,23 @@
+# Datadog dd-apm Skill
+# Datadog APM — traces, services, performance analysis via the pup CLI.
+# Source: https://github.com/datadog-labs/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/dd-apm:0.1.0
+
+metadata:
+  name: dd-apm
+  description: "Datadog APM via the `pup` CLI — search traces, inspect services, surface slow endpoints and error patterns; analyze latency/throughput and trace-to-log correlation"
+
+spec:
+  repository: "https://github.com/datadog-labs/agent-skills"
+  ref: "a04611e9d3c402859f7d973be451c16cd5982ca5"  # main as of 2026-04-15
+  path: "dd-apm"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/datadog-labs/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "datadog-labs/agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
