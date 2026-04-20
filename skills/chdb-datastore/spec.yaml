@@ -1,0 +1,25 @@
+# ClickHouse chdb-datastore Skill
+# Use chDB as an in-process ClickHouse datastore.
+# Source: https://github.com/ClickHouse/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/chdb-datastore:0.1.0
+
+metadata:
+  name: chdb-datastore
+  description: "Use chDB as an in-process ClickHouse datastore — embed the ClickHouse engine in Python, Go, Node.js, or Rust apps for local analytics, columnar storage, and fast aggregation without running a server"
+
+spec:
+  repository: "https://github.com/ClickHouse/agent-skills"
+  ref: "d28416142e5634ce288602cd0c8f3457e68177ff"  # main as of 2026-04-20
+  path: "skills/chdb-datastore"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/ClickHouse/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "ClickHouse/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: SECRET_CONNECTION_STRING
+      reason: "The skill's documentation contains an example `mysql://user:password@host:3306/dbname` connection-string shape illustrating how to connect chDB to external MySQL sources. The value is not a real credential — it's an illustrative string in markdown."
