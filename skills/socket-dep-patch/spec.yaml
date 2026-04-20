@@ -1,0 +1,23 @@
+# Socket socket-dep-patch Skill
+# Apply Socket's binary-level security patches without changing dependency versions.
+# Source: https://github.com/SocketDev/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/socket-dep-patch:0.1.0
+
+metadata:
+  name: socket-dep-patch
+  description: "Apply Socket's binary-level security patches with socket-patch apply — fixes vulnerabilities in-place without version changes, then verifies automated patching is configured so patches persist across installs"
+
+spec:
+  repository: "https://github.com/SocketDev/skills"
+  ref: "25879b0c8d69cffff9ed895cfb57c12b669f76b2"  # main as of 2026-04-02
+  path: "skills/socket-fix/socket-dep-patch"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/SocketDev/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "SocketDev/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

@@ -1,0 +1,27 @@
+# Atlassian forge-app-builder Skill
+# Build Atlassian Forge apps end-to-end.
+# Source: https://github.com/atlassian/forge-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/forge-app-builder:0.1.0
+
+metadata:
+  name: forge-app-builder
+  description: "Build Atlassian Forge apps end-to-end — app scaffolding via Forge CLI, manifest config, UI components (UI Kit, Custom UI, Forge React), backend resolvers and functions, triggers, scheduled triggers, permissions, and deployment"
+
+spec:
+  repository: "https://github.com/atlassian/forge-skills"
+  ref: "0d60ac5436dcb63af0869e110728f40e61274924"  # main as of 2026-04-19
+  path: "skills/forge-app-builder"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/atlassian/forge-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "atlassian/forge-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: DATA_EXFIL_NETWORK_REQUESTS
+      reason: "`scripts/list_templates.py` uses `urllib.request.urlopen()` to fetch the official Forge app template index from Atlassian — documented workflow step for scaffolding new apps."
+    - rule_id: TOOL_ABUSE_UNDECLARED_NETWORK
+      reason: "The skill's bundled `list_templates.py` fetches Atlassian's Forge template catalog; the skill does not declare a dedicated network-access tool but the network call is for a documented, trusted destination."

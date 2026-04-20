@@ -1,0 +1,25 @@
+# Weaviate weaviate Skill
+# Search, query, and manage Weaviate vector database collections.
+# Source: https://github.com/weaviate/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/weaviate:0.1.0
+
+metadata:
+  name: weaviate
+  description: "Search, query, and manage Weaviate vector database collections — semantic, hybrid, and keyword search; Query Agent (ask/search modes); collection schema management; data imports from PDF/CSV/JSON/JSONL; example-data seeding"
+
+spec:
+  repository: "https://github.com/weaviate/agent-skills"
+  ref: "2f62f9fb7784ce57cb182ad6e575310f280a6b63"  # main as of 2026-04-01
+  path: "skills/weaviate"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/weaviate/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "weaviate/agent-skills is licensed BSD-3-Clause at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: TOOL_ABUSE_SYSTEM_PACKAGE_INSTALL
+      reason: "The skill's PDF-import helper references an `apt-get install` command for OCR/PDF system dependencies as documentation. The command runs only when the user explicitly performs a PDF import; documented in SKILL.md."

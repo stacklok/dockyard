@@ -1,0 +1,25 @@
+# Hugging Face hf-cli Skill
+# Hugging Face Hub CLI (`hf`) for models, datasets, spaces, buckets, jobs, and more.
+# Source: https://github.com/huggingface/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hf-cli:0.1.0
+
+metadata:
+  name: hf-cli
+  description: "Hugging Face Hub CLI (`hf`) — downloads, uploads, auth, cache, buckets, repos, discussions/PRs, models/datasets/spaces, papers, collections, jobs, inference endpoints, webhooks, extensions; replaces the deprecated huggingface-cli"
+
+spec:
+  repository: "https://github.com/huggingface/skills"
+  ref: "061ab494cb145f43ae8f218939b99160e2c61c58"  # main as of 2026-04-16
+  path: "skills/hf-cli"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/huggingface/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: PIPELINE_TAINT_FLOW
+      reason: "The skill's prerequisites cite the official `hf` CLI installer (`curl -LsSf https://hf.co/cli/install.sh | bash`) and the `hf-mount` installer (`curl -fsSL https://raw.githubusercontent.com/huggingface/hf-mount/main/install.sh | sh`) as documented install commands. The scanner itself flags both as 'instructional install text in SKILL.md'."

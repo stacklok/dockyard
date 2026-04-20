@@ -1,0 +1,23 @@
+# Sentry commit Skill
+# Create commits following Sentry conventional-commit conventions.
+# Source: https://github.com/getsentry/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/commit:0.1.0
+
+metadata:
+  name: commit
+  description: "Create commits following Sentry conventional-commit format — type(scope): subject, imperative body, proper issue references (Fixes/Refs GH-NNNN, SENTRY-NNNN, LINEAR-XXX)"
+
+spec:
+  repository: "https://github.com/getsentry/skills"
+  ref: "94ea2a26c70f3f646f07a613ffe5cd3d4eca1955"  # main as of 2026-04-20
+  path: "skills/commit"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/getsentry/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

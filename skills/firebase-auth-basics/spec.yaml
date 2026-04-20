@@ -1,0 +1,23 @@
+# Firebase firebase-auth-basics Skill
+# Add authentication with Firebase Authentication.
+# Source: https://github.com/firebase/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/firebase-auth-basics:0.1.0
+
+metadata:
+  name: firebase-auth-basics
+  description: "Add authentication with Firebase Authentication — sign-in methods (email/password, phone, OAuth providers, anonymous), session management, custom claims, and integration patterns across platforms"
+
+spec:
+  repository: "https://github.com/firebase/agent-skills"
+  ref: "4679fc8dd31f77f068301eb4796ec37904da53aa"
+  path: "skills/firebase-auth-basics"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/firebase/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "firebase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

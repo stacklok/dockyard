@@ -1,0 +1,23 @@
+# ClickHouse clickhouse-architecture-advisor Skill
+# Advise on ClickHouse architecture and deployment choices.
+# Source: https://github.com/ClickHouse/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/clickhouse-architecture-advisor:0.1.0
+
+metadata:
+  name: clickhouse-architecture-advisor
+  description: "Advise on ClickHouse architecture — deployment topology (self-hosted vs Cloud), replication/sharding, storage tiers, materialized views, table engines (MergeTree family), and capacity planning"
+
+spec:
+  repository: "https://github.com/ClickHouse/agent-skills"
+  ref: "d28416142e5634ce288602cd0c8f3457e68177ff"  # main as of 2026-04-20
+  path: "skills/clickhouse-architecture-advisor"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/ClickHouse/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "ClickHouse/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

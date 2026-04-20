@@ -1,0 +1,29 @@
+# Hugging Face huggingface-paper-publisher Skill
+# Publish and manage research papers on Hugging Face Hub.
+# Source: https://github.com/huggingface/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/huggingface-paper-publisher:0.1.0
+
+metadata:
+  name: huggingface-paper-publisher
+  description: "Publish and manage research papers on Hugging Face Hub — create paper pages, link papers to models/datasets/spaces, claim authorship, generate markdown research articles, manage citations and visibility"
+
+spec:
+  repository: "https://github.com/huggingface/skills"
+  ref: "061ab494cb145f43ae8f218939b99160e2c61c58"  # main as of 2026-04-16
+  path: "skills/huggingface-paper-publisher"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/huggingface/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: DATA_EXFIL_NETWORK_REQUESTS
+      reason: "`scripts/paper_manager.py` uses `requests.get()` to query the public Hugging Face Hub API (`api.huggingface.co`) for paper metadata — the skill's entire purpose. The destinations are the official HF API endpoints documented in the SKILL.md workflow."
+    - rule_id: TOOL_ABUSE_UNDECLARED_NETWORK
+      reason: "The skill uses network access through its bundled `paper_manager.py` script (as its documented workflow), but does not declare an explicit network-access tool in frontmatter. All network calls target the public Hugging Face Hub API documented in the SKILL.md."
+    - rule_id: FILE_MAGIC_MISMATCH
+      reason: "`templates/modern.md` is a paper template that legitimately uses Handlebars-style `{{}}` substitution syntax. Magika detects the Handlebars markers and flags the format mismatch; the file is plain text documentation and safe."

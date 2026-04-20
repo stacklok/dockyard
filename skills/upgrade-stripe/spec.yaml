@@ -1,0 +1,23 @@
+# Stripe upgrade-stripe Skill
+# Guide for upgrading Stripe API versions and SDKs.
+# Source: https://github.com/stripe/agent-toolkit
+# Will publish as: ghcr.io/stacklok/dockyard/skills/upgrade-stripe:0.1.0
+
+metadata:
+  name: upgrade-stripe
+  description: "Upgrade Stripe API versions and SDKs — server-side SDK version management (Ruby, Python, PHP, Node.js, Java, Go, .NET), Stripe.js versioning, mobile SDK migration, API Changelog review, and staged adoption via Stripe-Version header"
+
+spec:
+  repository: "https://github.com/stripe/agent-toolkit"
+  ref: "dd6deb03137908d0102ffde97e60c90cf79bf929"  # main as of 2026-04-16
+  path: "skills/upgrade-stripe"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/stripe/agent-toolkit"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "stripe/agent-toolkit is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

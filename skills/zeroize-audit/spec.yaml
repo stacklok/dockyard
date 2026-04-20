@@ -1,0 +1,29 @@
+# Trail of Bits zeroize-audit Skill
+# Detects missing or compiler-eliminated zeroization of secrets.
+# Source: https://github.com/trailofbits/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/zeroize-audit:0.1.0
+
+metadata:
+  name: zeroize-audit
+  description: "Detect missing or compiler-eliminated zeroization of secrets in C/C++ and Rust — assembly-level analysis and control-flow verification for code handling keys, passwords, or sensitive data"
+
+spec:
+  repository: "https://github.com/trailofbits/skills"
+  ref: "e8cc5baf9329ccb491bfa200e82eacbac83b1ead"  # main as of 2026-04-17
+  path: "plugins/zeroize-audit/skills/zeroize-audit"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/trailofbits/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
+    - rule_id: PATH_TRAVERSAL_OPEN
+      reason: "tools/generate_poc.py writes generated PoC sources to an operator-supplied output directory with filenames derived from internal finding metadata; no externally controlled path input."
+    - rule_id: YARA_coercive_injection_generic
+      reason: "Matches the phrase 'secret argument' in tools/scripts/check_llvm_patterns.py where it labels compiler-detected patterns; the skill audits zeroization of secrets so references to the word 'secret' are expected."
+    - rule_id: DATA_EXFIL_SENSITIVE_FILES
+      reason: "tools/scripts/check_rust_asm.py reads a JSON config of Rust symbol names to audit; 'secrets_path' is the skill's internal config file path, not exfiltration of user secrets."

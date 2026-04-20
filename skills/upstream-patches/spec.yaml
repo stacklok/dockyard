@@ -1,0 +1,23 @@
+# Pulumi upstream-patches Skill
+# Manage upstream patches for bridged Pulumi providers.
+# Source: https://github.com/pulumi/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/upstream-patches:0.1.0
+
+metadata:
+  name: upstream-patches
+  description: "Manage upstream patches for bridged Pulumi providers — apply, refresh, and rebase patches against upstream Terraform providers; common workflows for provider maintainers"
+
+spec:
+  repository: "https://github.com/pulumi/agent-skills"
+  ref: "fbeac07327a601b954ba82e7f7e1c24cf3b1fa71"
+  path: "authoring/skills/upstream-patches"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pulumi/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pulumi/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

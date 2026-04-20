@@ -9,10 +9,17 @@ metadata:
 
 spec:
   repository: "https://github.com/anthropics/skills"
-  ref: "98669c11ca63e9c81c11501e1437e5c47b556621"  # main as of 2026-04-07
+  ref: "2c7ec5e78b8e5d43ea02e90bb8826f6b9f147b0c"  # main as of 2026-04-07
   path: "skills/claude-api"
   version: "0.1.0"
 
 provenance:
   repository_uri: "https://github.com/anthropics/skills"
   repository_ref: "refs/heads/main"
+
+security:
+  # skill-scanner findings that are safe to ignore for this specific skill.
+  # Match by exact rule_id (preferred) or broader category.
+  allowed_issues:
+    - rule_id: SOCIAL_ENG_ANTHROPIC_IMPERSONATION
+      reason: "claude-api is packaged from anthropics/skills — the Anthropic branding is authentic, not impersonation."

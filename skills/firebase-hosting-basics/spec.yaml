@@ -1,0 +1,23 @@
+# Firebase firebase-hosting-basics Skill
+# Firebase Hosting — static and dynamic site hosting.
+# Source: https://github.com/firebase/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/firebase-hosting-basics:0.1.0
+
+metadata:
+  name: firebase-hosting-basics
+  description: "Firebase Hosting — static and dynamic site hosting with global CDN; rewrite/redirect rules, preview channels, GitHub Actions integration, and custom domains"
+
+spec:
+  repository: "https://github.com/firebase/agent-skills"
+  ref: "4679fc8dd31f77f068301eb4796ec37904da53aa"
+  path: "skills/firebase-hosting-basics"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/firebase/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "firebase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

@@ -1,0 +1,25 @@
+# Cloudflare umbrella Skill
+# Comprehensive Cloudflare platform skill with product decision trees.
+# Source: https://github.com/cloudflare/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/cloudflare:0.1.0
+
+metadata:
+  name: cloudflare
+  description: "Comprehensive Cloudflare platform skill — Workers, Pages, storage (KV/D1/R2/Artifacts/Queues), AI (Workers AI, Vectorize, Agents SDK, AI Gateway), networking (Tunnel, Spectrum), security (WAF, DDoS, Turnstile), and IaC (Terraform, Pulumi); decision trees for product selection"
+
+spec:
+  repository: "https://github.com/cloudflare/skills"
+  ref: "0397d7d88fa6ac7517a88389622eb0799e86ded2"  # main as of 2026-04-16
+  path: "skills/cloudflare"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/cloudflare/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: EXCESSIVE_FILE_COUNT
+      reason: "This umbrella skill ships one `references/<product>/` subdirectory per Cloudflare product (316 files total). The large file count is by upstream design — the skill functions as a product index that routes to the relevant reference for any Cloudflare task. All files are Cloudflare-authored documentation, not bundled dependencies."

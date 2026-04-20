@@ -1,0 +1,23 @@
+# Sentry code-review Skill
+# Code review following Sentry engineering practices.
+# Source: https://github.com/getsentry/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/code-review:0.1.0
+
+metadata:
+  name: code-review
+  description: "Perform code reviews following Sentry engineering practices — runtime errors, performance, side effects, backwards compatibility, ORM queries, security, test coverage, and long-term impact assessment"
+
+spec:
+  repository: "https://github.com/getsentry/skills"
+  ref: "94ea2a26c70f3f646f07a613ffe5cd3d4eca1955"  # main as of 2026-04-20
+  path: "skills/code-review"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/getsentry/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

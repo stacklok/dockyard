@@ -1,0 +1,23 @@
+# Atlassian forge-app-review Skill
+# Review Atlassian Forge apps for quality, security, and marketplace readiness.
+# Source: https://github.com/atlassian/forge-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/forge-app-review:0.1.0
+
+metadata:
+  name: forge-app-review
+  description: "Review Atlassian Forge apps for quality, security, and marketplace readiness — manifest and permission audit, resolver security, UI patterns, error handling, and Marketplace submission checklist"
+
+spec:
+  repository: "https://github.com/atlassian/forge-skills"
+  ref: "0d60ac5436dcb63af0869e110728f40e61274924"  # main as of 2026-04-19
+  path: "skills/forge-app-review"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/atlassian/forge-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "atlassian/forge-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

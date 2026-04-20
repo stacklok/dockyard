@@ -1,0 +1,23 @@
+# Stripe stripe-best-practices Skill
+# Guides Stripe integration decisions — API selection, Connect, Billing, security.
+# Source: https://github.com/stripe/agent-toolkit
+# Will publish as: ghcr.io/stacklok/dockyard/skills/stripe-best-practices:0.1.0
+
+metadata:
+  name: stripe-best-practices
+  description: "Stripe integration decisions — API selection (Checkout Sessions vs PaymentIntents), Connect platform (Accounts v2), Billing/Subscriptions, Treasury financial accounts, Checkout/Payment Element, migration from deprecated APIs, and security best practices (restricted keys, webhooks, OAuth)"
+
+spec:
+  repository: "https://github.com/stripe/agent-toolkit"
+  ref: "dd6deb03137908d0102ffde97e60c90cf79bf929"  # main as of 2026-04-16
+  path: "skills/stripe-best-practices"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/stripe/agent-toolkit"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "stripe/agent-toolkit is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

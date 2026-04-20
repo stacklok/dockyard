@@ -360,6 +360,60 @@ tasks:
         fi
         build/dockhand build-skill --config "{{.SKILL_PATH}}/spec.yaml" $push_flag
 
+  scan-skill:
+    desc: "Run skill-scanner on a skill spec (clones source, scans, applies allowlist)"
+    summary: |
+      Clone a skill's source at the pinned ref, run Cisco AI Defense
+      skill-scanner on it, and apply the allowlist from the skill's spec.yaml.
+
+      Usage:
+        task scan-skill -- skills/claude-api
+
+      Environment variables:
+        SKILL_SCANNER_USE_BEHAVIORAL=true  - Enable AST/taint analysis
+        SKILL_SCANNER_USE_LLM=true         - Enable LLM analyzer
+        SKILL_SCANNER_LLM_API_KEY          - API key for LLM analyzer
+    requires:
+      vars: [CLI_ARGS]
+    vars:
+      SKILL_PATH: '{{.CLI_ARGS}}'
+      SKILL_NAME:
+        sh: echo "{{.SKILL_PATH}}" | cut -d'/' -f2
+      SPEC_FILE: '{{.SKILL_PATH}}/spec.yaml'
+      WORKDIR: '/tmp/skill-scan-{{.SKILL_NAME}}'
+    cmds:
+      - |
+        if [ ! -f "{{.SPEC_FILE}}" ]; then
+          echo "Error: spec.yaml not found at {{.SPEC_FILE}}"
+          exit 1
+        fi
+      - |
+        repository=$(yq '.spec.repository' "{{.SPEC_FILE}}")
+        ref=$(yq '.spec.ref' "{{.SPEC_FILE}}")
+        skill_path=$(yq '.spec.path // ""' "{{.SPEC_FILE}}")
+        rm -rf "{{.WORKDIR}}"
+        mkdir -p "{{.WORKDIR}}"
+        git clone --filter=tree:0 --no-checkout --quiet "$repository" "{{.WORKDIR}}/repo"
+        git -C "{{.WORKDIR}}/repo" checkout --quiet "$ref"
+        if [ -n "$skill_path" ]; then
+          src_dir="{{.WORKDIR}}/repo/$skill_path"
+        else
+          src_dir="{{.WORKDIR}}/repo"
+        fi
+        python3 scripts/skill-scan/run_scan.py \
+          --source "$src_dir" \
+          --output "{{.WORKDIR}}/scan.json"
+        python3 scripts/skill-scan/process_scan_results.py \
+          "{{.WORKDIR}}/scan.json" \
+          "{{.SKILL_NAME}}" \
+          "{{.SPEC_FILE}}"
+
+  scan-skill-setup:
+    desc: "Install cisco-ai-skill-scanner via uv"
+    cmds:
+      - uv tool install cisco-ai-skill-scanner
+      - skill-scanner --version || true
+
   build-help:
     desc: "Show help for build tasks"
     summary: |

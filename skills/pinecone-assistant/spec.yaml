@@ -1,0 +1,23 @@
+# Pinecone pinecone-assistant Skill
+# Create, manage, and chat with Pinecone Assistants for document Q&A.
+# Source: https://github.com/pinecone-io/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/pinecone-assistant:0.1.0
+
+metadata:
+  name: pinecone-assistant
+  description: "Create, manage, and chat with Pinecone Assistants for document Q&A with citations — fully managed RAG (create, upload, sync, chat, context retrieval, list) via bundled uv-run Python scripts"
+
+spec:
+  repository: "https://github.com/pinecone-io/skills"
+  ref: "787cd274ffeae942c9dcd693eadb86bafcacca19"  # main as of 2026-03-11
+  path: "skills/pinecone-assistant"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pinecone-io/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pinecone-io/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

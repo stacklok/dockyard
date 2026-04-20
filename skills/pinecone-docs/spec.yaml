@@ -1,0 +1,23 @@
+# Pinecone pinecone-docs Skill
+# Curated documentation reference index for developers building with Pinecone.
+# Source: https://github.com/pinecone-io/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/pinecone-docs:0.1.0
+
+metadata:
+  name: pinecone-docs
+  description: "Curated Pinecone documentation reference — organized links by topic (getting started, indexes, upsert, search, production) and data format references for vectors and records"
+
+spec:
+  repository: "https://github.com/pinecone-io/skills"
+  ref: "787cd274ffeae942c9dcd693eadb86bafcacca19"  # main as of 2026-03-11
+  path: "skills/pinecone-docs"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pinecone-io/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pinecone-io/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

@@ -1,0 +1,23 @@
+# Socket socket-dep-replace Skill
+# Replace a dependency with an alternative, inline it, or use socket-optimize.
+# Source: https://github.com/SocketDev/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/socket-dep-replace:0.1.0
+
+metadata:
+  name: socket-dep-replace
+  description: "Replace a dependency — swap with an alternative, eliminate via code rewrite, or use socket-optimize for optimized replacements; builds a full API usage map and executes migration with build/test verification"
+
+spec:
+  repository: "https://github.com/SocketDev/skills"
+  ref: "25879b0c8d69cffff9ed895cfb57c12b669f76b2"  # main as of 2026-04-02
+  path: "skills/socket-fix/socket-dep-replace"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/SocketDev/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "SocketDev/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

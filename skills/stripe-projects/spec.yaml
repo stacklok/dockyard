@@ -1,0 +1,23 @@
+# Stripe stripe-projects Skill
+# Set up a new app with Stripe Projects CLI for software-stack provisioning.
+# Source: https://github.com/stripe/agent-toolkit
+# Will publish as: ghcr.io/stacklok/dockyard/skills/stripe-projects:0.1.0
+
+metadata:
+  name: stripe-projects
+  description: "Set up a new app or local repo with Stripe Projects — CLI-driven software-stack provisioning (`stripe projects init`) for bootstrapping Stripe integrations from a coding agent"
+
+spec:
+  repository: "https://github.com/stripe/agent-toolkit"
+  ref: "dd6deb03137908d0102ffde97e60c90cf79bf929"  # main as of 2026-04-16
+  path: "skills/stripe-projects"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/stripe/agent-toolkit"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "stripe/agent-toolkit is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

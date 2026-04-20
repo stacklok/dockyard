@@ -1,0 +1,25 @@
+# ClickHouse clickhousectl-cloud-deploy Skill
+# Deploy and manage ClickHouse Cloud with clickhousectl.
+# Source: https://github.com/ClickHouse/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/clickhousectl-cloud-deploy:0.1.0
+
+metadata:
+  name: clickhousectl-cloud-deploy
+  description: "Deploy and manage ClickHouse Cloud with the clickhousectl CLI — authenticate, create services, manage credentials, connection strings, and common administrative workflows"
+
+spec:
+  repository: "https://github.com/ClickHouse/agent-skills"
+  ref: "d28416142e5634ce288602cd0c8f3457e68177ff"  # main as of 2026-04-20
+  path: "skills/clickhousectl-cloud-deploy"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/ClickHouse/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "ClickHouse/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: PIPELINE_TAINT_FLOW
+      reason: "The skill's prerequisites cite the official ClickHouse CLI installer `curl -fsSL https://clickhouse.com/cli | sh` as a documented install step. The destination is ClickHouse's own site."
