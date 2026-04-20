@@ -1,0 +1,23 @@
+# Firebase firebase-app-hosting-basics Skill
+# Deploy full-stack web apps with Firebase App Hosting.
+# Source: https://github.com/firebase/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/firebase-app-hosting-basics:0.1.0
+
+metadata:
+  name: firebase-app-hosting-basics
+  description: "Deploy full-stack web apps with Firebase App Hosting — Next.js and Angular framework support, GitHub integration, rollouts, backends, and environment configuration"
+
+spec:
+  repository: "https://github.com/firebase/agent-skills"
+  ref: "4679fc8dd31f77f068301eb4796ec37904da53aa"
+  path: "skills/firebase-app-hosting-basics"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/firebase/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "firebase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
