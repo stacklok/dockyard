@@ -1,0 +1,25 @@
+# MongoDB mongodb-mcp-setup Skill
+# Set up the MongoDB MCP server in an agent environment.
+# Depends on: MongoDB MCP server (packaged in toolhive-catalog under
+#   registries/*/servers/mongodb).
+# Source: https://github.com/mongodb/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/mongodb-mcp-setup:0.1.0
+
+metadata:
+  name: mongodb-mcp-setup
+  description: "Set up the MongoDB MCP server — install, authenticate, configure tools and scopes; guided integration with Claude Code, Cursor, and other MCP-compatible agents"
+
+spec:
+  repository: "https://github.com/mongodb/agent-skills"
+  ref: "eba6ae3f673baecb38d8ecd9df3ea4ce1f254443"  # main as of 2026-04-07
+  path: "skills/mongodb-mcp-setup"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mongodb/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mongodb/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
