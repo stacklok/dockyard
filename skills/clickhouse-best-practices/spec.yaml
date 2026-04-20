@@ -1,0 +1,23 @@
+# ClickHouse clickhouse-best-practices Skill
+# Best practices for schema, ingestion, and querying ClickHouse.
+# Source: https://github.com/ClickHouse/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/clickhouse-best-practices:0.1.0
+
+metadata:
+  name: clickhouse-best-practices
+  description: "ClickHouse best practices across 34 rules — schema (sort keys, codecs, skipping indexes), ingestion, query patterns, agent connect/discover/plan/verify/execute workflow with MCP, CLI, and HTTP paths"
+
+spec:
+  repository: "https://github.com/ClickHouse/agent-skills"
+  ref: "d28416142e5634ce288602cd0c8f3457e68177ff"  # main as of 2026-04-20
+  path: "skills/clickhouse-best-practices"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/ClickHouse/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "ClickHouse/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

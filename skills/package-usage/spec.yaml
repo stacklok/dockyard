@@ -1,0 +1,23 @@
+# Pulumi package-usage Skill
+# Audit Pulumi package usage across stacks.
+# Source: https://github.com/pulumi/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/package-usage:0.1.0
+
+metadata:
+  name: package-usage
+  description: "Audit Pulumi package usage across stacks — cross-stack inventory of provider/component packages, detect unused or outdated dependencies (hand off to provider-upgrade for version bumps)"
+
+spec:
+  repository: "https://github.com/pulumi/agent-skills"
+  ref: "fbeac07327a601b954ba82e7f7e1c24cf3b1fa71"
+  path: "authoring/skills/package-usage"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pulumi/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pulumi/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

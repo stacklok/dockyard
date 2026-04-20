@@ -1,0 +1,23 @@
+# Neon neon-postgres-egress-optimizer Skill
+# Diagnose and fix excessive Postgres egress (network data transfer).
+# Source: https://github.com/neondatabase/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/neon-postgres-egress-optimizer:0.1.0
+
+metadata:
+  name: neon-postgres-egress-optimizer
+  description: "Diagnose and fix excessive Postgres egress — identify top offenders with pg_stat_statements, spot SELECT *, missing pagination, high-frequency queries on static data, app-side aggregation, and JOIN duplication; fix patterns with concrete SQL refactors"
+
+spec:
+  repository: "https://github.com/neondatabase/agent-skills"
+  ref: "38c7da85db656c8c9efd1e6433c200212926fd2d"  # main as of 2026-04-14
+  path: "skills/neon-postgres-egress-optimizer"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/neondatabase/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "neondatabase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

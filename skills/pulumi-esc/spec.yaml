@@ -1,0 +1,23 @@
+# Pulumi pulumi-esc Skill
+# Pulumi Environments, Secrets, and Configurations.
+# Source: https://github.com/pulumi/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/pulumi-esc:0.1.0
+
+metadata:
+  name: pulumi-esc
+  description: "Pulumi ESC (Environments, Secrets, Configurations) — centralize and share config/secrets across stacks, integrate with CI/CD, resolve at runtime from cloud providers or static sources"
+
+spec:
+  repository: "https://github.com/pulumi/agent-skills"
+  ref: "fbeac07327a601b954ba82e7f7e1c24cf3b1fa71"  # main as of 2026-04-16
+  path: "authoring/skills/pulumi-esc"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pulumi/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pulumi/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

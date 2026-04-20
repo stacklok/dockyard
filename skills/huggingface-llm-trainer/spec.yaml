@@ -1,0 +1,34 @@
+# Hugging Face huggingface-llm-trainer Skill
+# Train/fine-tune language models with TRL or Unsloth on Hugging Face Jobs.
+# Depends on: Hugging Face MCP server (packaged in toolhive-catalog under
+#   registries/official/servers/huggingface) — uses hf_jobs, hf_whoami,
+#   hf_doc_search, hf_doc_fetch tools.
+# Source: https://github.com/huggingface/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/huggingface-llm-trainer:0.1.0
+
+metadata:
+  name: huggingface-llm-trainer
+  description: "Train or fine-tune language and vision models with TRL (SFT, DPO, GRPO, reward modeling) or Unsloth on Hugging Face Jobs cloud GPUs — dataset validation, hardware selection, cost estimation, Trackio monitoring, Hub persistence, GGUF conversion"
+
+spec:
+  repository: "https://github.com/huggingface/skills"
+  ref: "061ab494cb145f43ae8f218939b99160e2c61c58"  # main as of 2026-04-16
+  path: "skills/huggingface-llm-trainer"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/huggingface/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: TOOL_ABUSE_UNDECLARED_NETWORK
+      reason: "The skill orchestrates training jobs on Hugging Face Jobs cloud GPUs via the HF MCP server's `hf_jobs` tool. The network requirement is through the HF MCP server dependency (packaged in toolhive-catalog under registries/official/servers/huggingface), not a direct network-access tool in frontmatter."
+    - rule_id: SOCIAL_ENG_MISLEADING_DESC
+      reason: "Scanner heuristic flags the broad scope of the description (training SFT/DPO/GRPO + GGUF conversion + monitoring + etc.) as 'performing actions not reflected in description'. The description accurately reflects the skill's documented scope; the flag is a scanner conservatism false positive."
+    - rule_id: TOOL_ABUSE_SYSTEM_PACKAGE_INSTALL
+      reason: "The bundled `scripts/convert_to_gguf.py` references `sudo apt-get install` / `sudo yum install` for optional system packages (build tools) when converting trained models to GGUF format. These run in ephemeral HF Jobs containers, not on the user's host. The script is HF-authored and documented in SKILL.md."
+    - rule_id: DATA_EXFIL_NETWORK_REQUESTS
+      reason: "Bundled helper scripts (`scripts/dataset_inspector.py`, `scripts/hf_benchmarks.py`) use `urllib.request` to query the public Hugging Face Hub API for dataset validation and benchmark lookups — documented workflow steps required by the skill."

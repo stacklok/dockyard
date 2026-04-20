@@ -1,0 +1,23 @@
+# Pulumi pulumi-best-practices Skill
+# General Pulumi best practices for IaC projects.
+# Source: https://github.com/pulumi/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/pulumi-best-practices:0.1.0
+
+metadata:
+  name: pulumi-best-practices
+  description: "Pulumi best practices across IaC projects — project and stack organization, config/secret management, resource naming, output handling, provider selection, and common anti-patterns"
+
+spec:
+  repository: "https://github.com/pulumi/agent-skills"
+  ref: "fbeac07327a601b954ba82e7f7e1c24cf3b1fa71"
+  path: "authoring/skills/pulumi-best-practices"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pulumi/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pulumi/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

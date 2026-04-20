@@ -1,0 +1,23 @@
+# Pulumi pulumi-component Skill
+# Build reusable Pulumi Components.
+# Source: https://github.com/pulumi/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/pulumi-component:0.1.0
+
+metadata:
+  name: pulumi-component
+  description: "Build reusable Pulumi Components — author multi-language components via ComponentResource, package for Pulumi Registry, handle inputs/outputs, schema, and versioning"
+
+spec:
+  repository: "https://github.com/pulumi/agent-skills"
+  ref: "fbeac07327a601b954ba82e7f7e1c24cf3b1fa71"
+  path: "authoring/skills/pulumi-component"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pulumi/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pulumi/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

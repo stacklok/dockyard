@@ -162,7 +162,7 @@ jobs:
           python-version: '3.13'
 
       - name: Set up uv
-        uses: astral-sh/setup-uv@e06108dd0aef18192324c70427afc47652e63a82 # v7
+        uses: astral-sh/setup-uv@37802adc94f370d6bfd71619e3f0bf239e1f3b78 # v7
         with:
           enable-cache: true
 
@@ -333,6 +333,11 @@ jobs:
           IMAGE_REF: ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
           PUSH: ${{ github.event_name != 'pull_request' }}
         run: |
+          # pipefail so a dockhand failure propagates through `tee` and fails
+          # the step. Without it, `set -e` alone would not fail on a non-zero
+          # left-hand side of the pipeline.
+          set -o pipefail
+
           echo "Building skill artifact for $CONFIG_FILE"
 
           build_args="--config $CONFIG_FILE --tag $IMAGE_REF"
@@ -340,12 +345,36 @@ jobs:
             build_args="$build_args --push"
           fi
 
-          output=$(/tmp/dockhand build-skill $build_args 2>&1)
-          echo "$output"
+          log_file=$(mktemp)
 
-          # Extract digest from output
-          digest=$(echo "$output" | grep "^Digest:" | awk '{print $2}')
+          # Retry dockhand on non-zero exit. Matrix jobs concurrently pushing
+          # brand-new GHCR packages regularly hit transient 5xx from the
+          # registry (observed "500 unknown: unknown error" on manifest PUT).
+          # A linear backoff is enough — a successful retry typically lands
+          # within the first extra attempt.
+          max_attempts=3
+          attempt=1
+          while :; do
+            echo "=== dockhand build-skill attempt ${attempt}/${max_attempts} ==="
+            if /tmp/dockhand build-skill $build_args 2>&1 | tee "$log_file"; then
+              break
+            fi
+            if [ "$attempt" -ge "$max_attempts" ]; then
+              echo "dockhand build-skill failed after ${attempt} attempt(s)" >&2
+              exit 1
+            fi
+            backoff=$(( 10 * attempt ))
+            echo "dockhand build-skill failed; retrying in ${backoff}s..." >&2
+            sleep "$backoff"
+            attempt=$(( attempt + 1 ))
+          done
+
+          # Extract digest from captured output. `|| true` so an absent
+          # "Digest:" line yields digest="" without failing the step; downstream
+          # steps already gate on `steps.build.outputs.digest != ''`.
+          digest=$(grep "^Digest:" "$log_file" | awk '{print $2}' || true)
           echo "digest=$digest" >> $GITHUB_OUTPUT
+          rm -f "$log_file"
 
       - name: Sign skill artifact with Cosign
         if: github.event_name != 'pull_request'

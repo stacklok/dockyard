@@ -1,0 +1,25 @@
+# Firebase developing-genkit-go Skill
+# Build AI features with Firebase Genkit in Go.
+# Source: https://github.com/firebase/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/developing-genkit-go:0.1.0
+
+metadata:
+  name: developing-genkit-go
+  description: "Build AI features with Firebase Genkit in Go — flows, models, tool calling, indexing and retrieval, observability, and deployment patterns for Go services"
+
+spec:
+  repository: "https://github.com/firebase/agent-skills"
+  ref: "4679fc8dd31f77f068301eb4796ec37904da53aa"
+  path: "skills/developing-genkit-go"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/firebase/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "firebase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: PIPELINE_TAINT_FLOW
+      reason: "The skill's prerequisites cite the official Genkit CLI installer `curl -sL cli.genkit.dev | bash` as a documented install command."

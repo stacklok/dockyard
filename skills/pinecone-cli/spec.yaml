@@ -1,0 +1,23 @@
+# Pinecone pinecone-cli Skill
+# Manage Pinecone resources from the terminal with the `pc` CLI.
+# Source: https://github.com/pinecone-io/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/pinecone-cli:0.1.0
+
+metadata:
+  name: pinecone-cli
+  description: "Use the Pinecone CLI (`pc`) to manage Pinecone resources from the terminal — supports all index types (standard, integrated, sparse) and all vector operations; backups, namespaces, CI/CD automation"
+
+spec:
+  repository: "https://github.com/pinecone-io/skills"
+  ref: "787cd274ffeae942c9dcd693eadb86bafcacca19"  # main as of 2026-03-11
+  path: "skills/pinecone-cli"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pinecone-io/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pinecone-io/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
