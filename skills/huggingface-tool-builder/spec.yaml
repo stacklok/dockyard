@@ -1,0 +1,29 @@
+# Hugging Face huggingface-tool-builder Skill
+# Build reusable scripts that use the Hugging Face API.
+# Source: https://github.com/huggingface/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/huggingface-tool-builder:0.1.0
+
+metadata:
+  name: huggingface-tool-builder
+  description: "Build reusable command-line scripts and utilities using the Hugging Face API and hf CLI — chains/pipes API calls, enriches model/dataset metadata, composable NDJSON output, HF_TOKEN auth hygiene"
+
+spec:
+  repository: "https://github.com/huggingface/skills"
+  ref: "061ab494cb145f43ae8f218939b99160e2c61c58"  # main as of 2026-04-16
+  path: "skills/huggingface-tool-builder"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/huggingface/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: DATA_EXFIL_NETWORK_REQUESTS
+      reason: "The skill's baseline reference scripts (`references/baseline_hf_api.py`) use `urllib.request.Request/urlopen` against the public Hugging Face Hub API (`api.huggingface.co`). Teaching users to build HF API-consuming tools is the skill's entire purpose."
+    - rule_id: TOOL_ABUSE_UNDECLARED_NETWORK
+      reason: "The skill uses network access through its bundled reference scripts that call the public Hugging Face Hub API. The frontmatter does not declare a dedicated network-access tool, but the network calls are documented examples bundled for user education, not runtime execution by the skill itself."
+    - rule_id: LOW_ANALYZABILITY
+      reason: "The scanner reports that 1 of 8 files is opaque — this is an executable `.tsx` reference script (`references/baseline_hf_api.tsx`) that the scanner cannot fully parse. The file is a small, HF-authored example script and is readable markdown-adjacent TypeScript."
