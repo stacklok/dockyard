@@ -1,0 +1,23 @@
+# LlamaIndex liteparse Skill
+# Use LlamaIndex's lightweight document-parsing pipeline.
+# Source: https://github.com/run-llama/llamaparse-agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/liteparse:0.1.0
+
+metadata:
+  name: liteparse
+  description: "Use LlamaIndex's lightweight liteparse document parser — extract text and structure from PDFs and other documents without the full LlamaParse cloud dependency"
+
+spec:
+  repository: "https://github.com/run-llama/llamaparse-agent-skills"
+  ref: "1f10f60a9eba0dbb490724c8104b0a865365f136"  # main as of 2026-03-03
+  path: "skills/liteparse"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/run-llama/llamaparse-agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "run-llama/llamaparse-agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

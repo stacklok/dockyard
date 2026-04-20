@@ -1,0 +1,25 @@
+# LlamaIndex llamaparse Skill
+# Parse complex documents with LlamaParse.
+# Source: https://github.com/run-llama/llamaparse-agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/llamaparse:0.1.0
+
+metadata:
+  name: llamaparse
+  description: "Parse complex documents with LlamaParse — PDFs, tables, images, and multimodal content via LlamaIndex's managed parsing service; API usage, parse modes, and structured-output schemas"
+
+spec:
+  repository: "https://github.com/run-llama/llamaparse-agent-skills"
+  ref: "1f10f60a9eba0dbb490724c8104b0a865365f136"  # main as of 2026-03-03
+  path: "skills/llamaparse"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/run-llama/llamaparse-agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "run-llama/llamaparse-agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: LOW_ANALYZABILITY
+      reason: "The skill has only 2 files — SKILL.md and a single TypeScript example (`scripts/example.ts`). The scanner cannot analyze TypeScript source, giving the skill a 50% analyzability score. The `.ts` file is a documented, HF-sourced example snippet, not runtime-executed code."
