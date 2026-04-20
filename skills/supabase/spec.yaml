@@ -1,0 +1,25 @@
+# Supabase supabase Skill
+# Use this skill for ANY Supabase task — products, clients, auth, schema changes, security.
+# Depends on (optional): Supabase MCP server (packaged in toolhive-catalog under
+#   registries/*/servers/supabase and dockyard npx/supabase-mcp-server).
+# Source: https://github.com/supabase/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/supabase:0.1.0
+
+metadata:
+  name: supabase
+  description: "Use for any Supabase task — Database, Auth, Edge Functions, Realtime, Storage, Vectors, Cron, Queues; supabase-js and @supabase/ssr SSR integrations; RLS-by-default security checklist, schema changes, migrations, Postgres extensions, CLI, MCP server troubleshooting"
+
+spec:
+  repository: "https://github.com/supabase/agent-skills"
+  ref: "3e7fd16bf8cab06d3c24dc775a331e6effcba29a"  # main as of 2026-04-19
+  path: "skills/supabase"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/supabase/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "supabase/agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
