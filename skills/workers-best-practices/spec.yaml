@@ -1,0 +1,23 @@
+# Cloudflare workers-best-practices Skill
+# Review and author Workers code against production best practices.
+# Source: https://github.com/cloudflare/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/workers-best-practices:0.1.0
+
+metadata:
+  name: workers-best-practices
+  description: "Review and author Cloudflare Workers code against production best practices — streaming, floating promises, global state, secrets, bindings, observability, cryptographic randomness, type safety, wrangler config"
+
+spec:
+  repository: "https://github.com/cloudflare/skills"
+  ref: "0397d7d88fa6ac7517a88389622eb0799e86ded2"  # main as of 2026-04-16
+  path: "skills/workers-best-practices"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/cloudflare/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
