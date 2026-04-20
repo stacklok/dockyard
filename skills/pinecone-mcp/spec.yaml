@@ -1,0 +1,25 @@
+# Pinecone pinecone-mcp Skill
+# Reference for the Pinecone MCP server tools.
+# Depends on: Pinecone MCP server (packaged in toolhive-catalog under
+#   registries/*/servers/pinecone; dockyard ghcr.io/stacklok/dockyard/npx/pinecone-mcp).
+# Source: https://github.com/pinecone-io/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/pinecone-mcp:0.1.0
+
+metadata:
+  name: pinecone-mcp
+  description: "Reference for the Pinecone MCP server tools — list-indexes, describe-index, describe-index-stats, create-index-for-model, upsert-records, search-records, cascading-search, rerank-documents, search-docs"
+
+spec:
+  repository: "https://github.com/pinecone-io/skills"
+  ref: "787cd274ffeae942c9dcd693eadb86bafcacca19"  # main as of 2026-03-11
+  path: "skills/pinecone-mcp"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/pinecone-io/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "pinecone-io/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
