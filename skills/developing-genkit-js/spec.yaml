@@ -1,0 +1,23 @@
+# Firebase developing-genkit-js Skill
+# Build AI features with Firebase Genkit in JavaScript/TypeScript.
+# Source: https://github.com/firebase/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/developing-genkit-js:0.1.0
+
+metadata:
+  name: developing-genkit-js
+  description: "Build AI features with Firebase Genkit in JavaScript/TypeScript — flows, models, tools, plugins, observability, and deployment patterns for Node.js and Next.js apps"
+
+spec:
+  repository: "https://github.com/firebase/agent-skills"
+  ref: "4679fc8dd31f77f068301eb4796ec37904da53aa"
+  path: "skills/developing-genkit-js"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/firebase/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "firebase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
