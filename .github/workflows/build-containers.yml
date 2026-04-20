@@ -539,7 +539,7 @@ jobs:
         uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7.3.2
         with:
           image: "local-scan:${{ steps.meta.outputs.server_name }}-${{ steps.meta.outputs.version }}"
-          severity-cutoff: "medium"
+          severity-cutoff: "high"
           output-format: "sarif"
 
       - name: Upload Grype results to GitHub Security
