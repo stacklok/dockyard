@@ -1,0 +1,25 @@
+# Sentry iterate-pr Skill
+# Iterate on a PR until CI passes and review feedback is addressed.
+# Source: https://github.com/getsentry/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/iterate-pr:0.1.0
+
+metadata:
+  name: iterate-pr
+  description: "Iterate on a PR until CI passes and review feedback is addressed — fetches categorized LOGAF-ranked feedback, auto-fixes high/medium, monitors CI with retry-safe check polling, handles review-bot findings"
+
+spec:
+  repository: "https://github.com/getsentry/skills"
+  ref: "94ea2a26c70f3f646f07a613ffe5cd3d4eca1955"  # main as of 2026-04-20
+  path: "skills/iterate-pr"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/getsentry/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: RESOURCE_ABUSE_INFINITE_LOOP
+      reason: "The `scripts/monitor_pr_checks.py` helper polls PR check status in a `while True:` loop with bounded retries and sleep — legitimate for waiting until CI reaches a terminal state. The script has a timeout and exit conditions."

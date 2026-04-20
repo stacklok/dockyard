@@ -1,0 +1,23 @@
+# Sentry find-bugs Skill
+# Bug, vulnerability, and code-quality review across local branch changes.
+# Source: https://github.com/getsentry/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/find-bugs:0.1.0
+
+metadata:
+  name: find-bugs
+  description: "Find bugs, security vulnerabilities, and quality issues on the current branch — diff-scoped review with security checklist covering injection, XSS, auth, IDOR, race conditions, and business-logic edge cases"
+
+spec:
+  repository: "https://github.com/getsentry/skills"
+  ref: "94ea2a26c70f3f646f07a613ffe5cd3d4eca1955"  # main as of 2026-04-20
+  path: "skills/find-bugs"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/getsentry/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
