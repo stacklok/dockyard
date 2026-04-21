@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "mcp-searxng"
-  version: "0.10.5"
+  version: "1.0.3"
 
 security:
   mock_env:
