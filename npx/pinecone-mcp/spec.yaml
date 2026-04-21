@@ -1,0 +1,26 @@
+# Pinecone MCP Server Configuration
+# Package: https://www.npmjs.com/package/@pinecone-database/mcp
+# Repository: https://github.com/pinecone-io/pinecone-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/pinecone-mcp:0.2.1
+
+metadata:
+  name: pinecone-mcp
+  description: "Pinecone MCP server — enables AI assistants to interact with Pinecone indexes (list, describe, create-for-model, upsert, search, cascading-search, rerank) and query Pinecone documentation"
+  protocol: npx
+
+spec:
+  package: "@pinecone-database/mcp"
+  version: "0.2.1"
+
+provenance:
+  repository_uri: "https://github.com/pinecone-io/pinecone-mcp"
+  repository_ref: "refs/tags/v0.2.1"
+
+security:
+  # Mock env vars allow security scanning of auth-gated tools without real credentials.
+  # Without PINECONE_API_KEY the server exposes only `search-docs`; with a valid-shape key
+  # it also exposes list/describe/create/upsert/search/rerank tools (9 total).
+  mock_env:
+    - name: PINECONE_API_KEY
+      value: "pcsk_mock-pinecone-api-key-for-scanning"
+      description: "Pinecone API key — mock value for security scanning"
