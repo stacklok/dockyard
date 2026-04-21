@@ -1,0 +1,67 @@
+# Grype vulnerability ignore rules for dockyard.
+#
+# Philosophy
+# ----------
+# These rules suppress Grype findings that are NOT a security risk for the
+# running MCP server, so PR authors are not blocked on vulnerabilities they
+# cannot fix. A finding qualifies for suppression here if it is EITHER:
+#
+#   1. In a base-image layer we do not control, where the fix path is an
+#      upstream base-image rebuild (OS packages, bundled language runtimes).
+#   2. In code that is not reachable from the MCP server's runtime attack
+#      surface (e.g. the system-bundled `npm` CLI, which is invoked only at
+#      image build time to install the server package).
+#
+# Runtime dependencies of a specific MCP server (under `/app/node_modules`
+# or `/opt/uv-tools`) are intentionally NOT ignored here: those reflect
+# real risks in the upstream server package and should be resolved by that
+# package bumping its vulnerable dep, or by per-finding analysis in a
+# follow-up PR.
+#
+# Revisit on every toolhive / base-image bump; most entries should roll off
+# as upstream Node, Python, Debian and Alpine images pick up fixes.
+
+ignore:
+  # ── Base image: Debian OS packages ──────────────────────────────────────
+  # CVEs in `.deb` packages shipped by the upstream Debian-based base image
+  # (e.g. the `python:3.x` image used by uvx servers). Debian security tracks
+  # these independently; the fix path is a base-image rebuild with patched
+  # Debian packages. The dockyard Dockerfiles never `apt-get install` their
+  # own packages, so any `.deb` finding is by construction a base-image one.
+  - package:
+      type: deb
+
+  # ── Base image: Alpine OS packages ──────────────────────────────────────
+  # CVEs in `.apk` packages shipped by the Alpine-based base image
+  # (e.g. `node:22-alpine` used by npx servers). Alpine security tracks
+  # these independently; fix path is a base-image rebuild. The dockyard
+  # Dockerfiles never `apk add` their own packages.
+  - package:
+      type: apk
+
+  # ── Base image: system-bundled npm CLI ──────────────────────────────────
+  # The `npm` CLI shipped inside the Node base image lives under
+  # `/usr/local/lib/node_modules/npm/` and is used only at image build time
+  # to install the MCP server package. It is not invoked by the running MCP
+  # server, so CVEs in its transitive deps (picomatch via tinyglobby,
+  # minimatch, glob, tar, cacache, node-gyp, ...) are not reachable from
+  # the server's runtime attack surface. Fix path: upstream Node image
+  # rebuild with a newer bundled npm.
+  - package:
+      location: "/usr/local/lib/node_modules/npm/**"
+
+  # ── Base image: Python interpreter ──────────────────────────────────────
+  # CVEs in the CPython binary shipped by the base image. Fixed by a
+  # base-image rebuild pointing at a patched Python tag (tracked by
+  # toolhive). The upstream python:3.x images are rebuilt whenever CPython
+  # ships a security release, so these entries should roll off after the
+  # next toolhive bump.
+  - package:
+      location: "/usr/local/bin/python*"
+
+  # ── Base image: Node.js runtime ─────────────────────────────────────────
+  # CVEs in the `node` binary itself, shipped by the base image. Same
+  # treatment as Python above: fixed by upstream base-image rebuild and
+  # picked up via toolhive bumps.
+  - package:
+      location: "/usr/local/bin/node"
