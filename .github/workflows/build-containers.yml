@@ -540,6 +540,7 @@ jobs:
         with:
           image: "local-scan:${{ steps.meta.outputs.server_name }}-${{ steps.meta.outputs.version }}"
           severity-cutoff: "high"
+          only-fixed: "true"
           output-format: "sarif"
 
       - name: Upload Grype results to GitHub Security
