@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mongodb/agent-skills"
-  ref: "eba6ae3f673baecb38d8ecd9df3ea4ce1f254443"  # main as of 2026-04-07
+  ref: "24529d9540b962d57f30e75d25071bebea5809ad"  # main as of 2026-04-07
   path: "skills/mongodb-natural-language-querying"
   version: "0.1.0"
 
