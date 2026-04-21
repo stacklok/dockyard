@@ -52,7 +52,7 @@ jobs:
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
 
       - name: Install yq
-        uses: mikefarah/yq@5a7e72a743649b1b3a47d1a1d8214f3453173c51 # v4.52.4
+        uses: mikefarah/yq@751d8ad57b84f1794661bc70c0afb92a22ad7b3c # v4.53.2
 
       - name: Extract metadata from config
         id: meta
@@ -89,7 +89,7 @@ jobs:
 
       - name: Run Grype vulnerability scan (SARIF)
         id: grype-scan
-        uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7.3.2
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: "${{ steps.meta.outputs.image_ref }}"
           severity-cutoff: "low"
@@ -104,7 +104,7 @@ jobs:
 
       - name: Run Grype vulnerability scan (JSON)
         id: grype-scan-json
-        uses: anchore/scan-action@7037fa011853d5a11690026fb85feee79f4c946c # v7.3.2
+        uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: "${{ steps.meta.outputs.image_ref }}"
           severity-cutoff: "low"
@@ -127,7 +127,7 @@ jobs:
 
       - name: Create issue for critical findings
         if: steps.check-critical.outputs.should_create_issue == 'true'
-        uses: actions/github-script@ed597411d8f924073f98dfc5c65a23a2325f34cd # v8
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         env:
           GRYPE_JSON_PATH: ${{ steps.grype-scan-json.outputs.json }}
         with:
