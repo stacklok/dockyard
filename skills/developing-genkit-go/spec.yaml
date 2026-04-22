@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "4679fc8dd31f77f068301eb4796ec37904da53aa"
+  ref: "11c41e547860b33b42059ed6f7d6fddf2a5ced4b"
   path: "skills/developing-genkit-go"
   version: "0.1.0"
 
