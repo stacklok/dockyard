@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/cloudflare/skills"
-  ref: "0397d7d88fa6ac7517a88389622eb0799e86ded2"  # main as of 2026-04-16
+  ref: "0438a075b419f737eb091d1c91800b7387e3a75f"  # main as of 2026-04-16
   path: "skills/workers-best-practices"
   version: "0.1.0"
 
