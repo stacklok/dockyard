@@ -41,3 +41,47 @@ security:
         the agent is instructed to make. The skill itself declares
         `allowed-tools: Read, Grep, Glob, Bash, Task` and is read-only by design.
         Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_SUPPLY_CHAIN_POISONING
+      reason: |
+        False positive (14 hits) - matches `curl https://attacker...`,
+        `curl -sSfL ...attacker`, "request content, attacker", "HTTP exfil",
+        and similar attack-pattern strings inside the skill's reference docs
+        (references/ai-prompt-injection-via-ci.md, comment-triggered-commands.md,
+        credential-escalation.md, expression-injection.md, pwn-request.md).
+        These are deliberate hostile-payload examples included so the skill can
+        teach reviewers what supply-chain poisoning looks like in CI. They are
+        not commands the agent runs. Verified at digest
+        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_TOOL_SSRF
+      reason: |
+        False positive - matches `::1` / loopback / metadata-host strings in
+        the skill's reference docs about credential escalation and SSRF in
+        GHA. Same root cause as ATR_SUPPLY_CHAIN_POISONING above: the skill
+        documents SSRF attack patterns as part of teaching the reviewer to
+        find them. Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_CROSS_AGENT_ATTACK
+      reason: |
+        False positive - matches `Run()` / `run(self)` in references/pwn-request.md
+        example code that demonstrates how a malicious workflow step would run.
+        Documentation of attack code, not a multi-agent attack itself. Verified
+        at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_CONSENSUS_POISONING
+      reason: |
+        False positive - matches "fake approval" in references/ai-prompt-injection-via-ci.md,
+        which describes the fake-approval/consensus-poisoning attack pattern as
+        something a CI reviewer should look for. Documentation, not poisoning.
+        Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_RAG_DATA_POISONING
+      reason: |
+        False positive - matches "Do not mention these instruction" in
+        references/ai-prompt-injection-via-ci.md, where the skill cites a
+        canonical prompt-injection payload example. Documenting the payload
+        is the skill's purpose. Verified at digest
+        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: PG_PII_CREDENTIAL_HARVESTING
+      reason: |
+        False positive - matches "extract credential" on
+        references/credential-escalation.md, which is literally the topic of
+        that reference file (how to spot credential-extraction attacks in
+        GitHub Actions). Verified at digest
+        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
