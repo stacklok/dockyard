@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "11c41e547860b33b42059ed6f7d6fddf2a5ced4b"  # main as of 2026-04-15
+  ref: "30bcb303e56f5d39f2d3c4214b53821adfb5b65c"  # main as of 2026-04-15
   path: "skills/developing-genkit-dart"
   version: "0.1.0"
 
