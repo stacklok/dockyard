@@ -11,6 +11,13 @@ Invokes `skill-scanner scan <source-dir> --format json` and writes the JSON
 report. Exits `0` regardless of findings — allowlist filtering happens in
 `process_scan_results.py`.
 
+The wrapper hard-codes the free/in-tree analyzers we always want:
+
+- `--rule-packs atr promptguard` — 340+ extra signatures (MCP tool poisoning,
+  agent attacks, Anthropic/OpenAI key detection, markdown exfil).
+- `--use-trigger` — vague-description / capability-inflation detector.
+- `--use-behavioral` — AST + dataflow taint analysis (Python and Bash).
+
 ```bash
 python3 scripts/skill-scan/run_scan.py \
   --source /path/to/skill-source \
@@ -21,9 +28,10 @@ Optional environment variables:
 
 | Variable | Purpose |
 |---|---|
-| `SKILL_SCANNER_USE_BEHAVIORAL` | `true` enables `--use-behavioral` (AST taint tracking). |
-| `SKILL_SCANNER_USE_LLM` | `true` enables `--use-llm`. Requires `SKILL_SCANNER_LLM_API_KEY`. |
-| `SKILL_SCANNER_LLM_API_KEY` | API key for the LLM analyzer. |
+| `SKILL_SCANNER_USE_LLM` | `true` enables `--use-llm` + `--enable-meta`. Requires `SKILL_SCANNER_LLM_API_KEY`. |
+| `SKILL_SCANNER_LLM_API_KEY` | API key for the LLM analyzer (works for OpenAI/Anthropic/Azure/Bedrock/Vertex/Gemini/OpenRouter via LiteLLM). |
+| `SKILL_SCANNER_LLM_MODEL` | Model id (e.g. `anthropic/claude-sonnet-4-20250514`, `ollama/llama3`). Defaults to the scanner's built-in model. |
+| `SKILL_SCANNER_LLM_CONSENSUS_RUNS` | Integer >1 enables majority-vote consensus across N LLM runs. Multiplies LLM cost; off by default. |
 
 ### process_scan_results.py
 

@@ -42,14 +42,30 @@ def main() -> None:
         args.source,
         "--format", "json",
         "--output-json", args.output,
+        # Always-on analyzers — free, in-tree, no network, no LLM key.
+        # ATR pack (314 rules) targets agent/MCP-style attacks; PromptGuard
+        # adds Anthropic/OpenAI key detection and markdown exfiltration rules.
+        "--rule-packs", "atr", "promptguard",
+        # Vague-description / capability-inflation detector (skill discovery abuse).
+        "--use-trigger",
+        # AST + dataflow analyzer (Python/Bash). No execution, no key.
+        "--use-behavioral",
     ]
-
-    if os.environ.get("SKILL_SCANNER_USE_BEHAVIORAL", "").lower() == "true":
-        scanner_args.append("--use-behavioral")
 
     if os.environ.get("SKILL_SCANNER_USE_LLM", "").lower() == "true":
         if os.environ.get("SKILL_SCANNER_LLM_API_KEY"):
-            scanner_args.append("--use-llm")
+            scanner_args.extend([
+                "--use-llm",
+                # Second-pass LLM correlator + false-positive filter.
+                # Costs one extra LLM call per scan but materially cuts noise.
+                "--enable-meta",
+                # Match the scanner's own default; pin so we can tune from CI.
+                "--llm-max-tokens", "8192",
+            ])
+            consensus = os.environ.get("SKILL_SCANNER_LLM_CONSENSUS_RUNS", "").strip()
+            if consensus.isdigit() and int(consensus) > 1:
+                # N>1 multiplies LLM cost N× per scan; left off by default.
+                scanner_args.extend(["--llm-consensus-runs", consensus])
         else:
             print(
                 "Warning: SKILL_SCANNER_USE_LLM=true but SKILL_SCANNER_LLM_API_KEY not set",

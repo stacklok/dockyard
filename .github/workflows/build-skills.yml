@@ -218,8 +218,14 @@ jobs:
       - name: Run skill security scan
         id: scan
         env:
-          SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'false' }}
+          # LLM analyzer (LiteLLM-driven) — uses our existing LLM provider key.
+          # Toggle via repo variable SKILL_SCANNER_USE_LLM=false to disable in a pinch.
+          SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
           SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
+          # Optional model override (e.g. anthropic/claude-sonnet-4-20250514, ollama/llama3).
+          SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
+          # Optional consensus voting — N>1 multiplies LLM cost per scan.
+          SKILL_SCANNER_LLM_CONSENSUS_RUNS: ${{ vars.SKILL_SCANNER_LLM_CONSENSUS_RUNS }}
           SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
           SOURCE_DIR: ${{ steps.skill-src.outputs.source_dir }}
           CONFIG_FILE: ${{ matrix.config }}
