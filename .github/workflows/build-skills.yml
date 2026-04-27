@@ -228,6 +228,10 @@ jobs:
           SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
           # Optional consensus voting — N>1 multiplies LLM cost per scan.
           SKILL_SCANNER_LLM_CONSENSUS_RUNS: ${{ vars.SKILL_SCANNER_LLM_CONSENSUS_RUNS }}
+          # Severity threshold for blocking. Findings below this severity are
+          # surfaced as warnings but do not fail the job. One of: INFO, LOW,
+          # MEDIUM, HIGH, CRITICAL. Tune via PR.
+          SKILL_SCANNER_BLOCK_SEVERITY: HIGH
           SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
           SOURCE_DIR: ${{ steps.skill-src.outputs.source_dir }}
           CONFIG_FILE: ${{ matrix.config }}
