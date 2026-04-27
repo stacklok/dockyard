@@ -23,3 +23,12 @@ security:
       reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: PIPELINE_TAINT_FLOW
       reason: "The skill's prerequisites cite the official `hf` CLI installer (`curl -LsSf https://hf.co/cli/install.sh | bash`) and the `hf-mount` installer (`curl -fsSL https://raw.githubusercontent.com/huggingface/hf-mount/main/install.sh | sh`) as documented install commands. The scanner itself flags both as 'instructional install text in SKILL.md'."
+    - rule_id: ATR_HIGH_RISK_TOOL_GATE
+      reason: |
+        False positive - matches on the word `delete` in SKILL.md, where the
+        skill documents official `hf` CLI subcommands (e.g., `hf repos delete`,
+        `hf buckets delete`, `hf repos delete-files`, `hf spaces volumes delete`,
+        `hf webhooks delete`, `hf endpoints delete`). These are documented
+        Hugging Face CLI subcommands a user explicitly invokes against their own
+        HF account, not autonomous high-risk tool calls. Verified at digest
+        acd2bf5a7126994e15143bec061fe87a882811f3.
