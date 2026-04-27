@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "94ea2a26c70f3f646f07a613ffe5cd3d4eca1955"  # main as of 2026-04-20
+  ref: "5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28"  # main as of 2026-04-20
   path: "skills/gha-security-review"
   version: "0.1.0"
 
@@ -23,3 +23,65 @@ security:
       reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: PIPELINE_TAINT_FLOW
       reason: "The skill's reference material cites `curl | bash` and similar RCE patterns as instructional examples of supply-chain-style attacks detectable in CI workflows. The scanner itself flags these as 'found in documentation file — may be instructional rather than executable'."
+    - rule_id: ATR_MCP_MALICIOUS_RESPONSE
+      reason: |
+        False positive - this skill's purpose is to TEACH a reviewer how to find
+        GitHub Actions exploits. Its SKILL.md necessarily contains the attack
+        patterns it's looking for: `pull_request_target`, `issue_comment` with
+        command parsing, `${{ }}` in `run:` blocks, `permissions:` misconfig,
+        `run:` step exec, etc. ATR_MCP_MALICIOUS_RESPONSE matches these in the
+        skill's instructional/reference text. None of these are commands the
+        agent is being told to run — they are descriptions of vulnerabilities to
+        identify. Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_HIGH_RISK_TOOL_GATE
+      reason: |
+        False positive - regex matches on word fragments (`kill`, `shell`, `exec`,
+        `Eval`, `Pay` in "Payload", `checkout`) inside a skill that documents how
+        to spot CI exploitation. These are documentation strings, not tool calls
+        the agent is instructed to make. The skill itself declares
+        `allowed-tools: Read, Grep, Glob, Bash, Task` and is read-only by design.
+        Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_SUPPLY_CHAIN_POISONING
+      reason: |
+        False positive (14 hits) - matches `curl https://attacker...`,
+        `curl -sSfL ...attacker`, "request content, attacker", "HTTP exfil",
+        and similar attack-pattern strings inside the skill's reference docs
+        (references/ai-prompt-injection-via-ci.md, comment-triggered-commands.md,
+        credential-escalation.md, expression-injection.md, pwn-request.md).
+        These are deliberate hostile-payload examples included so the skill can
+        teach reviewers what supply-chain poisoning looks like in CI. They are
+        not commands the agent runs. Verified at digest
+        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_TOOL_SSRF
+      reason: |
+        False positive - matches `::1` / loopback / metadata-host strings in
+        the skill's reference docs about credential escalation and SSRF in
+        GHA. Same root cause as ATR_SUPPLY_CHAIN_POISONING above: the skill
+        documents SSRF attack patterns as part of teaching the reviewer to
+        find them. Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_CROSS_AGENT_ATTACK
+      reason: |
+        False positive - matches `Run()` / `run(self)` in references/pwn-request.md
+        example code that demonstrates how a malicious workflow step would run.
+        Documentation of attack code, not a multi-agent attack itself. Verified
+        at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_CONSENSUS_POISONING
+      reason: |
+        False positive - matches "fake approval" in references/ai-prompt-injection-via-ci.md,
+        which describes the fake-approval/consensus-poisoning attack pattern as
+        something a CI reviewer should look for. Documentation, not poisoning.
+        Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_RAG_DATA_POISONING
+      reason: |
+        False positive - matches "Do not mention these instruction" in
+        references/ai-prompt-injection-via-ci.md, where the skill cites a
+        canonical prompt-injection payload example. Documenting the payload
+        is the skill's purpose. Verified at digest
+        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: PG_PII_CREDENTIAL_HARVESTING
+      reason: |
+        False positive - matches "extract credential" on
+        references/credential-escalation.md, which is literally the topic of
+        that reference file (how to spot credential-extraction attacks in
+        GitHub Actions). Verified at digest
+        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.

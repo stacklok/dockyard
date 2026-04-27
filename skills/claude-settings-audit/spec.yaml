@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "94ea2a26c70f3f646f07a613ffe5cd3d4eca1955"  # main as of 2026-04-20
+  ref: "5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28"  # main as of 2026-04-20
   path: "skills/claude-settings-audit"
   version: "0.1.0"
 

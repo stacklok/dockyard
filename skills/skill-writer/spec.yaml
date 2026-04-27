@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "94ea2a26c70f3f646f07a613ffe5cd3d4eca1955"  # main as of 2026-04-20
+  ref: "5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28"  # main as of 2026-04-20
   path: "skills/skill-writer"
   version: "0.1.0"
 
@@ -21,3 +21,18 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_MCP_MALICIOUS_RESPONSE
+      reason: |
+        False positive - matches on the literal word "references" / "reference"
+        in `references/workflow-patterns.md`, which is the skill's own pointer
+        list to its bundled reference docs (the standard skill-writer reference
+        architecture). The pattern is not an MCP tool response; it's static
+        skill instruction text. Verified at digest
+        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_HIGH_RISK_TOOL_GATE
+      reason: |
+        False positive - regex matches on word fragments (`kill`, `Exec`, `exec`,
+        `format`) inside `references/workflow-patterns.md`, where these appear in
+        documentation about workflow patterns ("kill switch", "execution model",
+        "format pattern"). They are not tool invocations. Verified at digest
+        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
