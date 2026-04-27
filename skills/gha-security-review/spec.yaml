@@ -23,3 +23,21 @@ security:
       reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: PIPELINE_TAINT_FLOW
       reason: "The skill's reference material cites `curl | bash` and similar RCE patterns as instructional examples of supply-chain-style attacks detectable in CI workflows. The scanner itself flags these as 'found in documentation file — may be instructional rather than executable'."
+    - rule_id: ATR_MCP_MALICIOUS_RESPONSE
+      reason: |
+        False positive - this skill's purpose is to TEACH a reviewer how to find
+        GitHub Actions exploits. Its SKILL.md necessarily contains the attack
+        patterns it's looking for: `pull_request_target`, `issue_comment` with
+        command parsing, `${{ }}` in `run:` blocks, `permissions:` misconfig,
+        `run:` step exec, etc. ATR_MCP_MALICIOUS_RESPONSE matches these in the
+        skill's instructional/reference text. None of these are commands the
+        agent is being told to run — they are descriptions of vulnerabilities to
+        identify. Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_HIGH_RISK_TOOL_GATE
+      reason: |
+        False positive - regex matches on word fragments (`kill`, `shell`, `exec`,
+        `Eval`, `Pay` in "Payload", `checkout`) inside a skill that documents how
+        to spot CI exploitation. These are documentation strings, not tool calls
+        the agent is instructed to make. The skill itself declares
+        `allowed-tools: Read, Grep, Glob, Bash, Task` and is read-only by design.
+        Verified at digest 5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
