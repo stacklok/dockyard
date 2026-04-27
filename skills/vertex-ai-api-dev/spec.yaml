@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/google-gemini/gemini-skills"
-  ref: "09ce8fb5c81136d8f971dc749ba3b9a7fe0acb5f"  # main as of 2026-03-27
+  ref: "8c9508524605dc1732b22093c76037028099a447"  # main as of 2026-03-27
   path: "skills/vertex-ai-api-dev"
   version: "0.1.0"
 
