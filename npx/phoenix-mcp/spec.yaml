@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@arizeai/phoenix-mcp"
-  version: "4.0.6"
+  version: "4.0.7"
 
 provenance:
   repository_uri: "https://github.com/Arize-ai/phoenix"
@@ -23,4 +23,15 @@ provenance:
 security:
   # Server requires PHOENIX_API_KEY and PHOENIX_BASE_URL to start - cannot be scanned in CI
   insecure_ignore: true
-  allowed_issues: []
+  allowed_issues:
+    - code: "AITech-1.1"
+      tool: "add-dataset-examples"
+      reason: |
+        False positive - LLM analyzer flagged the description for instructing
+        the agent to "check existing examples using the get-dataset-examples
+        tool ... to ensure that you are not adding duplicate examples". This is
+        legitimate workflow guidance for chained tool usage (avoid duplicate
+        rows on append) and the recommended pattern for MCP tools that mutate
+        state. It does not override system instructions or attempt to redirect
+        agent behavior outside this tool's scope. Verified in v4.0.7
+        (datasetTools.ts ADD_DATASET_EXAMPLES_DESCRIPTION).
