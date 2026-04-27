@@ -218,10 +218,11 @@ jobs:
       - name: Run skill security scan
         id: scan
         env:
-          # LLM analyzer (LiteLLM-driven) — uses our existing LLM provider key.
+          # LLM analyzer (LiteLLM-driven). Reuses the same provider key as the
+          # MCP scanner — single secret across both pipelines, single rotation.
           # Toggle via repo variable SKILL_SCANNER_USE_LLM=false to disable in a pinch.
           SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
-          SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
+          SKILL_SCANNER_LLM_API_KEY: ${{ secrets.MCP_SCANNER_LLM_API_KEY }}
           # Optional model override (e.g. anthropic/claude-sonnet-4-20250514, ollama/llama3).
           SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
           # Optional consensus voting — N>1 multiplies LLM cost per scan.
