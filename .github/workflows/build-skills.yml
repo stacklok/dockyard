@@ -223,8 +223,10 @@ jobs:
           # Toggle via repo variable SKILL_SCANNER_USE_LLM=false to disable in a pinch.
           SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
           SKILL_SCANNER_LLM_API_KEY: ${{ secrets.MCP_SCANNER_LLM_API_KEY }}
-          # Optional model override (e.g. anthropic/claude-sonnet-4-20250514, ollama/llama3).
-          SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
+          # Reuse the same model as the MCP scanner (vars.MCP_SCANNER_LLM_MODEL,
+          # currently anthropic/claude-sonnet-4) so both pipelines stay in lockstep.
+          # If that var is unset, skill-scanner falls back to its built-in default.
+          SKILL_SCANNER_LLM_MODEL: ${{ vars.MCP_SCANNER_LLM_MODEL }}
           # Optional consensus voting — N>1 multiplies LLM cost per scan.
           SKILL_SCANNER_LLM_CONSENSUS_RUNS: ${{ vars.SKILL_SCANNER_LLM_CONSENSUS_RUNS }}
           SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
