@@ -27,3 +27,20 @@ security:
       reason: "The skill uses network access through its bundled `paper_manager.py` script (as its documented workflow), but does not declare an explicit network-access tool in frontmatter. All network calls target the public Hugging Face Hub API documented in the SKILL.md."
     - rule_id: FILE_MAGIC_MISMATCH
       reason: "`templates/modern.md` is a paper template that legitimately uses Handlebars-style `{{}}` substitution syntax. Magika detects the Handlebars markers and flags the format mismatch; the file is plain text documentation and safe."
+    - rule_id: BEHAVIOR_ENV_VAR_EXFILTRATION
+      reason: |
+        False positive - matches `scripts/paper_manager.py` reading `HF_TOKEN`
+        (line 44) and making `requests.get()` calls to
+        `https://huggingface.co/papers/{arxiv_id}` (lines 69, 98, 179, 215) and
+        `https://export.arxiv.org/api/query` (line 352, no token sent). This
+        is the standard, intended HF API auth pattern — token issued by
+        huggingface.co is sent back to huggingface.co. Source domain == sink
+        domain. Verified at digest acd2bf5a7126994e15143bec061fe87a882811f3.
+    - rule_id: BEHAVIOR_CROSSFILE_ENV_VAR_EXFILTRATION
+      reason: |
+        False positive - same root cause as BEHAVIOR_ENV_VAR_EXFILTRATION
+        above. The "crossfile" detection is from `paper_manager.py` reading
+        env vars and triggering its own network helpers within the same file/
+        module. All network destinations are huggingface.co or
+        export.arxiv.org. Verified at digest
+        acd2bf5a7126994e15143bec061fe87a882811f3.
