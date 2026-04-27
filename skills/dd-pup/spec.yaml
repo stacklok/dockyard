@@ -21,3 +21,12 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "datadog-labs/agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_HIGH_RISK_TOOL_GATE
+      reason: |
+        False positive - matches on the word `delete` in the SKILL.md command
+        reference, where the skill documents official `pup` CLI subcommands
+        (e.g., `pup obs-pipelines delete`, `pup llm-obs experiments delete`,
+        `pup cost aws-config delete`). These are documented Datadog CLI
+        subcommands a user explicitly runs against their own Datadog tenant,
+        not autonomous high-risk tool calls. Verified at digest
+        98343f304cbd4439b3d7640cfe64f78070e44d68.

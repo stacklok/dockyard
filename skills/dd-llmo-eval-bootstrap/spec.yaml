@@ -21,3 +21,14 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "datadog-labs/agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: PG_EXFIL_MARKDOWN_LINK
+      reason: |
+        False positive - the flagged pattern is a markdown link template
+        `[Trace {first_8}...](https://app.datadoghq.com/llm/traces?query=trace_id:{full_32_char_id})`
+        used by the skill to cite trace evidence to the USER. The destination
+        (app.datadoghq.com) is the user's own Datadog SaaS tenant; the encoded
+        value is a trace_id surfaced from the user's own LLM Observability data
+        — not exfiltrated agent context. The link is rendered for the user to
+        click and verify the cited trace, which is the explicit purpose stated
+        in the "Show your work" operating rule. Verified at digest
+        98343f304cbd4439b3d7640cfe64f78070e44d68 (SKILL.md:681).
