@@ -5,7 +5,7 @@ go 1.26.1
 require (
 	github.com/sigstore/sigstore-go v1.1.4
 	github.com/spf13/cobra v1.10.2
-	github.com/stacklok/toolhive v0.23.1
+	github.com/stacklok/toolhive v0.24.1
 	github.com/stacklok/toolhive-core v0.0.16
 	gopkg.in/yaml.v3 v3.0.1
 )
@@ -137,7 +137,7 @@ require (
 	github.com/lestrrat-go/jwx/v3 v3.0.13 // indirect
 	github.com/lestrrat-go/option/v2 v2.0.0 // indirect
 	github.com/lufia/plan9stats v0.0.0-20211012122336-39d0f177ccd0 // indirect
-	github.com/mark3labs/mcp-go v0.48.0 // indirect
+	github.com/mark3labs/mcp-go v0.49.0 // indirect
 	github.com/mattn/go-isatty v0.0.20 // indirect
 	github.com/mattn/goveralls v0.0.12 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
