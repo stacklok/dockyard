@@ -18,4 +18,15 @@ provenance:
   repository_ref: "refs/heads/main"
 
 # Security allowlist for false positives
-# Currently empty - no security findings to allowlist
+security:
+  allowed_issues:
+    - code: "AITech-1.1"
+      tool: "semantic_search"
+      reason: |
+        False positive - YARA flags the tool description for coercive workflow
+        language ("IMPORTANT: only searches your local downloaded collection",
+        "Use search_papers ... then download_paper ... before using this tool").
+        These are legitimate operational instructions about tool ordering and
+        local-vs-remote scope, not attempts to override the model's system
+        prompt. The description does not contain "ignore previous instructions"
+        or any system-prompt-override pattern. Verified in v0.4.12.
