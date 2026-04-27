@@ -21,3 +21,12 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "firebase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_HIGH_RISK_TOOL_GATE
+      reason: |
+        False positive - matches on `delete` / `Delete` in
+        references/cli_commands.md, where the skill documents the official
+        Firebase App Hosting CLI commands (e.g.,
+        `firebase apphosting:backends:delete`,
+        `firebase apphosting:rollouts:delete`). These are documented Firebase
+        CLI subcommands a user explicitly invokes, not autonomous high-risk
+        tool calls. Verified at digest 30bcb303e56f5d39f2d3c4214b53821adfb5b65c.
