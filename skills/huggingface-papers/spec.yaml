@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "061ab494cb145f43ae8f218939b99160e2c61c58"  # main as of 2026-04-16
+  ref: "acd2bf5a7126994e15143bec061fe87a882811f3"  # main as of 2026-04-16
   path: "skills/huggingface-papers"
   version: "0.1.0"
 
