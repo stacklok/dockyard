@@ -12,7 +12,7 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "061ab494cb145f43ae8f218939b99160e2c61c58"  # main as of 2026-04-16
+  ref: "acd2bf5a7126994e15143bec061fe87a882811f3"  # main as of 2026-04-16
   path: "skills/huggingface-llm-trainer"
   version: "0.1.0"
 
@@ -32,3 +32,25 @@ security:
       reason: "The bundled `scripts/convert_to_gguf.py` references `sudo apt-get install` / `sudo yum install` for optional system packages (build tools) when converting trained models to GGUF format. These run in ephemeral HF Jobs containers, not on the user's host. The script is HF-authored and documented in SKILL.md."
     - rule_id: DATA_EXFIL_NETWORK_REQUESTS
       reason: "Bundled helper scripts (`scripts/dataset_inspector.py`, `scripts/hf_benchmarks.py`) use `urllib.request` to query the public Hugging Face Hub API for dataset validation and benchmark lookups — documented workflow steps required by the skill."
+    - rule_id: BEHAVIOR_ENV_VAR_EXFILTRATION
+      reason: |
+        False positive - matches `scripts/hf_benchmarks.py` reading `HF_TOKEN`
+        from env (line 122) and using it to authenticate `urllib.request` calls.
+        The destination URL is hardcoded to `BASE_URL = "https://huggingface.co"`
+        — the same domain that issues HF_TOKEN. This is the standard, intended
+        HF API authentication pattern, not credential exfiltration. Verified at
+        digest acd2bf5a7126994e15143bec061fe87a882811f3.
+    - rule_id: BEHAVIOR_CROSSFILE_ENV_VAR_EXFILTRATION
+      reason: |
+        False positive - same root cause as BEHAVIOR_ENV_VAR_EXFILTRATION.
+        `scripts/unsloth_sft_example.py` and `scripts/hf_benchmarks.py` both
+        read HF_TOKEN/hfjob env vars and make network calls to huggingface.co
+        for legitimate API usage (training job submission, benchmark queries).
+        No data leaves the HF ecosystem. Verified at digest
+        acd2bf5a7126994e15143bec061fe87a882811f3.
+    - rule_id: BEHAVIOR_CROSSFILE_EXFILTRATION_CHAIN
+      reason: |
+        False positive - the alleged "chain" is two HF helper scripts each
+        calling the public Hugging Face Hub API with HF_TOKEN auth. There is
+        no third-party transmission; both source and sink are huggingface.co.
+        Verified at digest acd2bf5a7126994e15143bec061fe87a882811f3.
