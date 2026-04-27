@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "a04611e9d3c402859f7d973be451c16cd5982ca5"
+  ref: "98343f304cbd4439b3d7640cfe64f78070e44d68"
   path: "dd-llmo/eval-trace-rca"
   version: "0.1.0"
 
