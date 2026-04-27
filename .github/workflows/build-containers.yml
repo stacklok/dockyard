@@ -261,6 +261,10 @@ jobs:
           MCP_SCANNER_ENABLE_LLM: ${{ vars.MCP_SCANNER_ENABLE_LLM || 'false' }}
           MCP_SCANNER_LLM_API_KEY: ${{ secrets.MCP_SCANNER_LLM_API_KEY }}
           MCP_SCANNER_LLM_MODEL: ${{ vars.MCP_SCANNER_LLM_MODEL || '' }}
+          # Severity threshold for blocking. Findings below this severity are
+          # surfaced as warnings but do not fail the job. One of: INFO, LOW,
+          # MEDIUM, HIGH, CRITICAL. Tune via PR.
+          MCP_SCANNER_BLOCK_SEVERITY: HIGH
           SERVER_NAME: ${{ steps.meta.outputs.server_name }}
           PROTOCOL: ${{ steps.meta.outputs.protocol }}
           CONFIG_FILE: ${{ matrix.config }}

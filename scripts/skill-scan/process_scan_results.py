@@ -20,6 +20,24 @@ import yaml
 
 GLOBAL_CONFIG_FILE = os.path.join(os.path.dirname(__file__), "global_allowed_issues.yaml")
 
+# Higher rank = more severe. Unknown severities are treated as blocking (rank
+# = max + 1) so an unrecognized value never silently slips past the gate.
+SEVERITY_RANK = {"INFO": 0, "LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
+DEFAULT_BLOCK_SEVERITY = "HIGH"
+
+
+def _block_severity_threshold() -> int:
+    raw = os.environ.get("SKILL_SCANNER_BLOCK_SEVERITY", DEFAULT_BLOCK_SEVERITY)
+    rank = SEVERITY_RANK.get((raw or "").strip().upper())
+    return rank if rank is not None else SEVERITY_RANK[DEFAULT_BLOCK_SEVERITY]
+
+
+def _is_blocking_severity(severity: str | None, threshold: int) -> bool:
+    rank = SEVERITY_RANK.get((severity or "").strip().upper())
+    if rank is None:
+        return True
+    return rank >= threshold
+
 
 def _load_allowed_entries(path: str) -> list[dict]:
     if not os.path.exists(path):
@@ -71,9 +89,13 @@ def match_allowlist(finding: dict, entries: list[dict]) -> tuple[bool, str | Non
     return False, None
 
 
-def classify_findings(scan: dict, entries: list[dict]) -> tuple[list[dict], list[dict]]:
+def classify_findings(
+    scan: dict, entries: list[dict]
+) -> tuple[list[dict], list[dict], list[dict]]:
     blocking: list[dict] = []
+    warnings: list[dict] = []
     allowed: list[dict] = []
+    threshold = _block_severity_threshold()
     for finding in scan.get("findings") or []:
         if not isinstance(finding, dict):
             continue
@@ -92,9 +114,11 @@ def classify_findings(scan: dict, entries: list[dict]) -> tuple[list[dict], list
         if is_allowed:
             detail["allowed_reason"] = reason
             allowed.append(detail)
-        else:
+        elif _is_blocking_severity(finding.get("severity"), threshold):
             blocking.append(detail)
-    return blocking, allowed
+        else:
+            warnings.append(detail)
+    return blocking, warnings, allowed
 
 
 def _warn_summary(skill_name: str, message: str) -> dict:
@@ -160,9 +184,43 @@ def main() -> None:
         print(json.dumps(summary, indent=2))
         sys.exit(0 if insecure_ignore else 1)
 
-    blocking, allowed = classify_findings(scan, entries)
+    blocking, warnings, allowed = classify_findings(scan, entries)
     analyzers = scan.get("analyzers_used") or []
     findings_count = scan.get("findings_count", len(scan.get("findings") or []))
+
+    def _format_loc(issue: dict) -> str:
+        if not issue.get("file_path"):
+            return ""
+        loc = f" ({issue['file_path']}"
+        if issue.get("line_number"):
+            loc += f":{issue['line_number']}"
+        return loc + ")"
+
+    def _print_warnings() -> None:
+        if not warnings:
+            return
+        threshold_name = os.environ.get(
+            "SKILL_SCANNER_BLOCK_SEVERITY", DEFAULT_BLOCK_SEVERITY
+        ).upper()
+        print(
+            f"Below-threshold findings (block threshold = {threshold_name}, not blocking):",
+            file=sys.stderr,
+        )
+        for issue in warnings:
+            print(
+                f"  - [{issue['code']}] ({issue['severity']}) {issue['message']}{_format_loc(issue)}",
+                file=sys.stderr,
+            )
+
+    def _print_allowed() -> None:
+        if not allowed:
+            return
+        print("Allowlisted (not blocking):", file=sys.stderr)
+        for issue in allowed:
+            print(
+                f"  - [{issue['code']}] {issue['message']} (Allowed: {issue['allowed_reason']})",
+                file=sys.stderr,
+            )
 
     if blocking:
         summary = {
@@ -172,29 +230,19 @@ def main() -> None:
             "analyzers": analyzers,
             "blocking_issues": blocking,
             "blocking_count": len(blocking),
+            "warning_issues": warnings,
+            "warning_count": len(warnings),
             "allowed_issues": allowed,
             "allowed_count": len(allowed),
         }
         print(f"Skill security scan FAILED for {skill_name}:", file=sys.stderr)
         for issue in blocking:
-            if issue.get("file_path"):
-                loc = f" ({issue['file_path']}"
-                if issue.get("line_number"):
-                    loc += f":{issue['line_number']}"
-                loc += ")"
-            else:
-                loc = ""
             print(
-                f"  - [{issue['code']}] ({issue['severity']}) {issue['message']}{loc}",
+                f"  - [{issue['code']}] ({issue['severity']}) {issue['message']}{_format_loc(issue)}",
                 file=sys.stderr,
             )
-        if allowed:
-            print(f"Allowlisted (not blocking):", file=sys.stderr)
-            for issue in allowed:
-                print(
-                    f"  - [{issue['code']}] {issue['message']} (Allowed: {issue['allowed_reason']})",
-                    file=sys.stderr,
-                )
+        _print_warnings()
+        _print_allowed()
         print(json.dumps(summary, indent=2))
         sys.exit(1)
 
@@ -205,15 +253,20 @@ def main() -> None:
         "analyzers": analyzers,
         "message": "No blocking security issues detected",
     }
+    if warnings:
+        summary["warning_issues"] = warnings
+        summary["warning_count"] = len(warnings)
     if allowed:
         summary["allowed_issues"] = allowed
         summary["allowed_count"] = len(allowed)
-        print(f"Skill security scan passed for {skill_name} with allowlisted findings:", file=sys.stderr)
-        for issue in allowed:
-            print(
-                f"  - [{issue['code']}] {issue['message']} (Allowed: {issue['allowed_reason']})",
-                file=sys.stderr,
-            )
+
+    if warnings or allowed:
+        print(
+            f"Skill security scan passed for {skill_name} with non-blocking findings:",
+            file=sys.stderr,
+        )
+        _print_warnings()
+        _print_allowed()
     else:
         print(f"Skill security scan passed for {skill_name} (no findings)", file=sys.stderr)
     print(json.dumps(summary, indent=2))

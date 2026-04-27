@@ -13,6 +13,24 @@ import os
 # Global config file location (relative to this script)
 GLOBAL_CONFIG_FILE = os.path.join(os.path.dirname(__file__), 'global_allowed_issues.yaml')
 
+# Higher rank = more severe. Unknown severities are treated as blocking so an
+# unrecognized value never silently slips past the gate.
+SEVERITY_RANK = {"INFO": 0, "LOW": 1, "MEDIUM": 2, "HIGH": 3, "CRITICAL": 4}
+DEFAULT_BLOCK_SEVERITY = "HIGH"
+
+
+def _block_severity_threshold():
+    raw = os.environ.get("MCP_SCANNER_BLOCK_SEVERITY", DEFAULT_BLOCK_SEVERITY)
+    rank = SEVERITY_RANK.get((raw or "").strip().upper())
+    return rank if rank is not None else SEVERITY_RANK[DEFAULT_BLOCK_SEVERITY]
+
+
+def _is_blocking_severity(severity, threshold):
+    rank = SEVERITY_RANK.get((severity or "").strip().upper())
+    if rank is None:
+        return True
+    return rank >= threshold
+
 
 def load_global_allowed_issues():
     """
@@ -147,12 +165,14 @@ def process_cisco_scan_results(scan_data, allowed_issues):
     }
 
     Returns:
-        Tuple of (tools_scanned, blocking_issues, allowed_issues_found, analyzers)
+        Tuple of (tools_scanned, blocking_issues, warning_issues, allowed_issues_found, analyzers)
     """
     tools_scanned = 0
     blocking_issues = []
+    warning_issues = []
     allowed_issues_found = []
     analyzers = []
+    threshold = _block_severity_threshold()
 
     # Handle different possible data structures
     if isinstance(scan_data, list):
@@ -222,10 +242,12 @@ def process_cisco_scan_results(scan_data, allowed_issues):
                 if is_allowed:
                     issue_detail['allowed_reason'] = reason
                     allowed_issues_found.append(issue_detail)
-                else:
+                elif _is_blocking_severity(severity, threshold):
                     blocking_issues.append(issue_detail)
+                else:
+                    warning_issues.append(issue_detail)
 
-    return tools_scanned, blocking_issues, allowed_issues_found, analyzers
+    return tools_scanned, blocking_issues, warning_issues, allowed_issues_found, analyzers
 
 
 def main():
@@ -302,9 +324,42 @@ def main():
             scan_data = json.loads(json_content)
 
         # Process Cisco scanner results
-        tools_scanned, blocking_issues, allowed_issues_found, analyzers = process_cisco_scan_results(
-            scan_data, allowed_issues
-        )
+        (
+            tools_scanned,
+            blocking_issues,
+            warning_issues,
+            allowed_issues_found,
+            analyzers,
+        ) = process_cisco_scan_results(scan_data, allowed_issues)
+
+        threshold_name = os.environ.get(
+            "MCP_SCANNER_BLOCK_SEVERITY", DEFAULT_BLOCK_SEVERITY
+        ).upper()
+
+        def _print_warning_issues():
+            if not warning_issues:
+                return
+            print(
+                f"ℹ️  Below-threshold findings (block threshold = {threshold_name}, not blocking):",
+                file=sys.stderr,
+            )
+            for issue in warning_issues:
+                print(
+                    f"  - [{issue['code']}] ({issue.get('severity')}) {issue['message']}",
+                    file=sys.stderr,
+                )
+                if issue.get('tool_name'):
+                    print(f"    Tool: {issue['tool_name']}", file=sys.stderr)
+
+        def _print_allowed_issues():
+            if not allowed_issues_found:
+                return
+            print("ℹ️  Allowed issues (not blocking):", file=sys.stderr)
+            for issue in allowed_issues_found:
+                print(
+                    f"  - [{issue['code']}] {issue['message']} (Allowed: {issue['allowed_reason']})",
+                    file=sys.stderr,
+                )
 
         # Generate summary
         has_blocking_issues = len(blocking_issues) > 0
@@ -317,21 +372,24 @@ def main():
                 'analyzers': analyzers,
                 'blocking_issues': blocking_issues,
                 'blocking_count': len(blocking_issues),
+                'warning_issues': warning_issues,
+                'warning_count': len(warning_issues),
                 'allowed_issues': allowed_issues_found,
-                'allowed_count': len(allowed_issues_found)
+                'allowed_count': len(allowed_issues_found),
             }
 
             # Print human-readable output to stderr for CI logs
             print(f"❌ Security issues found in {server_name} that are not allowlisted:", file=sys.stderr)
             for issue in blocking_issues:
-                print(f"  - [{issue['code']}] {issue['message']}", file=sys.stderr)
+                print(
+                    f"  - [{issue['code']}] ({issue.get('severity')}) {issue['message']}",
+                    file=sys.stderr,
+                )
                 if issue.get('tool_name'):
                     print(f"    Tool: {issue['tool_name']}", file=sys.stderr)
 
-            if allowed_issues_found:
-                print(f"ℹ️  Allowed issues (not blocking):", file=sys.stderr)
-                for issue in allowed_issues_found:
-                    print(f"  - [{issue['code']}] {issue['message']} (Allowed: {issue['allowed_reason']})", file=sys.stderr)
+            _print_warning_issues()
+            _print_allowed_issues()
 
             # Exit with error code to fail the CI step
             print(json.dumps(summary, indent=2))
@@ -344,20 +402,29 @@ def main():
                 'analyzers': analyzers,
                 'message': 'No blocking security issues detected'
             }
-
+            if warning_issues:
+                summary['warning_issues'] = warning_issues
+                summary['warning_count'] = len(warning_issues)
             if allowed_issues_found:
                 summary['allowed_issues'] = allowed_issues_found
                 summary['allowed_count'] = len(allowed_issues_found)
 
-                # Print info about allowed issues
-                print(f"ℹ️  Allowed security issues found in {server_name}:", file=sys.stderr)
-                for issue in allowed_issues_found:
-                    print(f"  - [{issue['code']}] {issue['message']}", file=sys.stderr)
-                    print(f"    Reason: {issue['allowed_reason']}", file=sys.stderr)
-                print(f"✅ All issues are allowlisted - build can proceed ({tools_scanned} tools scanned)", file=sys.stderr)
+            if warning_issues or allowed_issues_found:
+                print(
+                    f"ℹ️  Non-blocking findings in {server_name} ({tools_scanned} tools scanned):",
+                    file=sys.stderr,
+                )
+                _print_warning_issues()
+                _print_allowed_issues()
+                print(
+                    f"✅ Build can proceed — no blocking findings ({tools_scanned} tools scanned)",
+                    file=sys.stderr,
+                )
             else:
-                # Print success message to stderr for CI logs
-                print(f"✅ No security issues found in {server_name} ({tools_scanned} tools scanned)", file=sys.stderr)
+                print(
+                    f"✅ No security issues found in {server_name} ({tools_scanned} tools scanned)",
+                    file=sys.stderr,
+                )
 
             print(json.dumps(summary, indent=2))
 
