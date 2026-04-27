@@ -32,3 +32,13 @@ security:
         Hugging Face CLI subcommands a user explicitly invokes against their own
         HF account, not autonomous high-risk tool calls. Verified at digest
         acd2bf5a7126994e15143bec061fe87a882811f3.
+    - rule_id: ATR_MCP_MALICIOUS_RESPONSE
+      reason: |
+        Same root cause as PIPELINE_TAINT_FLOW above - matches the official
+        `hf` CLI installer (`curl -LsSf https://hf.co/cli/install.sh | bash`,
+        SKILL.md:1) and the `hf-mount` installer
+        (`curl -fsSL https://raw.githubusercontent.com/huggingface/hf-mount/main/install.sh | sh`,
+        SKILL.md:180). These are documented install commands hard-coded in
+        SKILL.md, not MCP tool responses. Both endpoints are official Hugging
+        Face installer URLs. Verified at digest
+        acd2bf5a7126994e15143bec061fe87a882811f3.
