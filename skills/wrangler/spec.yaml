@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/cloudflare/skills"
-  ref: "0438a075b419f737eb091d1c91800b7387e3a75f"  # main as of 2026-04-16
+  ref: "7c449def4e0c63daa27212d853094e4c8e37bbe8"  # main as of 2026-04-16
   path: "skills/wrangler"
   version: "0.1.0"
 
