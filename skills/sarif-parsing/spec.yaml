@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "e8cc5baf9329ccb491bfa200e82eacbac83b1ead"  # main as of 2026-04-17
+  ref: "540111a52a2b76009fb279fed2b8f5d3eaa97adc"  # main as of 2026-04-17
   path: "plugins/static-analysis/skills/sarif-parsing"
   version: "0.1.0"
 
