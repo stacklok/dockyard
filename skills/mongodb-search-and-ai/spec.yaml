@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mongodb/agent-skills"
-  ref: "10781ada299bbc5d90b65f952956a57996dad5ee"  # main as of 2026-04-07
+  ref: "160e31ea50af4192aeed08f04ef6dc1fe5676930"  # main as of 2026-04-07
   path: "skills/mongodb-search-and-ai"
   version: "0.1.0"
 
