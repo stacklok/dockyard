@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "318f1ef4c2a8dee64718e90b815128aa0c23d51b"
+  ref: "1f3645fff72fe5bd03137361b31db6f9d22e041c"
   path: "dd-llmo/eval-session-classify"
   version: "0.1.0"
 
