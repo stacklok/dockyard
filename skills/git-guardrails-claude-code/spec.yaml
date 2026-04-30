@@ -1,0 +1,23 @@
+# Matt Pocock git-guardrails-claude-code Skill
+# Set up Claude Code hooks to block dangerous git commands before they execute.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/git-guardrails-claude-code:0.1.0
+
+metadata:
+  name: git-guardrails-claude-code
+  description: "Set up Claude Code hooks to block dangerous git commands (push, reset --hard, clean, branch -D, etc.) before they execute. Use when the user wants to prevent destructive git operations, add git safety hooks, or block git push/reset in Claude Code."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "b843cb5ea74b1fe5e58a0fc23cddef9e66076fb8"  # main as of 2026-04-30
+  path: "skills/misc/git-guardrails-claude-code"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

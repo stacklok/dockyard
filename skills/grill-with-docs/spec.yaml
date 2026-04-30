@@ -1,0 +1,23 @@
+# Matt Pocock grill-with-docs Skill
+# Grilling session that challenges your plan against the existing domain model.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/grill-with-docs:0.1.0
+
+metadata:
+  name: grill-with-docs
+  description: "Grilling session that challenges your plan against the existing domain model, sharpens terminology, and updates documentation (CONTEXT.md, ADRs) inline as decisions crystallise. Use when the user wants to stress-test a plan against their project's language and documented decisions."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "b843cb5ea74b1fe5e58a0fc23cddef9e66076fb8"  # main as of 2026-04-30
+  path: "skills/engineering/grill-with-docs"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
