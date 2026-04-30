@@ -1,0 +1,19 @@
+# Vercel composition-patterns Skill
+# React composition patterns that scale — compound components, lifted state,
+# internal composition — for avoiding boolean prop proliferation.
+# Source: https://github.com/vercel-labs/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/vercel-composition-patterns:0.1.0
+
+metadata:
+  name: vercel-composition-patterns
+  description: "React composition patterns that scale. Use when refactoring components with boolean prop proliferation, building flexible component libraries, or designing reusable APIs. Triggers on tasks involving compound components, render props, context providers, or component architecture. Includes React 19 API changes."
+
+spec:
+  repository: "https://github.com/vercel-labs/agent-skills"
+  ref: "ce3e64e468f8fa09a2d075d102771838061fdac0"  # main as of 2026-04-30
+  path: "skills/composition-patterns"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/vercel-labs/agent-skills"
+  repository_ref: "refs/heads/main"
