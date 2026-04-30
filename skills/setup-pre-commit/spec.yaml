@@ -1,0 +1,23 @@
+# Matt Pocock setup-pre-commit Skill
+# Set up Husky pre-commit hooks with lint-staged, type checking, and tests.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/setup-pre-commit:0.1.0
+
+metadata:
+  name: setup-pre-commit
+  description: "Set up Husky pre-commit hooks with lint-staged (Prettier), type checking, and tests in the current repo. Use when the user wants to add pre-commit hooks, set up Husky, configure lint-staged, or add commit-time formatting/typechecking/testing."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "b843cb5ea74b1fe5e58a0fc23cddef9e66076fb8"  # main as of 2026-04-30
+  path: "skills/misc/setup-pre-commit"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

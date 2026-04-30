@@ -1,0 +1,23 @@
+# Matt Pocock tdd Skill
+# Test-driven development with a red-green-refactor loop.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/tdd:0.1.0
+
+metadata:
+  name: tdd
+  description: "Test-driven development with red-green-refactor loop. Use when the user wants to build features or fix bugs using TDD, mentions 'red-green-refactor', wants integration tests, or asks for test-first development."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "b843cb5ea74b1fe5e58a0fc23cddef9e66076fb8"  # main as of 2026-04-30
+  path: "skills/engineering/tdd"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

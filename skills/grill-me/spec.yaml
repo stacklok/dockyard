@@ -1,0 +1,23 @@
+# Matt Pocock grill-me Skill
+# Get relentlessly interviewed about a plan or design until every branch is resolved.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/grill-me:0.1.0
+
+metadata:
+  name: grill-me
+  description: "Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when the user wants to stress-test a plan, get grilled on their design, or mentions 'grill me'."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "b843cb5ea74b1fe5e58a0fc23cddef9e66076fb8"  # main as of 2026-04-30
+  path: "skills/productivity/grill-me"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
