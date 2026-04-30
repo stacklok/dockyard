@@ -274,7 +274,12 @@ jobs:
     needs: [discover-skill-configs, validate-skills, skill-security-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: ${{ needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' && (needs.skill-security-scan.result == 'success' || needs.skill-security-scan.result == 'skipped') }}
+    # Aggregate scan result is intentionally not gated here. A failure in one
+    # skill's scan must not block publishing the rest. The per-cell
+    # `Pre-flight scan gate` step below preserves the security gate at the
+    # individual skill level by reading scan-summary.json from the artifact
+    # produced by skill-security-scan (uploaded with `if: always()`).
+    if: ${{ !cancelled() && needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}
@@ -334,6 +339,60 @@ jobs:
 
           image_name="${REGISTRY}/${{ github.repository }}/skills/${skill_name}"
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
+
+      # Pull the per-skill security scan artifact early, before we spend time
+      # building. `continue-on-error: true` so this step succeeds when the
+      # artifact does not exist (i.e. this skill was not in scan-configs for
+      # this run); the next step decides whether that is acceptable.
+      - name: Download skill security scan results
+        id: download-scan
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: skill-scan-${{ steps.meta.outputs.skill_name }}
+          path: /tmp/skill-scan-results
+        continue-on-error: true
+
+      # Per-cell scan gate. Replaces the old aggregate
+      # `needs.skill-security-scan.result == 'success'` check at the job
+      # level so that one skill's scan failure cannot starve out the rest.
+      # - If this skill was in scan-configs for this run, require a fresh
+      #   scan-summary.json with status in {passed, warning}. Anything else
+      #   fails the cell, preserving the security gate per skill.
+      # - If this skill was NOT in scan-configs (e.g. go.mod-only push that
+      #   rebuilds everything but only re-scans changed specs), proceed on
+      #   prior trust: the previous run on main must have been clean for the
+      #   pinned ref to land here.
+      - name: Pre-flight scan gate
+        env:
+          CONFIG: ${{ matrix.config }}
+          SCAN_CONFIGS: ${{ needs.discover-skill-configs.outputs.scan-configs }}
+          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
+        run: |
+          set -euo pipefail
+          summary=/tmp/skill-scan-results/scan-summary.json
+
+          expected=$(jq -r --arg c "$CONFIG" 'index($c) // "missing"' <<<"$SCAN_CONFIGS")
+
+          if [ ! -f "$summary" ]; then
+            if [ "$expected" = "missing" ]; then
+              echo "No scan ran for ${SKILL_NAME} in this workflow (not in scan-configs); proceeding on prior trust."
+              exit 0
+            fi
+            echo "::error title=Scan artifact missing::scan-summary.json absent for ${SKILL_NAME} but the skill was in scan-configs; refusing to publish."
+            exit 1
+          fi
+
+          status=$(jq -r '.status // "missing"' "$summary")
+          case "$status" in
+            passed|warning)
+              echo "Skill scan status for ${SKILL_NAME}: ${status} - publish allowed."
+              ;;
+            *)
+              echo "::error title=Scan blocked publish::Skill ${SKILL_NAME} scan status is '${status}'; refusing to publish."
+              jq -r '.blocking_issues[]? | "  - [\(.code)] (\(.severity)) \(.message)"' "$summary" 2>/dev/null || true
+              exit 1
+              ;;
+          esac
 
       - name: Build dockhand
         run: go build -o /tmp/dockhand ./cmd/dockhand
@@ -450,15 +509,6 @@ jobs:
           subject-digest: ${{ steps.build.outputs.digest }}
           push-to-registry: true
 
-      - name: Download skill security scan results
-        id: download-scan
-        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: skill-scan-${{ steps.meta.outputs.skill_name }}
-          path: /tmp/skill-scan-results
-        continue-on-error: false
-
       - name: Create security scan attestation (SCAI format)
         if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
         env:
@@ -471,6 +521,15 @@ jobs:
           REPO: ${{ github.repository }}
         run: |
           set -euo pipefail
+
+          # Prior-trust path: this skill was not in scan-configs for this run
+          # (e.g. go.mod-only push that rebuilds everything but only re-scans
+          # changed specs). The previous SCAI attestation on the registry
+          # remains authoritative; skipping here is safe and intentional.
+          if [ ! -f /tmp/skill-scan-results/scan-summary.json ]; then
+            echo "No fresh scan summary for this run; skipping SCAI attestation (skill not in this run's scan-configs)."
+            exit 0
+          fi
 
           SCANNER_VERSION=""
           if [ -f /tmp/skill-scan-results/scanner-version.txt ]; then
