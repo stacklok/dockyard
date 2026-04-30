@@ -1,0 +1,24 @@
+# Vercel vercel-cli-with-tokens Skill
+# Deploy and manage Vercel projects via the CLI using token-based auth instead
+# of `vercel login`.
+# Source: https://github.com/vercel-labs/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/vercel-cli-with-tokens:0.1.0
+
+metadata:
+  name: vercel-cli-with-tokens
+  description: "Deploy and manage projects on Vercel using the Vercel CLI with token-based authentication, without `vercel login`. Use when the user wants to 'deploy to vercel', 'set up vercel', or 'add environment variables to vercel' from a non-interactive environment."
+
+spec:
+  repository: "https://github.com/vercel-labs/agent-skills"
+  ref: "ce3e64e468f8fa09a2d075d102771838061fdac0"  # main as of 2026-04-30
+  path: "skills/vercel-cli-with-tokens"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/vercel-labs/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "vercel-labs/agent-skills declares MIT in README.md; upstream does not include a LICENSE file at the repository root, and this skill's SKILL.md frontmatter does not embed an SPDX license identifier."
