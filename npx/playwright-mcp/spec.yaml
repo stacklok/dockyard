@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@playwright/mcp"
-  version: "0.0.71"
+  version: "0.0.72"
 
 provenance:
   repository_uri: "https://github.com/microsoft/playwright-mcp"
