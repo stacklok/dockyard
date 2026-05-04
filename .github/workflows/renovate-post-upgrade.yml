@@ -1,0 +1,116 @@
+name: Renovate Post-Upgrade
+
+# When Renovate bumps `spec.ref` in a skills/*/spec.yaml file, also bump
+# `spec.version` so the new ref publishes under a new (immutable) OCI tag
+# rather than silently re-pinning the existing tag.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/**/spec.yaml'
+      - 'skills/**/spec.yml'
+
+permissions: {}
+
+concurrency:
+  group: renovate-post-upgrade-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  bump-skill-versions:
+    name: Bump skill spec.version on ref change
+    runs-on: ubuntu-latest
+    if: github.actor == 'renovate[bot]'
+    permissions:
+      contents: write
+      pull-requests: read
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          ref: ${{ github.head_ref }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Bump versions for skills whose ref changed
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          set -euo pipefail
+
+          changed=$(git diff --name-only "$PR_BASE_SHA"...HEAD -- 'skills/**/spec.yaml' 'skills/**/spec.yml' || true)
+          if [ -z "$changed" ]; then
+            echo "No skill spec.yaml files changed in this PR; nothing to do."
+            exit 0
+          fi
+
+          fail=0
+          while IFS= read -r f; do
+            [ -z "$f" ] && continue
+            skill_name=$(basename "$(dirname "$f")")
+            echo "==> $skill_name ($f)"
+
+            old_ref=$(git show "$PR_BASE_SHA:$f" 2>/dev/null | yq -r '.spec.ref // ""' || echo "")
+            new_ref=$(yq -r '.spec.ref // ""' "$f")
+            old_version=$(git show "$PR_BASE_SHA:$f" 2>/dev/null | yq -r '.spec.version // ""' || echo "")
+            new_version=$(yq -r '.spec.version // ""' "$f")
+
+            if [ -z "$new_ref" ] || [ -z "$new_version" ]; then
+              echo "  spec.ref or spec.version missing; skipping"
+              continue
+            fi
+            if [ "$old_ref" = "$new_ref" ]; then
+              echo "  spec.ref unchanged; skipping"
+              continue
+            fi
+            if [ "$old_version" != "$new_version" ]; then
+              echo "  spec.version already changed in this PR (${old_version} -> ${new_version}); skipping"
+              continue
+            fi
+
+            if ! [[ "$new_version" =~ ^([0-9]+)\.([0-9]+)\.([0-9]+)$ ]]; then
+              echo "::error file=${f}::spec.version '${new_version}' is not simple semver (X.Y.Z); cannot auto-bump"
+              fail=1
+              continue
+            fi
+            major="${BASH_REMATCH[1]}"
+            minor="${BASH_REMATCH[2]}"
+            patch="${BASH_REMATCH[3]}"
+            bumped_version="${major}.${minor}.$((patch+1))"
+
+            # Surgical replacement to preserve comments, key order, and indentation.
+            tmp=$(mktemp)
+            sed -E "s|^([[:space:]]*version:[[:space:]]*\")${new_version}(\".*)$|\1${bumped_version}\2|" "$f" > "$tmp"
+            if diff -q "$f" "$tmp" >/dev/null; then
+              rm -f "$tmp"
+              echo "::error file=${f}::Could not locate version '${new_version}' to replace in ${f}"
+              fail=1
+              continue
+            fi
+            mv "$tmp" "$f"
+            echo "  bumped version: ${new_version} -> ${bumped_version} (ref ${old_ref} -> ${new_ref})"
+          done <<< "$changed"
+
+          if [ "$fail" -ne 0 ]; then
+            echo "::error::One or more skills failed to bump; failing the workflow."
+            exit 1
+          fi
+
+          git diff --stat || true
+
+      - name: Commit and push if changed
+        env:
+          HEAD_REF: ${{ github.head_ref }}
+        run: |
+          set -euo pipefail
+          if git diff --quiet; then
+            echo "No version bumps needed"
+            exit 0
+          fi
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add skills
+          git commit -s -m "chore: bump spec.version to match new spec.ref"
+          git push origin "HEAD:${HEAD_REF}"
