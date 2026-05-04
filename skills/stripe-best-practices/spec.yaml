@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/stripe/agent-toolkit"
-  ref: "dd6deb03137908d0102ffde97e60c90cf79bf929"  # main as of 2026-04-16
+  ref: "f6e8ff385e15f24cee5986518221228b7dc9ac6d"  # main as of 2026-04-16
   path: "skills/stripe-best-practices"
   version: "0.1.0"
 
