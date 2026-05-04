@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/anthropics/skills"
-  ref: "5128e1865d670f5d6c9cef000e6dfc4e951fb5b9"  # main as of 2026-04-07
+  ref: "d230a6dd6eb1a0dbee9fec55e2f00a96e28dff81"  # main as of 2026-04-07
   path: "skills/claude-api"
   version: "0.1.0"
 
