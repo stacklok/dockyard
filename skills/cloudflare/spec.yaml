@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/cloudflare/skills"
-  ref: "7c449def4e0c63daa27212d853094e4c8e37bbe8"  # main as of 2026-04-16
+  ref: "60147cbb773649eadca89cee92b4e0caf02234b4"  # main as of 2026-04-16
   path: "skills/cloudflare"
   version: "0.1.0"
 
