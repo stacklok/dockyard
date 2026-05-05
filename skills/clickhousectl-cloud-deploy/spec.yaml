@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/ClickHouse/agent-skills"
-  ref: "d28416142e5634ce288602cd0c8f3457e68177ff"  # main as of 2026-04-20
+  ref: "c7f9095dd18778331892304bf47558176cc5ed31"  # main as of 2026-04-20
   path: "skills/clickhousectl-cloud-deploy"
   version: "0.1.0"
 
