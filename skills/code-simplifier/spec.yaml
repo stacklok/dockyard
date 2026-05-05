@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "d7a020acb22e01604ccf55225b2b92330f9c2444"  # main as of 2026-04-20
+  ref: "89aaec068abcc70368ccd3e1f7fee58a66313377"  # main as of 2026-04-20
   path: "skills/code-simplifier"
   version: "0.1.0"
 
