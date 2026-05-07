@@ -7,7 +7,16 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 )
+
+// defaultHTTPClient is used when a caller does not supply its own client.
+// 30s is generous for the compare API which is single-shot per skill.
+var defaultHTTPClient = &http.Client{Timeout: 30 * time.Second}
+
+// maxResponseBytes bounds the compare API response we will read into memory
+// (defense in depth — large diffs are rare but compare responses can grow).
+const maxResponseBytes = 10 * 1024 * 1024
 
 // compareFile represents a single file entry from the GitHub compare API.
 type compareFile struct {
@@ -38,9 +47,16 @@ type compareResponse struct {
 // (empty string matches all files in the repo).
 //
 // apiToken may be empty to make unauthenticated requests (subject to a
-// much lower rate limit).
-func computeSignals(ctx context.Context, apiToken, owner, repo, oldRef, newRef, skillPath string) (ChangeSignals, error) {
-	cr, err := fetchCompare(ctx, apiToken, owner, repo, oldRef, newRef)
+// much lower rate limit).  client may be nil to use the default client.
+func computeSignals(
+	ctx context.Context,
+	client *http.Client,
+	apiToken, owner, repo, oldRef, newRef, skillPath string,
+) (ChangeSignals, error) {
+	if client == nil {
+		client = defaultHTTPClient
+	}
+	cr, err := fetchCompare(ctx, client, apiToken, owner, repo, oldRef, newRef)
 	if err != nil {
 		return ChangeSignals{}, err
 	}
@@ -79,20 +95,37 @@ func computeSignals(ctx context.Context, apiToken, owner, repo, oldRef, newRef, 
 }
 
 // parseGitHubRepo extracts the "owner" and "repo" components from a GitHub
-// HTTPS URL such as "https://github.com/huggingface/skills".
+// HTTPS URL such as "https://github.com/huggingface/skills".  Non-GitHub
+// hosts are explicitly rejected — this tool only supports the GitHub compare
+// API, and silently mangling other hosts would lead to misleading bumps.
 func parseGitHubRepo(repositoryURL string) (owner, repo string, err error) {
-	// Normalise: strip scheme and host to get the path
-	s := strings.TrimPrefix(repositoryURL, "https://github.com/")
-	s = strings.TrimPrefix(s, "http://github.com/")
+	const ghPrefixHTTPS = "https://github.com/"
+	const ghPrefixHTTP = "http://github.com/"
+
+	var s string
+	switch {
+	case strings.HasPrefix(repositoryURL, ghPrefixHTTPS):
+		s = strings.TrimPrefix(repositoryURL, ghPrefixHTTPS)
+	case strings.HasPrefix(repositoryURL, ghPrefixHTTP):
+		s = strings.TrimPrefix(repositoryURL, ghPrefixHTTP)
+	default:
+		return "", "", fmt.Errorf("only github.com URLs are supported, got %q", repositoryURL)
+	}
+
 	s = strings.TrimSuffix(s, ".git")
-	parts := strings.SplitN(strings.TrimPrefix(s, "/"), "/", 2)
+	s = strings.TrimSuffix(s, "/")
+	parts := strings.SplitN(s, "/", 2)
 	if len(parts) != 2 || parts[0] == "" || parts[1] == "" {
 		return "", "", fmt.Errorf("cannot parse github owner/repo from URL %q", repositoryURL)
 	}
 	return parts[0], parts[1], nil
 }
 
-func fetchCompare(ctx context.Context, apiToken, owner, repo, oldRef, newRef string) (*compareResponse, error) {
+func fetchCompare(
+	ctx context.Context,
+	client *http.Client,
+	apiToken, owner, repo, oldRef, newRef string,
+) (*compareResponse, error) {
 	url := fmt.Sprintf("https://api.github.com/repos/%s/%s/compare/%s...%s", owner, repo, oldRef, newRef)
 
 	req, err := http.NewRequestWithContext(ctx, http.MethodGet, url, nil)
@@ -105,13 +138,13 @@ func fetchCompare(ctx context.Context, apiToken, owner, repo, oldRef, newRef str
 		req.Header.Set("Authorization", "Bearer "+apiToken)
 	}
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := client.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("calling GitHub compare API: %w", err)
 	}
 	defer resp.Body.Close()
 
-	body, err := io.ReadAll(resp.Body)
+	body, err := io.ReadAll(io.LimitReader(resp.Body, maxResponseBytes))
 	if err != nil {
 		return nil, fmt.Errorf("reading GitHub compare response: %w", err)
 	}
