@@ -14,7 +14,7 @@ spec:
   repository: "https://github.com/huggingface/skills"
   ref: "7c71cfb2b12920002c3177474c779feeec4e9ad1"  # main as of 2026-04-16
   path: "skills/huggingface-llm-trainer"
-  version: "0.1.0"
+  version: "0.1.1"
 
 provenance:
   repository_uri: "https://github.com/huggingface/skills"
