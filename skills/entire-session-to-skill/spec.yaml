@@ -1,0 +1,23 @@
+# Entire session-to-skill Skill
+# Turn Entire-tracked sessions, checkpoints, or repeated agent workflows into reusable SKILL.md drafts.
+# Source: https://github.com/entireio/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/entire-session-to-skill:0.1.0
+
+metadata:
+  name: entire-session-to-skill
+  description: "Turn one or more Entire-tracked sessions, checkpoints, or repeated agent workflows into a reusable SKILL.md draft."
+
+spec:
+  repository: "https://github.com/entireio/skills"
+  ref: "33d2f7ef206b08781fad6481611bae3d3a4ab8d4"  # main as of 2026-05-05
+  path: "skills/session-to-skill"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/entireio/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "entireio/skills is MIT-licensed at the repo root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
