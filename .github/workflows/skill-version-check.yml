@@ -1,0 +1,108 @@
+name: Skill Version Check
+
+# Run on every PR that touches a skill spec.yaml.  The check is path-filtered
+# so it is a no-op on PRs that do not change any skill.
+#
+# The job calls `skillversionbump --check` (read-only) for all PR authors.
+# The optional auto-fix job runs only for the Renovate bot and commits the
+# corrected version back to the PR branch.
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/**/spec.yaml'
+
+permissions:
+  contents: read
+
+jobs:
+  skill-version-check:
+    name: Check skill spec.version
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          # Fetch enough history so `git show <base>:<path>` works.
+          fetch-depth: 0
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Check skill versions
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          go run ./cmd/skillversionbump \
+            --base "$GITHUB_BASE_SHA"
+
+  # skill-version-autofix runs only for the Renovate / Dependabot bots and
+  # only when their PR comes from a branch in this repo (Renovate creates
+  # branches here, not forks).  It uses the standard `pull_request` trigger
+  # plus `permissions: contents: write` to commit the corrected version back
+  # to the PR branch — no `pull_request_target` is needed (and avoiding it
+  # is safer: pull_request_target would run the head ref with elevated
+  # permissions, which is the classic supply-chain footgun).
+  skill-version-autofix:
+    name: Auto-fix skill spec.version (Renovate only)
+    runs-on: ubuntu-latest
+    # Only apply the auto-fix for the Renovate bot.
+    if: >
+      github.actor == 'renovate[bot]' ||
+      github.actor == 'dependabot[bot]'
+    # Write access is needed to commit back to the PR branch.
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
+        with:
+          fetch-depth: 0
+          # Use the head ref directly so we can push to it.
+          ref: ${{ github.event.pull_request.head.ref }}
+          # A bot token with write access is required here.
+          # Replace with a PAT or GitHub App token if GITHUB_TOKEN
+          # does not have push rights on your repo configuration.
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Go
+        uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Apply skill version bumps
+        id: bump
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+        run: |
+          go run ./cmd/skillversionbump \
+            --base "$GITHUB_BASE_SHA" \
+            --write
+
+          # Check whether anything was actually modified
+          if git diff --quiet; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Commit version bumps
+        if: steps.bump.outputs.changed == 'true'
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add 'skills/*/spec.yaml'
+
+          # Build a list of skill names from the staged spec.yaml paths so the
+          # commit message is greppable in `git log` (e.g. "huggingface-skills,
+          # mattpocock-skills").
+          skills=$(git diff --cached --name-only -- 'skills/*/spec.yaml' \
+            | awk -F/ '{print $2}' | sort -u | paste -sd, -)
+
+          git commit -m "chore(skills): bump spec.version for ${skills}"
+          git push

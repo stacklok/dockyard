@@ -33,6 +33,7 @@ You're evaluating Dockyard for security compliance or want to verify container i
 | [Security Overview](security.md) | Security model and scanning |
 | [Attestations](attestations.md) | Container attestation details |
 | [Provenance](provenance.md) | Package provenance verification |
+| [Skill Versioning](skill-versioning.md) | Semver policy and auto-bump tooling for skills |
 
 ## Additional Resources
 
