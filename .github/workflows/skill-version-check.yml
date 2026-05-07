@@ -40,10 +40,13 @@ jobs:
           go run ./cmd/skillversionbump \
             --base "$GITHUB_BASE_SHA"
 
-  # skill-version-autofix runs only for the Renovate bot.  It writes the
-  # correct version back to the branch so the PR stays green without manual
-  # intervention.  Uses pull_request_target so it has write access to the
-  # branch; the extra permissions are intentional and documented below.
+  # skill-version-autofix runs only for the Renovate / Dependabot bots and
+  # only when their PR comes from a branch in this repo (Renovate creates
+  # branches here, not forks).  It uses the standard `pull_request` trigger
+  # plus `permissions: contents: write` to commit the corrected version back
+  # to the PR branch — no `pull_request_target` is needed (and avoiding it
+  # is safer: pull_request_target would run the head ref with elevated
+  # permissions, which is the classic supply-chain footgun).
   skill-version-autofix:
     name: Auto-fix skill spec.version (Renovate only)
     runs-on: ubuntu-latest
@@ -94,5 +97,12 @@ jobs:
           git config user.name  "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add 'skills/*/spec.yaml'
-          git commit -m "chore(skills): bump spec.version for updated refs"
+
+          # Build a list of skill names from the staged spec.yaml paths so the
+          # commit message is greppable in `git log` (e.g. "huggingface-skills,
+          # mattpocock-skills").
+          skills=$(git diff --cached --name-only -- 'skills/*/spec.yaml' \
+            | awk -F/ '{print $2}' | sort -u | paste -sd, -)
+
+          git commit -m "chore(skills): bump spec.version for ${skills}"
           git push
