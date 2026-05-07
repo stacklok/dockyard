@@ -66,6 +66,15 @@ before merging.
    branch.
 4. Once both jobs pass the PR can be merged.
 
+> **Note on workflow re-triggering:** the autofix job commits back to the PR
+> branch using the default `GITHUB_TOKEN`. By design, GitHub does **not**
+> trigger downstream workflows (including `skill-version-check`) for events
+> created by `GITHUB_TOKEN` to prevent recursion. The check job that already
+> ran on the previous commit remains the gate; the autofix commit will not
+> re-run it. If you need re-triggering (e.g. to surface a new validation
+> failure introduced by the auto-bump), use a PAT or GitHub App token in the
+> workflow `checkout` step instead of `secrets.GITHUB_TOKEN`.
+
 ### Human PRs
 
 If you manually change `spec.ref`, run the tool locally before pushing:

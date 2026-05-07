@@ -53,12 +53,10 @@ func (s Semver) BumpMinor() Semver {
 }
 
 // Bump returns a new Semver incremented according to t.
+// Unknown values fall through to a patch bump as the safest default.
 func (s Semver) Bump(t BumpType) Semver {
-	switch t {
-	case BumpMinor:
+	if t == BumpMinor {
 		return s.BumpMinor()
-	case BumpPatch:
-		return s.BumpPatch()
 	}
 	return s.BumpPatch()
 }
