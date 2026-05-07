@@ -53,12 +53,10 @@ func computeSignals(ctx context.Context, apiToken, owner, repo, oldRef, newRef, 
 	var signals ChangeSignals
 	for _, f := range cr.Files {
 		filename := f.Filename
+		// prefix already has a trailing slash, so this correctly scopes to the
+		// exact subtree and does not match siblings (e.g. "skills/foo-extra/").
 		if prefix != "" && !strings.HasPrefix(filename, prefix) {
-			// Check if the file exactly matches the prefix without the trailing slash
-			// (e.g. skill path is "skills/foo" and file is "skills/foo/SKILL.md")
-			if !strings.HasPrefix(filename, strings.TrimSuffix(prefix, "/")) {
-				continue
-			}
+			continue
 		}
 		signals.TotalChange += f.Additions + f.Deletions
 		base := filename
