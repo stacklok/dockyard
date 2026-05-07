@@ -108,6 +108,9 @@ func run(cmd *cobra.Command, cfg skillversion.Config, specPaths []string) error 
 			cmd.Printf("  FAIL   %s  version %s should be %s (%s bump)\n",
 				r.SpecPath, r.CurrentVersion, r.ExpectedVersion, r.Bump)
 		}
+		if r.APIError != "" {
+			cmd.Printf("           ⚠ heuristic ran without GitHub data: %s\n", r.APIError)
+		}
 	}
 
 	if !cfg.Write {

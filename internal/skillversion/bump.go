@@ -3,6 +3,7 @@ package skillversion
 import (
 	"context"
 	"fmt"
+	"os"
 	"strings"
 )
 
@@ -20,6 +21,11 @@ type BumpResult struct {
 	Skipped bool
 	// UpToDate is true when CurrentVersion already matches ExpectedVersion.
 	UpToDate bool
+	// APIError is non-empty when the GitHub compare API call failed and the
+	// tool fell back to a default (patch) bump.  Reviewers should treat any
+	// non-empty APIError as a signal that the heuristic could not run and
+	// the suggested bump may be too low.
+	APIError string
 }
 
 // Config controls how ProcessSpecs behaves.
@@ -89,29 +95,44 @@ func processOneSpec(ctx context.Context, cfg Config, path string) (BumpResult, e
 		return result, nil
 	}
 
-	signals := fetchSignals(ctx, cfg, head, base.Spec.Ref, path)
+	// An empty spec.path would silently widen the heuristic's churn scope to
+	// the entire upstream repo, producing misleading minor bumps for unrelated
+	// drift.  Refuse rather than guess.
+	if strings.TrimSpace(head.Spec.Path) == "" {
+		return BumpResult{}, fmt.Errorf("spec.path is empty in %s; cannot scope upstream diff", path)
+	}
+
+	signals, apiErr := fetchSignals(ctx, cfg, head, base.Spec.Ref, path)
 	result.Signals = signals
 	result.Bump = DetermineBump(signals)
+	if apiErr != nil {
+		result.APIError = apiErr.Error()
+	}
 
 	return finalizeVersion(cfg, result, base.Spec.Version, head.Spec.Version)
 }
 
-// fetchSignals calls the GitHub compare API and returns ChangeSignals.
-// On any error it logs a warning and returns an empty ChangeSignals (patch default).
-func fetchSignals(ctx context.Context, cfg Config, head skillSpecYAML, oldRef, specPath string) ChangeSignals {
+// fetchSignals calls the GitHub compare API and returns ChangeSignals plus an
+// optional error.  When err is non-nil the returned ChangeSignals is the
+// zero value (which DetermineBump treats as patch) and the error is intended
+// to be surfaced via BumpResult.APIError so reviewers know the heuristic
+// could not run.  A warning is also printed to stderr for immediate visibility
+// in CI logs.
+func fetchSignals(ctx context.Context, cfg Config, head skillSpecYAML, oldRef, specPath string) (ChangeSignals, error) {
 	if cfg.SkipAPICall || head.Spec.Repository == "" || oldRef == "" || head.Spec.Ref == "" {
-		return ChangeSignals{}
+		return ChangeSignals{}, nil
 	}
 	owner, repo, err := parseGitHubRepo(head.Spec.Repository)
 	if err != nil {
-		return ChangeSignals{}
+		fmt.Fprintf(os.Stderr, "warning: cannot parse repository for %s: %v (defaulting to patch)\n", specPath, err)
+		return ChangeSignals{}, err
 	}
-	signals, err := computeSignals(ctx, cfg.Token, owner, repo, oldRef, head.Spec.Ref, head.Spec.Path)
+	signals, err := computeSignals(ctx, nil, cfg.Token, owner, repo, oldRef, head.Spec.Ref, head.Spec.Path)
 	if err != nil {
-		fmt.Printf("warning: GitHub compare API failed for %s: %v (defaulting to patch)\n", specPath, err)
-		return ChangeSignals{}
+		fmt.Fprintf(os.Stderr, "warning: GitHub compare API failed for %s: %v (defaulting to patch)\n", specPath, err)
+		return ChangeSignals{}, err
 	}
-	return signals
+	return signals, nil
 }
 
 // finalizeVersion computes the expected version from bump type, compares it to
@@ -160,19 +181,27 @@ func isHigherOrEqualBump(current, expected Semver) bool {
 }
 
 // CheckErrors returns a formatted error message listing all specs that are
-// not up to date, suitable for failing a CI step.
+// not up to date, suitable for failing a CI step.  When the heuristic could
+// not run because of a GitHub API failure (BumpResult.APIError set) that is
+// included in the message so reviewers know the suggested bump may be too
+// conservative.
 func CheckErrors(results []BumpResult) error {
 	var bad []string
 	for _, r := range results {
 		if r.Skipped || r.UpToDate {
 			continue
 		}
-		bad = append(bad, fmt.Sprintf(
-			"  %s: ref changed %s→%s but version %s needs to be at least %s (%s bump, signals: +/-%d lines, SKILL.md=%v, feat=%v)",
+		msg := fmt.Sprintf(
+			"  %s: ref changed %s→%s but version %s needs to be at least %s "+
+				"(%s bump, signals: +/-%d lines, SKILL.md=%v, feat=%v)",
 			r.SpecPath, shortRef(r.OldRef), shortRef(r.NewRef),
 			r.CurrentVersion, r.ExpectedVersion, r.Bump,
 			r.Signals.TotalChange, r.Signals.SkillMDTouched, r.Signals.FeatCommit,
-		))
+		)
+		if r.APIError != "" {
+			msg += fmt.Sprintf("\n      ⚠ heuristic ran without GitHub data: %s", r.APIError)
+		}
+		bad = append(bad, msg)
 	}
 	if len(bad) == 0 {
 		return nil
