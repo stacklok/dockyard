@@ -1,0 +1,23 @@
+# Entire session-handoff Skill
+# Hand off the current or a saved Entire session to another agent with state, discoveries, and next steps.
+# Source: https://github.com/entireio/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/entire-session-handoff:0.1.0
+
+metadata:
+  name: entire-session-handoff
+  description: "Hand off the current or a saved Entire session to another agent. Inspects recent sessions and produces a handoff summary covering state, discoveries, blockers, and next steps."
+
+spec:
+  repository: "https://github.com/entireio/skills"
+  ref: "33d2f7ef206b08781fad6481611bae3d3a4ab8d4"  # main as of 2026-05-05
+  path: "skills/session-handoff"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/entireio/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "entireio/skills is MIT-licensed at the repo root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
