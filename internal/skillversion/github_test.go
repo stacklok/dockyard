@@ -12,6 +12,11 @@ import (
 func TestParseGitHubRepo(t *testing.T) {
 	t.Parallel()
 
+	const (
+		owner = "owner"
+		repo  = "repo"
+	)
+
 	tests := []struct {
 		name      string
 		input     string
@@ -20,9 +25,9 @@ func TestParseGitHubRepo(t *testing.T) {
 		wantErr   bool
 	}{
 		{"https url", "https://github.com/huggingface/skills", "huggingface", "skills", false},
-		{"https with .git suffix", "https://github.com/owner/repo.git", "owner", "repo", false},
-		{"https with trailing slash", "https://github.com/owner/repo/", "owner", "repo", false},
-		{"http url", "http://github.com/owner/repo", "owner", "repo", false},
+		{"https with .git suffix", "https://github.com/owner/repo.git", owner, repo, false},
+		{"https with trailing slash", "https://github.com/owner/repo/", owner, repo, false},
+		{"http url", "http://github.com/owner/repo", owner, repo, false},
 		{"trailing slash with no repo is rejected", "https://github.com/owner/", "", "", true},
 		{"missing repo", "https://github.com/owner", "", "", true},
 		{"non-github host rejected", "https://gitlab.com/owner/repo", "", "", true},

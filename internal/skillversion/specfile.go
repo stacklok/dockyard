@@ -114,9 +114,12 @@ func replaceVersionInSpecBlock(src, newVersion string) (string, error) {
 	if loc == nil {
 		return src, nil
 	}
-	prefix := specBody[:loc[2]]                                 // up to the indentation+key
-	keyPart := specBody[loc[2]:loc[3]]                          // "  version: "
-	suffix := specBody[loc[1]:]                                 // after the value
+	// prefix = everything before the indentation; keyPart = "  version: ";
+	// suffix = everything after the original value.  We rewrite only the value
+	// (always quoted) and concatenate the three slices back together.
+	prefix := specBody[:loc[2]]
+	keyPart := specBody[loc[2]:loc[3]]
+	suffix := specBody[loc[1]:]
 	newBody := prefix + keyPart + `"` + newVersion + `"` + suffix
 
 	return src[:bodyStart] + newBody + rest[end:], nil
