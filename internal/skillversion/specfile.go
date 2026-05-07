@@ -52,13 +52,22 @@ func readBaseSpec(baseRef, path string) (skillSpecYAML, error) {
 	return s, nil
 }
 
-// versionLineRe matches a `  version: "X.Y.Z"` line inside a spec.yaml.
-// It handles both quoted ("X.Y.Z") and bare (X.Y.Z) values.
+// specBlockStartRe matches the start of the top-level `spec:` block.
+var specBlockStartRe = regexp.MustCompile(`(?m)^spec:\s*$`)
+
+// nextTopLevelKeyRe matches the start of any other top-level YAML key (used to
+// locate the end of the spec block).
+var nextTopLevelKeyRe = regexp.MustCompile(`(?m)^\S`)
+
+// versionLineRe matches a `  version: "X.Y.Z"` line — used only inside the
+// already-isolated `spec:` block, so we don't risk rewriting unrelated fields.
 var versionLineRe = regexp.MustCompile(`(?m)^(\s+version:\s+)"?(\d+\.\d+\.\d+)"?`)
 
-// updateSpecVersion rewrites the `version:` field inside the spec block of
-// path on disk to newVersion, preserving all other content (including
-// comments).
+// updateSpecVersion rewrites the `version:` field inside the top-level `spec:`
+// block of path on disk to newVersion, preserving all other content
+// (including comments).  Only the first `version:` inside the spec block is
+// rewritten; nested or sibling `version:` lines elsewhere in the file are
+// untouched.
 func updateSpecVersion(path, newVersion string) error {
 	if err := validateSpecPath(path); err != nil {
 		return err
@@ -71,20 +80,46 @@ func updateSpecVersion(path, newVersion string) error {
 	}
 
 	original := string(data)
-	updated := versionLineRe.ReplaceAllStringFunc(original, func(match string) string {
-		// Preserve the indentation + key portion, replace only the value.
-		sub := versionLineRe.FindStringSubmatch(match)
-		if len(sub) < 3 {
-			return match
-		}
-		return sub[1] + `"` + newVersion + `"`
-	})
-
+	updated, err := replaceVersionInSpecBlock(original, newVersion)
+	if err != nil {
+		return fmt.Errorf("%s: %w", cleanPath, err)
+	}
 	if updated == original {
 		return fmt.Errorf("version field not found or unchanged in %s", cleanPath)
 	}
 
 	return os.WriteFile(cleanPath, []byte(updated), 0600) //#nosec G703 -- path validated above
+}
+
+// replaceVersionInSpecBlock locates the top-level `spec:` block in src and
+// rewrites the first `version:` line found inside it to newVersion.  Returns
+// the rewritten document.  Exposed (lowercase) for unit testing.
+func replaceVersionInSpecBlock(src, newVersion string) (string, error) {
+	specStart := specBlockStartRe.FindStringIndex(src)
+	if specStart == nil {
+		return "", fmt.Errorf("no top-level `spec:` block found")
+	}
+	bodyStart := specStart[1]
+
+	// Find where the spec block ends (next top-level key, or EOF).
+	rest := src[bodyStart:]
+	end := len(rest)
+	if nextKey := nextTopLevelKeyRe.FindStringIndex(rest); nextKey != nil {
+		end = nextKey[0]
+	}
+	specBody := rest[:end]
+
+	// Replace only the first `version:` line in the spec body.
+	loc := versionLineRe.FindStringSubmatchIndex(specBody)
+	if loc == nil {
+		return src, nil
+	}
+	prefix := specBody[:loc[2]]                                 // up to the indentation+key
+	keyPart := specBody[loc[2]:loc[3]]                          // "  version: "
+	suffix := specBody[loc[1]:]                                 // after the value
+	newBody := prefix + keyPart + `"` + newVersion + `"` + suffix
+
+	return src[:bodyStart] + newBody + rest[end:], nil
 }
 
 // validateSpecPath ensures path refers to a skill spec.yaml and contains no
@@ -101,9 +136,17 @@ func validateSpecPath(path string) error {
 }
 
 // changedSkillSpecs returns the paths of skills/*/spec.yaml files that differ
-// between baseRef and HEAD using `git diff --name-only`.
+// between baseRef and HEAD using `git diff --name-only baseRef...HEAD`.
+//
+// The triple-dot form (merge-base) matches what build-skills.yml uses and
+// avoids picking up unstaged local edits when the tool is run from a working
+// tree with uncommitted changes.
 func changedSkillSpecs(baseRef string) ([]string, error) {
-	cmd := exec.Command("git", "diff", "--name-only", baseRef, "--", "skills/*/spec.yaml") //#nosec G204
+	cmd := exec.Command( //#nosec G204 -- baseRef is from the CLI/CI env
+		"git", "diff", "--name-only",
+		baseRef+"...HEAD",
+		"--", "skills/*/spec.yaml",
+	)
 	var stdout, stderr bytes.Buffer
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
