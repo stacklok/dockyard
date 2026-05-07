@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 
@@ -59,9 +60,14 @@ var versionLineRe = regexp.MustCompile(`(?m)^(\s+version:\s+)"?(\d+\.\d+\.\d+)"?
 // path on disk to newVersion, preserving all other content (including
 // comments).
 func updateSpecVersion(path, newVersion string) error {
-	data, err := os.ReadFile(path) //#nosec G304 -- path comes from the CLI caller
+	if err := validateSpecPath(path); err != nil {
+		return err
+	}
+
+	cleanPath := filepath.Clean(path)
+	data, err := os.ReadFile(cleanPath) //#nosec G304 -- path validated by validateSpecPath
 	if err != nil {
-		return fmt.Errorf("reading %s: %w", path, err)
+		return fmt.Errorf("reading %s: %w", cleanPath, err)
 	}
 
 	original := string(data)
@@ -75,10 +81,23 @@ func updateSpecVersion(path, newVersion string) error {
 	})
 
 	if updated == original {
-		return fmt.Errorf("version field not found or unchanged in %s", path)
+		return fmt.Errorf("version field not found or unchanged in %s", cleanPath)
 	}
 
-	return os.WriteFile(path, []byte(updated), 0600)
+	return os.WriteFile(cleanPath, []byte(updated), 0600) //#nosec G703 -- path validated above
+}
+
+// validateSpecPath ensures path refers to a skill spec.yaml and contains no
+// directory traversal components.
+func validateSpecPath(path string) error {
+	clean := filepath.Clean(path)
+	if strings.Contains(clean, "..") {
+		return fmt.Errorf("refusing to write %q: path traversal detected", path)
+	}
+	if !strings.HasPrefix(clean, "skills/") || !strings.HasSuffix(clean, "/spec.yaml") {
+		return fmt.Errorf("refusing to write %q: must be a skills/*/spec.yaml path", path)
+	}
+	return nil
 }
 
 // changedSkillSpecs returns the paths of skills/*/spec.yaml files that differ

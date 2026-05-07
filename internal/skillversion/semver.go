@@ -57,7 +57,8 @@ func (s Semver) Bump(t BumpType) Semver {
 	switch t {
 	case BumpMinor:
 		return s.BumpMinor()
-	default:
+	case BumpPatch:
 		return s.BumpPatch()
 	}
+	return s.BumpPatch()
 }

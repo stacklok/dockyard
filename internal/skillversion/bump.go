@@ -72,8 +72,7 @@ func processOneSpec(ctx context.Context, cfg Config, path string) (BumpResult, e
 
 	base, err := readBaseSpec(cfg.BaseRef, path)
 	if err != nil {
-		// File may be new (no base); treat as needing a patch bump from 0.1.0.
-		// We skip it here — the PR author must set an initial version.
+		// File may be new (no base); skip — PR author must set an initial version.
 		return BumpResult{SpecPath: path, Skipped: true}, nil
 	}
 
@@ -90,49 +89,54 @@ func processOneSpec(ctx context.Context, cfg Config, path string) (BumpResult, e
 		return result, nil
 	}
 
-	// ref changed — compute expected version
-	var signals ChangeSignals
-	if !cfg.SkipAPICall && head.Spec.Repository != "" && base.Spec.Ref != "" && head.Spec.Ref != "" {
-		owner, repo, err := parseGitHubRepo(head.Spec.Repository)
-		if err == nil {
-			signals, err = computeSignals(ctx, cfg.Token, owner, repo, base.Spec.Ref, head.Spec.Ref, head.Spec.Path)
-			if err != nil {
-				// Non-fatal: fall back to patch if the API is unreachable.
-				fmt.Printf("warning: GitHub compare API failed for %s: %v (defaulting to patch)\n", path, err)
-			}
-		}
-	}
-
-	bump := DetermineBump(signals)
-	result.Bump = bump
+	signals := fetchSignals(ctx, cfg, head, base.Spec.Ref, path)
 	result.Signals = signals
+	result.Bump = DetermineBump(signals)
 
-	current, err := ParseSemver(head.Spec.Version)
+	return finalizeVersion(cfg, result, base.Spec.Version, head.Spec.Version)
+}
+
+// fetchSignals calls the GitHub compare API and returns ChangeSignals.
+// On any error it logs a warning and returns an empty ChangeSignals (patch default).
+func fetchSignals(ctx context.Context, cfg Config, head skillSpecYAML, oldRef, specPath string) ChangeSignals {
+	if cfg.SkipAPICall || head.Spec.Repository == "" || oldRef == "" || head.Spec.Ref == "" {
+		return ChangeSignals{}
+	}
+	owner, repo, err := parseGitHubRepo(head.Spec.Repository)
 	if err != nil {
-		return BumpResult{}, fmt.Errorf("parsing current version %q: %w", head.Spec.Version, err)
+		return ChangeSignals{}
+	}
+	signals, err := computeSignals(ctx, cfg.Token, owner, repo, oldRef, head.Spec.Ref, head.Spec.Path)
+	if err != nil {
+		fmt.Printf("warning: GitHub compare API failed for %s: %v (defaulting to patch)\n", specPath, err)
+		return ChangeSignals{}
+	}
+	return signals
+}
+
+// finalizeVersion computes the expected version from bump type, compares it to
+// the current version on disk, and writes it if cfg.Write is set.
+func finalizeVersion(cfg Config, result BumpResult, oldVersion, currentVersion string) (BumpResult, error) {
+	current, err := ParseSemver(currentVersion)
+	if err != nil {
+		return BumpResult{}, fmt.Errorf("parsing current version %q: %w", currentVersion, err)
 	}
 
-	old, err := ParseSemver(base.Spec.Version)
+	old, err := ParseSemver(oldVersion)
 	if err != nil {
-		return BumpResult{}, fmt.Errorf("parsing base version %q: %w", base.Spec.Version, err)
+		return BumpResult{}, fmt.Errorf("parsing base version %q: %w", oldVersion, err)
 	}
 
-	expected := old.Bump(bump)
+	expected := old.Bump(result.Bump)
 	result.ExpectedVersion = expected.String()
 
-	if current.String() == expected.String() {
-		result.UpToDate = true
-		return result, nil
-	}
-
-	// Check if a higher bump was manually applied (acceptable).
-	if isHigherOrEqualBump(current, old, expected) {
+	if current.String() == expected.String() || isHigherOrEqualBump(current, expected) {
 		result.UpToDate = true
 		return result, nil
 	}
 
 	if cfg.Write {
-		if err := updateSpecVersion(path, expected.String()); err != nil {
+		if err := updateSpecVersion(result.SpecPath, expected.String()); err != nil {
 			return result, fmt.Errorf("writing version: %w", err)
 		}
 		result.CurrentVersion = expected.String()
@@ -142,22 +146,17 @@ func processOneSpec(ctx context.Context, cfg Config, path string) (BumpResult, e
 	return result, nil
 }
 
-// isHigherOrEqualBump returns true when the current version in the file is
-// already at least as high as the expected version, which means the human
-// reviewer applied a higher bump (e.g. minor when we suggested patch).
-func isHigherOrEqualBump(current, old, expected Semver) bool {
-	if current.Major > expected.Major {
-		return true
+// isHigherOrEqualBump returns true when current is already at or above
+// expected, meaning the reviewer applied a higher bump than the heuristic
+// suggested (e.g. minor when the tool would have picked patch).
+func isHigherOrEqualBump(current, expected Semver) bool {
+	if current.Major != expected.Major {
+		return current.Major > expected.Major
 	}
-	if current.Major == expected.Major && current.Minor > expected.Minor {
-		return true
+	if current.Minor != expected.Minor {
+		return current.Minor > expected.Minor
 	}
-	if current.Major == expected.Major && current.Minor == expected.Minor && current.Patch >= expected.Patch {
-		return true
-	}
-	// Also check that it's actually higher than old (not a downgrade).
-	_ = old
-	return false
+	return current.Patch >= expected.Patch
 }
 
 // CheckErrors returns a formatted error message listing all specs that are
@@ -178,7 +177,11 @@ func CheckErrors(results []BumpResult) error {
 	if len(bad) == 0 {
 		return nil
 	}
-	return fmt.Errorf("skill version check failed — run `go run ./cmd/skillversionbump --write` to fix:\n%s", strings.Join(bad, "\n"))
+	return fmt.Errorf(
+		"skill version check failed"+
+			" — run `go run ./cmd/skillversionbump --write` to fix:\n%s",
+		strings.Join(bad, "\n"),
+	)
 }
 
 func shortRef(ref string) string {

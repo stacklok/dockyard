@@ -30,13 +30,11 @@ func main() {
 }
 
 func newRootCmd() *cobra.Command {
-	var (
-		baseRef     string
-		write       bool
-		skipAPI     bool
-		token       string
-		specPaths   []string
-	)
+	var baseRef string
+	var write bool
+	var skipAPI bool
+	var token string
+	var specPaths []string
 
 	cmd := &cobra.Command{
 		Use:   "skillversionbump",

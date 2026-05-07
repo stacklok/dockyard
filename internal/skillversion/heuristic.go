@@ -27,7 +27,9 @@ var featCommitRe = regexp.MustCompile(`(?i)^(feat|feature)[\(:]`)
 type BumpType string
 
 const (
+	// BumpPatch means increment the patch version component (default).
 	BumpPatch BumpType = "patch"
+	// BumpMinor means increment the minor version component and reset patch to 0.
 	BumpMinor BumpType = "minor"
 )
 
