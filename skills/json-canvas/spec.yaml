@@ -1,0 +1,23 @@
+# Kepano json-canvas Skill
+# Create and edit JSON Canvas files (.canvas) with nodes, edges, groups, and connections.
+# Source: https://github.com/kepano/obsidian-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/json-canvas:0.1.0
+
+metadata:
+  name: json-canvas
+  description: "Create and edit JSON Canvas files (.canvas) with nodes, edges, groups, and connections. Use when working with .canvas files, creating visual canvases, mind maps, flowcharts, or when the user mentions Canvas files in Obsidian."
+
+spec:
+  repository: "https://github.com/kepano/obsidian-skills"
+  ref: "fa1e131a014576ff8f8919f191a7ca8d8fded39b"  # main as of 2026-04-02
+  path: "skills/json-canvas"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/kepano/obsidian-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "kepano/obsidian-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
