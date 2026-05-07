@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "b843cb5ea74b1fe5e58a0fc23cddef9e66076fb8"  # main as of 2026-04-30
+  ref: "733d312884b3878a9a9cff693c5886943753a741"  # main as of 2026-04-30
   path: "skills/productivity/write-a-skill"
   version: "0.1.0"
 
