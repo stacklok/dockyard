@@ -1,0 +1,23 @@
+# Entire search Skill
+# Find prior work, checkpoints, and agent conversations in Entire history before guessing from memory.
+# Source: https://github.com/entireio/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/entire-search:0.1.0
+
+metadata:
+  name: entire-search
+  description: "Find prior work, checkpoints, or agent conversations in Entire history by topic, repo, branch, author, or recent time window. Use before guessing from memory."
+
+spec:
+  repository: "https://github.com/entireio/skills"
+  ref: "c376dc971045eb38c094802ca43875d1cfa00ea4"  # main as of 2026-05-07
+  path: "skills/search"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/entireio/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "entireio/skills is MIT-licensed at the repo root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

@@ -1,0 +1,23 @@
+# Entire explain Skill
+# Explain code intent by tracing it back to the original Entire session transcript.
+# Source: https://github.com/entireio/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/entire-explain:0.1.0
+
+metadata:
+  name: entire-explain
+  description: "Explain the intent behind a function, file, or line by tracing it back to the original Entire session transcript that produced it."
+
+spec:
+  repository: "https://github.com/entireio/skills"
+  ref: "c376dc971045eb38c094802ca43875d1cfa00ea4"  # main as of 2026-05-07
+  path: "skills/explain"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/entireio/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "entireio/skills is MIT-licensed at the repo root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
