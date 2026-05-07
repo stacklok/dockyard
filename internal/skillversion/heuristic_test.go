@@ -5,6 +5,8 @@ import (
 )
 
 func TestDetermineBump(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		name    string
 		signals ChangeSignals
@@ -49,6 +51,8 @@ func TestDetermineBump(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+
 			got := DetermineBump(tt.signals)
 			if got != tt.want {
 				t.Errorf("DetermineBump(%+v) = %q, want %q", tt.signals, got, tt.want)
@@ -58,6 +62,8 @@ func TestDetermineBump(t *testing.T) {
 }
 
 func TestIsFeatCommitMessage(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		msg  string
 		want bool
@@ -76,6 +82,8 @@ func TestIsFeatCommitMessage(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.msg, func(t *testing.T) {
+			t.Parallel()
+
 			got := IsFeatCommitMessage(tt.msg)
 			if got != tt.want {
 				t.Errorf("IsFeatCommitMessage(%q) = %v, want %v", tt.msg, got, tt.want)

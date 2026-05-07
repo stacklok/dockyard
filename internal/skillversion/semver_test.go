@@ -5,6 +5,8 @@ import (
 )
 
 func TestParseSemver(t *testing.T) {
+	t.Parallel()
+
 	tests := []struct {
 		input   string
 		want    Semver
@@ -22,6 +24,8 @@ func TestParseSemver(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.input, func(t *testing.T) {
+			t.Parallel()
+
 			got, err := ParseSemver(tt.input)
 			if (err != nil) != tt.wantErr {
 				t.Fatalf("ParseSemver(%q) error = %v, wantErr %v", tt.input, err, tt.wantErr)
@@ -34,6 +38,8 @@ func TestParseSemver(t *testing.T) {
 }
 
 func TestSemverBump(t *testing.T) {
+	t.Parallel()
+
 	base := Semver{0, 1, 0}
 
 	if got := base.BumpPatch(); got != (Semver{0, 1, 1}) {
@@ -51,6 +57,8 @@ func TestSemverBump(t *testing.T) {
 }
 
 func TestSemverString(t *testing.T) {
+	t.Parallel()
+
 	s := Semver{1, 2, 3}
 	if got := s.String(); got != "1.2.3" {
 		t.Errorf("String() = %q, want %q", got, "1.2.3")
