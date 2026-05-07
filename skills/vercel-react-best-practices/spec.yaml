@@ -10,7 +10,7 @@ metadata:
 
 spec:
   repository: "https://github.com/vercel-labs/agent-skills"
-  ref: "ce3e64e468f8fa09a2d075d102771838061fdac0"  # main as of 2026-04-30
+  ref: "b9c8ee0643d87d3c5a953d1e22382ff2ead39229"  # main as of 2026-04-30
   path: "skills/react-best-practices"
   version: "0.1.0"
 
