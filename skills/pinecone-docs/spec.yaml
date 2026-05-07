@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/pinecone-io/skills"
-  ref: "787cd274ffeae942c9dcd693eadb86bafcacca19"  # main as of 2026-03-11
+  ref: "c91a85f5b8415bde6891f180aa79e09279c38706"  # main as of 2026-03-11
   path: "skills/pinecone-docs"
   version: "0.1.0"
 
