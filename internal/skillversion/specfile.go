@@ -144,9 +144,13 @@ func validateSpecPath(path string) error {
 // The triple-dot form (merge-base) matches what build-skills.yml uses and
 // avoids picking up unstaged local edits when the tool is run from a working
 // tree with uncommitted changes.
+//
+// `--diff-filter=d` (lowercase) excludes deletions: a deleted spec has no
+// HEAD version to bump, and feeding the path through readSpec would just
+// fail with ENOENT.
 func changedSkillSpecs(baseRef string) ([]string, error) {
 	cmd := exec.Command( //#nosec G204 -- baseRef is from the CLI/CI env
-		"git", "diff", "--name-only",
+		"git", "diff", "--name-only", "--diff-filter=d",
 		baseRef+"...HEAD",
 		"--", "skills/*/spec.yaml",
 	)
