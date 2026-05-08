@@ -21,3 +21,12 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "firebase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00013
+      reason: |
+        False positive — matches `http://localhost:4000` in
+        references/standard/provisioning.md, where the skill documents the
+        standard Firebase Local Emulator Suite UI URL
+        (`http://localhost:4000/firestore`) for local development. This is
+        a documented Firebase developer URL that runs on the user's own
+        machine, not an outbound network call. Verified at digest
+        9067c1e3d3afbb212235356702db6ab4b82ec88a.
