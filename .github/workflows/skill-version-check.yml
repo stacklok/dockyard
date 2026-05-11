@@ -21,11 +21,21 @@ jobs:
     name: Check skill spec.version
     runs-on: ubuntu-latest
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: read
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           # Fetch enough history so `git show <base>:<path>` works.
           fetch-depth: 0
+          token: ${{ steps.app-token.outputs.token }}
+          persist-credentials: false
 
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -34,7 +44,7 @@ jobs:
 
       - name: Check skill versions
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           go run ./cmd/skillversionbump \
@@ -43,10 +53,16 @@ jobs:
   # skill-version-autofix runs only for the Renovate / Dependabot bots and
   # only when their PR comes from a branch in this repo (Renovate creates
   # branches here, not forks).  It uses the standard `pull_request` trigger
-  # plus `permissions: contents: write` to commit the corrected version back
-  # to the PR branch — no `pull_request_target` is needed (and avoiding it
+  # and pushes through a GitHub App installation token (see "Generate GitHub
+  # App token" below) — no `pull_request_target` is needed (and avoiding it
   # is safer: pull_request_target would run the head ref with elevated
   # permissions, which is the classic supply-chain footgun).
+  #
+  # The App token (rather than GITHUB_TOKEN) is required for two reasons:
+  #   1. Commits made with the default GITHUB_TOKEN do not re-trigger
+  #      workflows on the PR branch, so CI would silently skip the fix-up.
+  #   2. The PR is authored by Renovate / Dependabot; using a dedicated App
+  #      makes the bot author of the auto-fix commit identifiable.
   skill-version-autofix:
     name: Auto-fix skill spec.version (Renovate only)
     runs-on: ubuntu-latest
@@ -54,20 +70,36 @@ jobs:
     if: >
       github.actor == 'renovate[bot]' ||
       github.actor == 'dependabot[bot]'
-    # Write access is needed to commit back to the PR branch.
-    permissions:
-      contents: write
+    # No GITHUB_TOKEN access — the push uses a GitHub App installation token
+    # (see the "Generate GitHub App token" step below).  Going through the App
+    # is required because commits made with the default GITHUB_TOKEN do not
+    # re-trigger workflows on the PR branch.
+    permissions: {}
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-contents: write
+
+      - name: Get GitHub App user id
+        id: app-user
+        env:
+          GH_TOKEN: ${{ steps.app-token.outputs.token }}
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+        run: |
+          user_id=$(gh api "/users/${APP_SLUG}[bot]" --jq .id)
+          echo "id=${user_id}" >> "$GITHUB_OUTPUT"
+
       - name: Checkout
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6
         with:
           fetch-depth: 0
           # Use the head ref directly so we can push to it.
           ref: ${{ github.event.pull_request.head.ref }}
-          # A bot token with write access is required here.
-          # Replace with a PAT or GitHub App token if GITHUB_TOKEN
-          # does not have push rights on your repo configuration.
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ steps.app-token.outputs.token }}
 
       - name: Set up Go
         uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6
@@ -77,7 +109,7 @@ jobs:
       - name: Apply skill version bumps
         id: bump
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ steps.app-token.outputs.token }}
           GITHUB_BASE_SHA: ${{ github.event.pull_request.base.sha }}
         run: |
           go run ./cmd/skillversionbump \
@@ -93,9 +125,12 @@ jobs:
 
       - name: Commit version bumps
         if: steps.bump.outputs.changed == 'true'
+        env:
+          APP_SLUG: ${{ steps.app-token.outputs.app-slug }}
+          APP_USER_ID: ${{ steps.app-user.outputs.id }}
         run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git config user.name  "${APP_SLUG}[bot]"
+          git config user.email "${APP_USER_ID}+${APP_SLUG}[bot]@users.noreply.github.com"
           git add 'skills/*/spec.yaml'
 
           # Build a list of skill names from the staged spec.yaml paths so the
