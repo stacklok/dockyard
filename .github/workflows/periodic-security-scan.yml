@@ -43,7 +43,6 @@ jobs:
 
     permissions:
       contents: read
-      packages: read
       security-events: write
       issues: write  # To create issues for critical findings
 
@@ -80,12 +79,22 @@ jobs:
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
           echo "image_ref=${image_name}:${version}" >> $GITHUB_OUTPUT
 
+      - name: Generate GitHub App token (for GHCR pull)
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          # `permission-packages: read` would be ideal, but the App permission
+          # is `packages: write` (read is implied). The token is scoped to that.
+          permission-packages: write
+
       - name: Log in to Container Registry
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ steps.app-token.outputs.app-slug }}
+          password: ${{ steps.app-token.outputs.token }}
 
       - name: Run Grype vulnerability scan (SARIF)
         id: grype-scan

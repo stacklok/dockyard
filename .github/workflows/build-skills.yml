@@ -287,7 +287,6 @@ jobs:
 
     permissions:
       contents: read
-      packages: write
       id-token: write  # Needed for OIDC token (cosign keyless signing, attestations)
       attestations: write  # Needed for actions/attest-* to publish attestations
 
@@ -307,13 +306,22 @@ jobs:
       - name: Install yq
         uses: mikefarah/yq@751d8ad57b84f1794661bc70c0afb92a22ad7b3c # v4.53.2
 
+      - name: Generate GitHub App token
+        id: app-token
+        if: github.event_name != 'pull_request'
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-packages: write
+
       - name: Log in to Container Registry
         if: github.event_name != 'pull_request'
         uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
         with:
           registry: ${{ env.REGISTRY }}
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: ${{ steps.app-token.outputs.app-slug }}
+          password: ${{ steps.app-token.outputs.token }}
 
       - name: Extract metadata from config
         id: meta
