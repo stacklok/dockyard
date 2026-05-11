@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/stripe/agent-toolkit"
   ref: "b40276ed49c1db917fef6539ebbee38f8cc4e2af"  # main as of 2026-04-16
   path: "skills/upgrade-stripe"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/stripe/agent-toolkit"
