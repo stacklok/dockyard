@@ -8,21 +8,29 @@ on:
     workflows: ["Build MCP Server Containers"]
     types: [completed]
 
-permissions:
-  pull-requests: write
+permissions: {}
 
 jobs:
   mcp-scan-report:
     runs-on: ubuntu-latest
     if: github.event.workflow_run.event == 'pull_request'
     steps:
+      - name: Generate GitHub App token
+        id: app-token
+        uses: actions/create-github-app-token@1b10c78c7865c340bc4f6099eb2f838309f1e8c3 # v3.1.1
+        with:
+          client-id: ${{ vars.RELEASE_APP_CLIENT_ID }}
+          private-key: ${{ secrets.RELEASE_APP_PRIVATE_KEY }}
+          permission-actions: read
+          permission-pull-requests: write
+
       - name: Download PR number artifact
         id: pr-number
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
         with:
           name: pr-number
           run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.app-token.outputs.token }}
 
       - name: Read PR number
         id: read-pr
@@ -37,13 +45,14 @@ jobs:
         with:
           pattern: mcp-scan-*
           run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ steps.app-token.outputs.token }}
           path: scan-artifacts
         continue-on-error: true
 
       - name: Comment PR with scan results
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9
         with:
+          github-token: ${{ steps.app-token.outputs.token }}
           script: |
             const fs = require('fs');
             const path = require('path');
