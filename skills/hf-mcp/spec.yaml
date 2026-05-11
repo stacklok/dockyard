@@ -13,7 +13,7 @@ spec:
   repository: "https://github.com/huggingface/skills"
   ref: "c3accb78c01b249a060ca87acac9df96368b2f57"  # main as of 2026-04-16
   path: "hf-mcp/skills/hf-mcp"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/huggingface/skills"
