@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "89aaec068abcc70368ccd3e1f7fee58a66313377"  # main as of 2026-04-20
+  ref: "c81373583417504de2d3be1ae3d81977b11b2981"  # main as of 2026-04-20
   path: "skills/prompt-optimizer"
-  version: "0.1.0"
+  version: "0.1.1"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
