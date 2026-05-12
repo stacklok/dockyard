@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/mongodb/agent-skills"
-  ref: "160e31ea50af4192aeed08f04ef6dc1fe5676930"  # main as of 2026-04-07
+  ref: "5cbde1c81a8c5e18de0952e52ec90808be11283f"  # main as of 2026-04-07
   path: "skills/mongodb-search-and-ai"
-  version: "0.1.0"
+  version: "0.1.1"
 
 provenance:
   repository_uri: "https://github.com/mongodb/agent-skills"
