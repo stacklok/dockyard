@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/entireio/skills"
   ref: "6b321b784e0455c1247ee2972bc1d126e867d98f"  # main as of 2026-05-07
   path: "skills/session-handoff"
-  version: "0.1.0"
+  version: "0.1.1"
 
 provenance:
   repository_uri: "https://github.com/entireio/skills"
