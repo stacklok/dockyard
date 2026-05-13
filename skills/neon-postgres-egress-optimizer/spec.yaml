@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/neondatabase/agent-skills"
-  ref: "38c7da85db656c8c9efd1e6433c200212926fd2d"  # main as of 2026-04-14
+  ref: "ad7eade053f06f3ed6ada1d9cb72d0e264b5051b"  # main as of 2026-04-14
   path: "skills/neon-postgres-egress-optimizer"
   version: "0.1.0"
 
