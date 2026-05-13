@@ -11,7 +11,7 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "c3accb78c01b249a060ca87acac9df96368b2f57"  # main as of 2026-04-16
+  ref: "35810a6dbe518a0f7bd99b1e6550cb57b266ff0b"  # main as of 2026-04-16
   path: "skills/huggingface-vision-trainer"
   version: "0.1.2"
 
