@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "733d312884b3878a9a9cff693c5886943753a741"  # main as of 2026-04-30
+  ref: "f304057d61d3df3c9fd992ac2b6e3833cb9325fb"  # main as of 2026-04-30
   path: "skills/engineering/diagnose"
   version: "0.1.0"
 
