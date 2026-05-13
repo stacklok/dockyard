@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "f304057d61d3df3c9fd992ac2b6e3833cb9325fb"  # main as of 2026-04-30
   path: "skills/productivity/caveman"
-  version: "0.1.0"
+  version: "0.1.1"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
