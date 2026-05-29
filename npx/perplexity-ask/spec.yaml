@@ -16,3 +16,7 @@ spec:
 provenance:
   repository_uri: "https://github.com/perplexityai/modelcontextprotocol"
   repository_ref: "refs/heads/main"
+
+security:
+  # Server requires PERPLEXITY_API_KEY to start - cannot complete startup in CI
+  insecure_ignore: true

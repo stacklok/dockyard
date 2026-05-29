@@ -16,3 +16,16 @@ spec:
 provenance:
   repository_uri: "https://github.com/modelcontextprotocol/servers"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "AITech-12.1"
+      tool: "get-env"
+      reason: |
+        False positive — this is the official MCP reference/demo server,
+        intentionally exposing a `get-env` tool that "Prints all environment
+        variables, helpful for debugging MCP server configuration" (see the
+        server's own description). The scanner flags this as a data-poisoning
+        / configuration-tampering risk, but env-var inspection is the
+        documented purpose of the tool in a test fixture meant for protocol
+        exploration. Not a real exploit vector.

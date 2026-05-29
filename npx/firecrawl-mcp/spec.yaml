@@ -16,3 +16,7 @@ spec:
 provenance:
   repository_uri: "https://github.com/mendableai/firecrawl-mcp-server"
   repository_ref: "refs/heads/main"
+
+security:
+  # Server requires FIRECRAWL_API_KEY or FIRECRAWL_API_URL to start - cannot complete startup in CI
+  insecure_ignore: true
