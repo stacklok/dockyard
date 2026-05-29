@@ -1,0 +1,18 @@
+# Perplexity Ask MCP Server Configuration
+# Real-time web search, reasoning, and research via the Perplexity API
+# Package: https://www.npmjs.com/package/@perplexity-ai/mcp-server
+# Repository: https://github.com/perplexityai/modelcontextprotocol
+# Will build as: ghcr.io/stacklok/dockyard/npx/perplexity-ask:0.9.0
+
+metadata:
+  name: perplexity-ask
+  description: "Official Perplexity MCP server for real-time web search, reasoning, and research via Sonar models"
+  protocol: npx
+
+spec:
+  package: "@perplexity-ai/mcp-server"
+  version: "0.9.0"
+
+provenance:
+  repository_uri: "https://github.com/perplexityai/modelcontextprotocol"
+  repository_ref: "refs/heads/main"

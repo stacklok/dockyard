@@ -1,0 +1,18 @@
+# Everything MCP Server Configuration
+# Reference and demonstration MCP server exercising all features of the MCP protocol
+# Package: https://www.npmjs.com/package/@modelcontextprotocol/server-everything
+# Repository: https://github.com/modelcontextprotocol/servers
+# Will build as: ghcr.io/stacklok/dockyard/npx/server-everything:2026.1.26
+
+metadata:
+  name: server-everything
+  description: "Reference and demonstration MCP server exercising all features of the MCP protocol (tools, resources, prompts, sampling, etc.)"
+  protocol: npx
+
+spec:
+  package: "@modelcontextprotocol/server-everything"
+  version: "2026.1.26"
+
+provenance:
+  repository_uri: "https://github.com/modelcontextprotocol/servers"
+  repository_ref: "refs/heads/main"

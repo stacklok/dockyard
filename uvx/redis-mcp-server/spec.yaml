@@ -1,0 +1,18 @@
+# Redis MCP Server Configuration
+# Natural-language interface for managing and querying Redis data
+# Package: https://pypi.org/project/redis-mcp-server/
+# Repository: https://github.com/redis/mcp-redis
+# Will build as: ghcr.io/stacklok/dockyard/uvx/redis-mcp-server:0.5.0
+
+metadata:
+  name: redis-mcp-server
+  description: "Official Redis MCP server providing a natural-language interface for managing and querying Redis data"
+  protocol: uvx
+
+spec:
+  package: "redis-mcp-server"
+  version: "0.5.0"
+
+provenance:
+  repository_uri: "https://github.com/redis/mcp-redis"
+  repository_ref: "refs/heads/main"
