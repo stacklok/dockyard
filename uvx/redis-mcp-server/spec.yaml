@@ -1,0 +1,31 @@
+# Redis MCP Server Configuration
+# Natural-language interface for managing and querying Redis data
+# Package: https://pypi.org/project/redis-mcp-server/
+# Repository: https://github.com/redis/mcp-redis
+# Will build as: ghcr.io/stacklok/dockyard/uvx/redis-mcp-server:0.5.0
+
+metadata:
+  name: redis-mcp-server
+  description: "Official Redis MCP server providing a natural-language interface for managing and querying Redis data"
+  protocol: uvx
+
+spec:
+  package: "redis-mcp-server"
+  version: "0.5.0"
+
+provenance:
+  repository_uri: "https://github.com/redis/mcp-redis"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "AITech-1.1"
+      tool: "search_redis_documents"
+      reason: |
+        False positive — the scanner flags the tool description for
+        instruction-override patterns, but the language is legitimate
+        operational guidance about how to query Redis Search (e.g. field
+        weighting, syntax) rather than a system-prompt override. The
+        description does not contain "ignore previous instructions" or any
+        equivalent override pattern. Verified against redis-mcp-server v0.5.0
+        published by Redis Inc (https://github.com/redis/mcp-redis).

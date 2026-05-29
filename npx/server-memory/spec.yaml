@@ -1,0 +1,18 @@
+# Memory MCP Server Configuration
+# Knowledge-graph-based persistent memory for AI assistants
+# Package: https://www.npmjs.com/package/@modelcontextprotocol/server-memory
+# Repository: https://github.com/modelcontextprotocol/servers
+# Will build as: ghcr.io/stacklok/dockyard/npx/server-memory:2026.1.26
+
+metadata:
+  name: server-memory
+  description: "Knowledge-graph-based persistent memory for AI assistants, allowing models to remember information across sessions"
+  protocol: npx
+
+spec:
+  package: "@modelcontextprotocol/server-memory"
+  version: "2026.1.26"
+
+provenance:
+  repository_uri: "https://github.com/modelcontextprotocol/servers"
+  repository_ref: "refs/heads/main"

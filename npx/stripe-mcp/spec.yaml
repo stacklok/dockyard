@@ -1,0 +1,22 @@
+# Stripe MCP Server Configuration
+# Stripe API tools for managing payments, subscriptions, products, and customers
+# Package: https://www.npmjs.com/package/@stripe/mcp
+# Repository: https://github.com/stripe/agent-toolkit
+# Will build as: ghcr.io/stacklok/dockyard/npx/stripe-mcp:0.3.3
+
+metadata:
+  name: stripe-mcp
+  description: "Official Stripe MCP server providing API tools for managing payments, subscriptions, products, and customers"
+  protocol: npx
+
+spec:
+  package: "@stripe/mcp"
+  version: "0.3.3"
+
+provenance:
+  repository_uri: "https://github.com/stripe/agent-toolkit"
+  repository_ref: "refs/heads/main"
+
+security:
+  # Server requires STRIPE_SECRET_KEY to start - cannot complete startup in CI
+  insecure_ignore: true
