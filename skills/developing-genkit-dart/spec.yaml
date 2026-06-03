@@ -31,3 +31,7 @@ security:
         instruction text, not an MCP tool response. The host (cli.genkit.dev)
         is the official Google Genkit installer endpoint. Verified at digest
         30bcb303e56f5d39f2d3c4214b53821adfb5b65c.
+    # FP: cisco-ai-skill-scanner matched a legitimate MCP server config example
+    # in reference documentation; no executable threat. firebase/agent-skills @02c0a61.
+    - rule_id: ATR_2026_00002
+      reason: "FP: cisco-ai-skill-scanner matched a documented MCP server config example ['-y', '@modelcontextprotocol/server-filesystem', '.'] in references/genkit_mcp.md; no executable threat. firebase/agent-skills @02c0a61."
