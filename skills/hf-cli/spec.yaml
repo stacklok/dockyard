@@ -49,3 +49,7 @@ security:
         SKILL.md:195) - the same official Hugging Face installer URL allowlisted
         above for PIPELINE_TAINT_FLOW / ATR_MCP_MALICIOUS_RESPONSE. Documentation
         prose, no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b.
+    - rule_id: ATR_2026_00012
+      reason: "FP: cisco-ai-skill-scanner pattern-matched the literal `$HF_TOKEN` token in a documented `hf` CLI example in SKILL.md:199; a documentation example, not an executable env-var exfiltration. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: LLM_DATA_EXFILTRATION
+      reason: "Risk accepted by maintainer (ozz@stacklok.com, 2026-06-03): the skill documents the official `hf auth token` / `hf auth list` CLI subcommands, which by design print the user's own HF token / token metadata. Surfacing first-party HF CLI auth commands is inherent to a CLI reference skill; it is user-initiated against the user's own account, not covert third-party exfiltration."
