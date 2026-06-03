@@ -21,6 +21,8 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00111
+      reason: "FP: cisco-ai-skill-scanner pattern-matched shell command-substitution fragments `$(cat citation.txt)` (SKILL.md:118) and `$(cat abstract.txt)` (SKILL.md:196) in documented CLI examples that read local user-authored paper text into a command; no untrusted input and no host command injection. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: DATA_EXFIL_NETWORK_REQUESTS
       reason: "`scripts/paper_manager.py` uses `requests.get()` to query the public Hugging Face Hub API (`api.huggingface.co`) for paper metadata — the skill's entire purpose. The destinations are the official HF API endpoints documented in the SKILL.md workflow."
     - rule_id: TOOL_ABUSE_UNDECLARED_NETWORK

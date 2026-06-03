@@ -23,6 +23,8 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00010
+      reason: "FP: cisco-ai-skill-scanner word-fragment match on `` `inc `` (the start of `include_readme`) in an hub_repo_details example in SKILL.md:171; a documented tool parameter, not an executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: ATR_2026_00012
       reason: "FP: cisco-ai-skill-scanner pattern-matched the literal `$HF_TOKEN` token in SKILL.md (lines 92, 172) where it documents passing HF_TOKEN as a job secret to hf_jobs; a documentation example, not an executable env-var exfiltration. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: ATR_2026_00111
