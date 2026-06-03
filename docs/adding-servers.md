@@ -41,6 +41,21 @@ spec:
     - "arg1"                       # Passed to the entrypoint command
     - "arg2"
 
+  # Optional (npx only): force pinned versions of transitive npm dependencies.
+  # Injected as an "overrides" block in the generated package.json. Each entry
+  # requires a reason so the justification is auditable in-repo.
+  overrides:
+    - package: "@modelcontextprotocol/sdk"
+      version: "1.26.0"
+      reason: "Upstream hard-pins a vulnerable version; this same-major bump fixes it."
+
+  # Optional (uvx only): force pinned versions of transitive Python dependencies.
+  # Written to a uv overrides requirements file and passed to `uv tool install
+  # --overrides`. Each entry requires a reason.
+  constraints:
+    - spec: "fastmcp>=3.2.0"
+      reason: "Upstream caps the dependency below the version that fixes a CVE."
+
 provenance:                        # Optional but recommended
   repository_uri: "https://github.com/user/repo"
   repository_ref: "refs/tags/v1.0.0"
@@ -137,6 +152,82 @@ provenance:
   repository_uri: "https://github.com/your-org/go-mcp-server"
   repository_ref: "refs/tags/v0.3.1"
 ```
+
+## Dependency Overrides and Constraints
+
+Sometimes a package pins or caps a **transitive dependency** to a version that
+fails the `build-containers` Grype gate (`--fail-on high --only-fixed`), and the
+fix lives in a version excluded by that pin/cap. Dockyard can force a different
+resolved version of the offending dependency without forking the upstream package.
+
+Every entry **must** include a `reason` (validation fails otherwise) so the
+justification for circumventing an upstream pin is auditable in-repo, mirroring
+`security.allowed_issues`.
+
+### npx: `spec.overrides`
+
+For `npx` servers, `spec.overrides` is injected as an [npm `overrides`](https://docs.npmjs.com/cli/v10/configuring-npm/package-json#overrides)
+block in the generated `package.json`, so npm resolves the pinned version
+regardless of the upstream-declared range:
+
+```yaml
+metadata:
+  name: brightdata-mcp
+  protocol: npx
+spec:
+  package: "@brightdata/mcp"
+  version: "2.9.5"
+  overrides:
+    - package: "@modelcontextprotocol/sdk"
+      version: "1.26.0"
+      reason: |
+        @brightdata/mcp hard-pins @modelcontextprotocol/sdk 1.21.2 (3x HIGH);
+        fixes are >=1.24. 1.26.0 is same-major, so no API break.
+```
+
+This rewrites the package.json step in the Dockerfile to:
+
+```dockerfile
+RUN echo '{"name":"mcp-container","overrides":{"@modelcontextprotocol/sdk":"1.26.0"},"version":"1.0.0"}' > package.json
+```
+
+### uvx: `spec.constraints`
+
+For `uvx` servers, each `spec.constraints[].spec` is a [PEP 508](https://peps.python.org/pep-0508/)
+requirement written to a uv overrides requirements file and passed to
+`uv tool install --overrides`, forcing the resolved version even when upstream
+caps it:
+
+```yaml
+metadata:
+  name: mcp-clickhouse
+  protocol: uvx
+spec:
+  package: "mcp-clickhouse"
+  version: "0.3.0"
+  constraints:
+    - spec: "fastmcp>=3.2.0"
+      reason: |
+        mcp-clickhouse caps fastmcp <3.0.0, but the CRITICAL CVE-2026-32871 fix
+        is fastmcp 3.2.0.
+```
+
+This injects an overrides file and rewrites the install step in the Dockerfile to:
+
+```dockerfile
+RUN printf '%s\n' \
+    'fastmcp>=3.2.0' \
+    > /tmp/uv-overrides.txt
+RUN package="mcp-clickhouse@0.3.0"; \
+    package_spec=$(echo "$package" | sed 's/@/==/'); \
+    uv tool install --overrides /tmp/uv-overrides.txt "$package_spec" && \
+    ls -la /opt/uv-tools/bin/
+```
+
+> **Caution:** Forcing a version across an upstream's *deliberate* cap can cross a
+> major version boundary (e.g. fastmcp 2.x → 3.x) and break the server's tools at
+> runtime even when the image builds and the package imports. Functionally test
+> the server before relying on such an override.
 
 ## Step-by-Step Process
 
