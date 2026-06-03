@@ -25,3 +25,5 @@ security:
       reason: "FP: cisco-ai-skill-scanner word-fragment match on the word `Upload`/`upload` in SKILL.md prose/code examples for creating-and-uploading datasets via the public HF Hub; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: ATR_2026_00021
       reason: "FP: cisco-ai-skill-scanner matched the documentation placeholder `export HF_TOKEN=<your_hf_token>` in a SKILL.md setup example — a literal placeholder, not a real secret value; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: LLM_DATA_EXFILTRATION
+      reason: "Risk accepted by maintainer (ozz@stacklok.com, 2026-06-03): the 'Agent Traces' dataset upload is first-party, user-initiated functionality. The skill reads local agent session dirs (~/.claude/projects, ~/.codex/sessions, ~/.pi/agent/sessions) and uploads JSONL to the user's own HF Datasets repo; the skill itself documents the PII/secret risk and recommends private repos. The same finding also flags HF_TOKEN being set/used in upload CLI commands — standard HF authentication. Not covert third-party exfiltration."

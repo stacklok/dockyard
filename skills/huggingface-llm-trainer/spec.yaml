@@ -65,6 +65,10 @@ security:
       reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: ATR_2026_00012
       reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00030
+      reason: "FP: cisco-ai-skill-scanner word-fragment match on the literal word `run` in the prose `run (uses GPU automatically if available)` in references/gguf_conversion.md:174; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00095
+      reason: "FP: cisco-ai-skill-scanner matched `subprocess.run` in the documented, HF-authored references/gguf_conversion.md example (lines 31/32/44/50) that shells out to llama.cpp convert/quantize binaries to produce GGUF artifacts; first-party tooling, no untrusted input, no executable threat to the host. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: ATR_2026_00040
       reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: ATR_2026_00062
