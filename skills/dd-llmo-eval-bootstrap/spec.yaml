@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "2f664fd5042d6838dfc06b605c6e2619eb8079c5"  # main as of 2026-04-15
-  path: "dd-llmo/eval-bootstrap"
-  version: "0.2.0"
+  ref: "9bcb3ceafacae78dbba76c9459a878fc7d6a0d10"  # main as of 2026-04-15
+  path: "dd-llmo/llm-obs-eval-bootstrap"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
@@ -60,3 +60,37 @@ security:
         False positive - matches `run()` on SKILL.md:537 inside example Python
         code (likely `evaluator.run()` or similar). Not multi-agent attack
         traffic. Verified at digest 98343f304cbd4439b3d7640cfe64f78070e44d68.
+    # --- ATR_2026_* rule-pack hits introduced when the eval-bootstrap SKILL.md
+    # grew (~681 -> ~1180 lines) at ref 9bcb3ce, adding the "publish online
+    # LLM-judge evaluators" workflow. All are substring / word-fragment matches
+    # on benign documentation prose and backtick-wrapped upstream tool/CLI/template
+    # names in a skill whose explicit purpose is bootstrapping LLM evaluators.
+    # No executable threat. datadog-labs/agent-skills @9bcb3ceafacae78dbba76c9459a878fc7d6a0d10.
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched prose 'these become the domain-specific evaluator category' (SKILL.md:371). Documentation guidance, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00004
+      reason: "FP: matched JSON/code example fragment `{role: \"` in an eval message schema. Documentation/code, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00010
+      reason: "FP: matched backtick-wrapped upstream tool/CLI names — `get_llmobs_evaluator`, `list_llmobs_eval*`, `create_or_update_llmobs_eval*`, `pup llm-obs evals get-eval`, `/eval`. Documentation references to tools the skill instructs the agent to call against the user's own Datadog tenant, not executed payloads. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00012
+      reason: "FP: word-fragment matches — `integration_account_id`, table cells, tool-name fragments like `get_llmobs_span_details(trace_id`. Documentation strings, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00030
+      reason: "FP: matched `run()` (SKILL.md:613) inside an example Python experiment-client snippet. Not an attack vector. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched prose 'skip this step and proceed directly' (SKILL.md:396). Workflow instruction, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00040
+      reason: "FP: matched the word 'Deploy' in prose 'Deploy to Datadog LLM Experiments' (SKILL.md:729). Documentation step, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched the prose phrase 'For each' (loop-over-traces guidance). Documentation, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched Datadog eval-prompt template placeholders — `{{input_data}}`, `{{output_data}}`, `{{span_input}}`, `{{meta.input.messages[*].content}}`. These are the documented templating syntax for LLM-judge prompts, not injected payloads. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00090
+      reason: "FP: matched prose 'Extract the rules implicitly followed across observed outputs' (SKILL.md:375). Analysis guidance, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched literal `\\n` newline escapes inside JSON/code example blocks. Documentation/code, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00110
+      reason: "FP: matched `eval (` inside an example Python evaluator function signature. Not a code-eval sink. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00111
+      reason: "FP: word-fragment matches — `summarizing a policy` (example intent category), `eval_scope` (identifier). Documentation strings, no executable threat. datadog-labs/agent-skills @9bcb3ce."
+    - rule_id: ATR_2026_00213
+      reason: "FP: matched the literal words 'system prompt' / 'System Prompt' in prose describing Datadog span fields and eval dimensions. Documentation, not a system-prompt-extraction attack. datadog-labs/agent-skills @9bcb3ce."

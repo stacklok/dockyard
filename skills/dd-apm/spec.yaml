@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "2f664fd5042d6838dfc06b605c6e2619eb8079c5"  # main as of 2026-04-15
+  ref: "9bcb3ceafacae78dbba76c9459a878fc7d6a0d10"  # main as of 2026-04-15
   path: "dd-apm"
-  version: "0.2.0"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
@@ -21,3 +21,15 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "datadog-labs/agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: COMPOUND_EXTRACT_EXECUTE
+      reason: |
+        FP: cisco-ai-skill-scanner matched the documented `pup` CLI install
+        snippet in k8s-ssi/agent-install/SKILL.md:67,
+        k8s-ssi/troubleshoot-ssi/SKILL.md:48 and
+        linux-ssi/troubleshoot-ssi/SKILL.md:48. The snippet downloads the
+        official pup release tarball from the same vendor
+        (github.com/datadog-labs/pup/releases, version pinned via the GitHub
+        releases API) and pipes it through `tar xz` into /usr/local/bin — the
+        canonical, vendor-published CLI install instruction shown to the user,
+        not a hidden/malicious archive payload. No executable threat.
+        datadog-labs/agent-skills @9bcb3ceafacae78dbba76c9459a878fc7d6a0d10.
