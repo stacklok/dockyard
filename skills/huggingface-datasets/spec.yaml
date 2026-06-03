@@ -23,5 +23,5 @@ security:
       reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: ATR_2026_00063
       reason: "FP: cisco-ai-skill-scanner word-fragment match on the word `Upload`/`upload` in SKILL.md prose/code examples for creating-and-uploading datasets via the public HF Hub; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
-    - rule_id: LLM_DATA_EXFILTRATION
-      reason: "FP: flags the upstream-documented, opt-in 'Agent Traces' workflow where a user deliberately uploads their OWN agent session traces to their OWN Hugging Face dataset repo. Destination is the named first-party service (huggingface.co) the user controls — not covert third-party exfiltration. The skill defaults to PRIVATE repos and explicitly warns the user the traces may contain secrets/PII. Not attacker-controllable and not prompt-injection. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00021
+      reason: "FP: cisco-ai-skill-scanner matched the documentation placeholder `export HF_TOKEN=<your_hf_token>` in a SKILL.md setup example — a literal placeholder, not a real secret value; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
