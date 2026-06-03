@@ -35,3 +35,11 @@ security:
     # in reference documentation; no executable threat. firebase/agent-skills @02c0a61.
     - rule_id: ATR_2026_00002
       reason: "FP: cisco-ai-skill-scanner matched a documented MCP server config example ['-y', '@modelcontextprotocol/server-filesystem', '.'] in references/genkit_mcp.md; no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00111
+      reason: |
+        FP: same root cause as PIPELINE_TAINT_FLOW / ATR_MCP_MALICIOUS_RESPONSE
+        above - cisco-ai-skill-scanner matched the '| bash' fragment of the
+        official Genkit CLI installer `curl -sL cli.genkit.dev | bash` cited as
+        a documented prerequisite (SKILL.md:17). The host (cli.genkit.dev) is
+        the official Google Genkit installer endpoint. Hard-coded skill
+        instruction text, not an executable threat. firebase/agent-skills @02c0a61.
