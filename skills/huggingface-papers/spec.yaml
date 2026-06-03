@@ -21,3 +21,5 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00012
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code (the env-var read `$HF_TOKEN` in SKILL.md curl examples authenticating to the public HF papers API); no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
