@@ -29,3 +29,36 @@ security:
       reason: "Scanner heuristic flags the breadth of the description (object detection + image classification + SAM/SAM2 segmentation) as 'performing actions not reflected in description'. The description accurately reflects the skill's documented scope; the flag is a scanner conservatism false positive."
     - rule_id: DATA_EXFIL_NETWORK_REQUESTS
       reason: "The bundled `scripts/dataset_inspector.py` uses `urllib.request.urlopen()` to query the public Hugging Face Hub API for dataset format validation — a documented workflow step required before launching GPU training."
+    # FP: cisco-ai-skill-scanner ATR_2026_* heuristics fire on benign
+    # documentation prose and code examples in references/*.md (code-fence
+    # languages, $HF_TOKEN/os.environ.get reads, the words exec/Upload/subprocess,
+    # __init__ dunders, # Configuration, "now you are ready"/"the next step is to"
+    # prose, `env`). No executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b.
+    - rule_id: ATR_2026_00001
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00004
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00010
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00011
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00012
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00040
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00051
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00062
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00063
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00066
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00091
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00095
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00096
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_00111
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."

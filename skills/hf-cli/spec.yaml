@@ -42,3 +42,10 @@ security:
         SKILL.md, not MCP tool responses. Both endpoints are official Hugging
         Face installer URLs. Verified at digest
         acd2bf5a7126994e15143bec061fe87a882811f3.
+    - rule_id: ATR_2026_00111
+      reason: |
+        FP: cisco-ai-skill-scanner matched the documented official `hf-mount`
+        installer one-liner (`curl -fsSL https://raw.githubusercontent.com/huggingface/hf-mount/main/install.sh | sh`,
+        SKILL.md:195) - the same official Hugging Face installer URL allowlisted
+        above for PIPELINE_TAINT_FLOW / ATR_MCP_MALICIOUS_RESPONSE. Documentation
+        prose, no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b.
