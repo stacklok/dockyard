@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "c3bb9d52cc672839274599dce0acbc5b654fa3ce"
+  ref: "02c0a61889121567a9335285eddcf62aa99a2a7c"
   path: "skills/firebase-data-connect-basics"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
@@ -21,3 +21,32 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "firebase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # cisco-ai-skill-scanner ATR_2026_* findings below are false positives: the
+    # scanner matched word fragments and code/SQL/GraphQL examples in benign
+    # reference documentation (e.g. "Deploy", "exec" from execute/Exec,
+    # "subscribe()", GraphQL var syntax $id, emulator IPs 10.0.2.2/127.0.0.1,
+    # markdown headers). No executable threat. firebase/agent-skills @02c0a61.
+    - rule_id: ATR_2026_00004
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose (markdown headers like '# Admin', '### Configuration'); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00010
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples (GraphQL operation/filter descriptions, 'default' branch text); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00012
+      reason: "FP: cisco-ai-skill-scanner matched GraphQL/SQL example syntax (named variables $id/$key, UPDATE/DELETE example statements); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00013
+      reason: "FP: cisco-ai-skill-scanner matched local emulator addresses in docs (10.0.2.2, 127.0.0.1:9399); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00040
+      reason: "FP: cisco-ai-skill-scanner matched word fragments 'exec'/'Exec' (from execute/Exec) and 'deploy'/'Deploy' in documentation; no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00051
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose ('for each'); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00063
+      reason: "FP: cisco-ai-skill-scanner matched documentation identifiers ('exFil' word fragment, 'SendMessage'); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00066
+      reason: "FP: cisco-ai-skill-scanner matched documentation code-fence markers ('`bash') and template-literal example syntax (${...}); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00088
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00111
+      reason: "FP: cisco-ai-skill-scanner matched SDK API method names in docs ('subscribe()', 'execute()', 'executeQuery', 'id: UUID!'); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00140
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose ('Reverse'); no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00161
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. firebase/agent-skills @02c0a61."

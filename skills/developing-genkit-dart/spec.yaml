@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "c3bb9d52cc672839274599dce0acbc5b654fa3ce"  # main as of 2026-04-15
+  ref: "02c0a61889121567a9335285eddcf62aa99a2a7c"  # main as of 2026-04-15
   path: "skills/developing-genkit-dart"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
@@ -31,3 +31,15 @@ security:
         instruction text, not an MCP tool response. The host (cli.genkit.dev)
         is the official Google Genkit installer endpoint. Verified at digest
         30bcb303e56f5d39f2d3c4214b53821adfb5b65c.
+    # FP: cisco-ai-skill-scanner matched a legitimate MCP server config example
+    # in reference documentation; no executable threat. firebase/agent-skills @02c0a61.
+    - rule_id: ATR_2026_00002
+      reason: "FP: cisco-ai-skill-scanner matched a documented MCP server config example ['-y', '@modelcontextprotocol/server-filesystem', '.'] in references/genkit_mcp.md; no executable threat. firebase/agent-skills @02c0a61."
+    - rule_id: ATR_2026_00111
+      reason: |
+        FP: same root cause as PIPELINE_TAINT_FLOW / ATR_MCP_MALICIOUS_RESPONSE
+        above - cisco-ai-skill-scanner matched the '| bash' fragment of the
+        official Genkit CLI installer `curl -sL cli.genkit.dev | bash` cited as
+        a documented prerequisite (SKILL.md:17). The host (cli.genkit.dev) is
+        the official Google Genkit installer endpoint. Hard-coded skill
+        instruction text, not an executable threat. firebase/agent-skills @02c0a61.
