@@ -1,0 +1,18 @@
+# Time MCP Server Configuration
+# Time and timezone conversion utilities
+# Package: https://pypi.org/project/mcp-server-time/
+# Repository: https://github.com/modelcontextprotocol/servers
+# Will build as: ghcr.io/stacklok/dockyard/uvx/mcp-server-time:2026.1.26
+
+metadata:
+  name: mcp-server-time
+  description: "MCP server providing time and timezone conversion utilities"
+  protocol: uvx
+
+spec:
+  package: "mcp-server-time"
+  version: "2026.1.26"
+
+provenance:
+  repository_uri: "https://github.com/modelcontextprotocol/servers"
+  repository_ref: "refs/heads/main"

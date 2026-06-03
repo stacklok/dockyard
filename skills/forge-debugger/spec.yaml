@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/atlassian/forge-skills"
-  ref: "2ab11f061033333640cc3cb59bfe817944e4f205"  # main as of 2026-04-19
+  ref: "2014fae5b1529a22629129b1564ae522593eb46d"  # main as of 2026-04-19
   path: "skills/forge-debugger"
-  version: "0.1.1"
+  version: "0.1.3"
 
 provenance:
   repository_uri: "https://github.com/atlassian/forge-skills"
@@ -21,3 +21,8 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "atlassian/forge-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # cisco-ai-skill-scanner false positives surfaced by the digest bump to 2014fae.
+    # These are noisy trigger/behavioral-pack rules that match documentation prose,
+    # not executable threats; suppressed per exact rule_id.
+    - rule_id: ATR_2026_00040
+      reason: "FP: scanner matched documentation prose/code (the substring 'EXEC' in the '## EXECUTION MANDATE' heading in SKILL.md:5); no executable threat. atlassian/forge-skills @2014fae5b1529a22629129b1564ae522593eb46d."

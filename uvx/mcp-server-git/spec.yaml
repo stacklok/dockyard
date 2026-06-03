@@ -1,0 +1,18 @@
+# Git MCP Server Configuration
+# Tools for reading, searching, and manipulating Git repositories
+# Package: https://pypi.org/project/mcp-server-git/
+# Repository: https://github.com/modelcontextprotocol/servers
+# Will build as: ghcr.io/stacklok/dockyard/uvx/mcp-server-git:2026.1.14
+
+metadata:
+  name: mcp-server-git
+  description: "MCP server providing tools to read, search, and manipulate Git repositories via libgit2"
+  protocol: uvx
+
+spec:
+  package: "mcp-server-git"
+  version: "2026.1.14"
+
+provenance:
+  repository_uri: "https://github.com/modelcontextprotocol/servers"
+  repository_ref: "refs/heads/main"

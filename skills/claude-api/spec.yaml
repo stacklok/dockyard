@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/anthropics/skills"
-  ref: "f458cee31a7577a47ba0c9a101976fa599385174"  # main as of 2026-04-07
+  ref: "6a5bb06904ab164a345e41c381fc9097954b83da"  # main as of 2026-04-07
   path: "skills/claude-api"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/anthropics/skills"
@@ -23,3 +23,39 @@ security:
   allowed_issues:
     - rule_id: SOCIAL_ENG_ANTHROPIC_IMPERSONATION
       reason: "claude-api is packaged from anthropics/skills — the Anthropic branding is authentic, not impersonation."
+    # The cisco-ai-skill-scanner trigger/behavioral rule packs fire on the new
+    # upstream docs (shared/model-migration.md, prompt-caching.md, models.md,
+    # managed-agents-*.md) pulled in at ref 6a5bb06. All blocking findings are
+    # substring/word-fragment matches on legitimate API documentation prose and
+    # code examples — verified false positives, no executable threat. See scan
+    # for anthropics/skills @6a5bb06904ab164a345e41c381fc9097954b83da.
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched prose 'become a concern' in model-migration.md."
+    - rule_id: ATR_2026_00004
+      reason: "FP: matched `{\"role\": \"` JSON message examples in API docs."
+    - rule_id: ATR_2026_00010
+      reason: "FP: matched word fragments in prose (e.g. 'onc'/'balanc'/'differenc'/'intelligenc') and effort/thinking parameter docs."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched 'system', $ANTHROPIC_API_KEY and getenv() in API documentation examples."
+    - rule_id: ATR_2026_00040
+      reason: "FP: matched the keyword 'EXEC'/exec in documentation."
+    - rule_id: ATR_2026_00051
+      reason: "FP: substring/keyword match on upstream documentation prose; no executable threat."
+    - rule_id: ATR_2026_00063
+      reason: "FP: substring/keyword match on upstream documentation prose; no executable threat."
+    - rule_id: ATR_2026_00064
+      reason: "FP: substring/keyword match on upstream documentation prose; no executable threat."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched code-fence language tokens (`python`/`bash`/`sh`) in docs."
+    - rule_id: ATR_2026_00091
+      reason: "FP: substring/keyword match on upstream documentation prose; no executable threat."
+    - rule_id: ATR_2026_00111
+      reason: "FP: matched file references and plain words (e.g. `shared/models.md`, `id`, `set`)."
+    - rule_id: ATR_2026_00140
+      reason: "FP: substring/keyword match on upstream documentation prose; no executable threat."
+    - rule_id: ATR_2026_00213
+      reason: "FP: matched the literal phrase 'system prompt' in documentation."
+    - rule_id: PG_PII_CREDENTIAL_HARVESTING
+      reason: "FP: matched prose 'Store MCP credential'; documentation, not credential exfiltration."
+    - rule_id: PG_PII_SSN_HARVESTING
+      reason: "FP: matched prose fragments ('ask the user...', toggle `thinking`); rule is also misconfigured upstream (unknown category 'pii_exposure')."
