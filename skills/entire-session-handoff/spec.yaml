@@ -21,3 +21,6 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "entireio/skills is MIT-licensed at the repo root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # Scanner false positives surfaced by the entireio/skills digest bump.
+    - rule_id: ATR_2026_00012
+      reason: "FP: cisco-ai-skill-scanner matched documentation prose/code; no executable threat. The '|func' pattern is a substring of the grep regex 'message|function_call' in SKILL.md transcript-extraction examples. entireio/skills @6b321b784e0455c1247ee2972bc1d126e867d98f."
