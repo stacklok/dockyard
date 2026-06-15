@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/ClickHouse/agent-skills"
   ref: "544384f4fab1d6ed59f16a354d1c68296dfa6007"  # main as of 2026-04-20
   path: "skills/clickhousectl-local-dev"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/ClickHouse/agent-skills"
