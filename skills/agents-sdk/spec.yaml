@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/cloudflare/skills"
   ref: "ffcc622bf112eccc49c4b433faa5dd28e9ede2ea"  # main as of 2026-04-16
   path: "skills/agents-sdk"
-  version: "0.1.0"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"
