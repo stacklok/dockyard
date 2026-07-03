@@ -18,6 +18,14 @@ provenance:
   repository_ref: "refs/heads/main"  # Using main branch as the primary development branch
 
 security:
+  # Mock env vars allow security scanning without real credentials. pagerduty-mcp
+  # v1 creates the PagerDuty client eagerly at startup and raises RuntimeError
+  # without an API key, which previously prevented the scanner from connecting
+  # to the server at all.
+  mock_env:
+    - name: PAGERDUTY_USER_API_KEY
+      value: "mock-pagerduty-api-key-for-scanning"
+      description: "PagerDuty API key — mock value for security scanning"
   allowed_issues:
     - code: "AITech-8.2"
       reason: "Data leak risk acceptable - incident management requires sharing operational data with responders and creating public status updates. Write operations are disabled by default, requiring explicit opt-in with --enable-write-tools flag."
