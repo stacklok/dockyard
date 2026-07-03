@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/entireio/skills"
-  ref: "c376dc971045eb38c094802ca43875d1cfa00ea4"  # main as of 2026-05-07
+  ref: "0ef47397be5f37586a67b6a87b1f1cd2359422ac"  # main as of 2026-05-07
   path: "skills/session-handoff"
   version: "0.1.0"
 
