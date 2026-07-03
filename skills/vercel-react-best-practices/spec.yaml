@@ -12,7 +12,7 @@ spec:
   repository: "https://github.com/vercel-labs/agent-skills"
   ref: "f8a72b9603728bb92a217a879b7e62e43ad76c81"  # main as of 2026-04-30
   path: "skills/react-best-practices"
-  version: "0.1.0"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/vercel-labs/agent-skills"
