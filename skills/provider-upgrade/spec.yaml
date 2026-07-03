@@ -29,3 +29,9 @@ security:
     # building a GitHub release asset URL, not an injection vector.
     - rule_id: ATR_2026_00066
       reason: "FP: cisco-ai-skill-scanner matched ${VERSION}/schema-tools-${VERSION}-${OS}-${ARCH} in the documented schema-tools download example (references/diagnostic-toolbox.md); standard shell variable substitution for a GitHub release URL, no injection risk."
+    # FP: ATR_2026_00050 pattern-matches "Same error persists" in SKILL.md's
+    # "Preview Progress" troubleshooting list — plain prose guidance on
+    # interpreting repeated `pulumi preview` errors, no executable content.
+    # Non-deterministic scanner: this finding wasn't present on the prior run.
+    - rule_id: ATR_2026_00050
+      reason: "FP: cisco-ai-skill-scanner matched the phrase 'Same error persists' in a bulleted troubleshooting list (SKILL.md, Preview Progress section) describing how to interpret repeated pulumi preview errors. Plain documentation prose, no executable content."
