@@ -35,3 +35,14 @@ security:
     # Non-deterministic scanner: this finding wasn't present on the prior run.
     - rule_id: ATR_2026_00050
       reason: "FP: cisco-ai-skill-scanner matched the phrase 'Same error persists' in a bulleted troubleshooting list (SKILL.md, Preview Progress section) describing how to interpret repeated pulumi preview errors. Plain documentation prose, no executable content."
+    # FP: ATR_2026_00111 pattern-matches $(uname -s | tr ...) and $(uname -m) in
+    # the same documented schema-tools download script (references/diagnostic-
+    # toolbox.md) as ATR_2026_00066 above — detecting the local OS/arch to build
+    # the release download URL. Not attacker-controllable input.
+    - rule_id: ATR_2026_00111
+      reason: "FP: cisco-ai-skill-scanner matched $(uname -s | tr '[:upper:]' '[:lower:]') and $(uname -m) in the documented schema-tools download example (references/diagnostic-toolbox.md); used only to detect the local OS/arch for a release URL, not attacker-controllable input."
+    # FP: ATR_2026_00040 pattern-matches `chmod +x /tmp/schema-tools` in the same
+    # schema-tools download script — making the just-downloaded release binary
+    # executable, a standard install step, not a privilege-escalation pattern.
+    - rule_id: ATR_2026_00040
+      reason: "FP: cisco-ai-skill-scanner matched 'chmod' in the documented schema-tools install script (references/diagnostic-toolbox.md), which does `chmod +x /tmp/schema-tools` on the binary it just downloaded and extracted. Standard install step, not privilege escalation."
