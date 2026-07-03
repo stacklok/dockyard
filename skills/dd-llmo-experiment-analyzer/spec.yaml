@@ -10,7 +10,7 @@ metadata:
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
   ref: "66c3d944edbbb93d9828c19d05d841690ef2c5b3"
-  path: "dd-llmo/llm-obs-experiment-analyzer"
+  path: "agent-observability/agent-observability-experiment-analyzer"
   version: "0.4.0"
 
 provenance:
