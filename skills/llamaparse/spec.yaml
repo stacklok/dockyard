@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/run-llama/llamaparse-agent-skills"
-  ref: "1f10f60a9eba0dbb490724c8104b0a865365f136"  # main as of 2026-03-03
+  ref: "169ecb08fccb73527ec00eb1a45454e6fb796ce8"  # main as of 2026-03-03
   path: "skills/llamaparse"
   version: "0.1.0"
 
