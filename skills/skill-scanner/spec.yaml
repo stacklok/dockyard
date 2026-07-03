@@ -27,3 +27,10 @@ security:
       reason: "The skill's reference material on prompt-injection patterns cites 'Enter developer mode' as an example jailbreak pattern the skill teaches to detect. Documenting the pattern is the skill's purpose."
     - rule_id: YARA_prompt_injection_unicode_steganography
       reason: "The skill documents invisible Unicode steganography (`\\U000e0001` tag characters) as a prompt-injection vector. Describing the attack class is required for the skill to teach detection of it."
+    # Same "meta-skill documents attack patterns for detection" class as the
+    # three rules above -- references/prompt-injection-patterns.md contains an
+    # actual zero-width-space character (U+200B) as a worked example of the
+    # "split keywords to evade pattern matching" evasion technique it teaches
+    # the scanner to detect.
+    - rule_id: ATR_2026_00276
+      reason: "FP: this meta-skill's reference doc on prompt-injection patterns (references/prompt-injection-patterns.md) includes an actual zero-width-space character as a worked example of the 'Zero-Width Characters' evasion technique it documents. Teaching the detection pattern requires an example of the pattern; not an injection attempt against this skill itself."

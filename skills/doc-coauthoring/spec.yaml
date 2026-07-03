@@ -21,3 +21,8 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # FP: ATR_2026_00051 pattern-matches "For each" in SKILL.md's Step 2
+    # (Test with Sub-Agent) — plain prose describing iterating reader questions
+    # through a fresh sub-agent, no executable content.
+    - rule_id: ATR_2026_00051
+      reason: "FP: cisco-ai-skill-scanner matched the prose phrase 'For each' in SKILL.md (Step 2: Test with Sub-Agent, 'For each question, invoke a sub-agent...'). Plain workflow documentation, no executable threat."
