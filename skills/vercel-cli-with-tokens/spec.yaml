@@ -22,3 +22,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "vercel-labs/agent-skills declares MIT in README.md; upstream does not include a LICENSE file at the repository root, and this skill's SKILL.md frontmatter does not embed an SPDX license identifier."
+    # FP: ATR_2026_00115 pattern-matches `printenv | grep -i vercel` in SKILL.md's
+    # "Token not found" troubleshooting section — a read-only local environment
+    # lookup (plus grepping a local .env file) to help diagnose missing config,
+    # not a credential exfiltration vector.
+    - rule_id: ATR_2026_00115
+      reason: "FP: cisco-ai-skill-scanner matched 'printenv | grep -i vercel' in SKILL.md's Troubleshooting > Token not found section; a read-only local env/'.env' lookup for diagnosing missing config, no exfiltration."
