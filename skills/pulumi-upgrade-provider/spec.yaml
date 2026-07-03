@@ -21,3 +21,10 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "pulumi/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # FP: ATR_2026_00111 pattern-matches two read-only/self-authored command
+    # substitutions in SKILL.md's Post-run Tasks: `$(git branch --show-current)`
+    # (fallback lookup for the current branch's PR URL) and `$(cat /tmp/pr_body.txt)`
+    # (re-reading a temp file the same script just wrote, to PATCH the PR body via
+    # `gh api`). Neither reads untrusted input or escalates privilege.
+    - rule_id: ATR_2026_00111
+      reason: "FP: cisco-ai-skill-scanner matched $(git branch --show-current) and $(cat /tmp/pr_body.txt) in SKILL.md's documented post-run steps; both are read-only/self-authored substitutions (branch name lookup, re-reading a locally-written temp file), not privilege escalation."
