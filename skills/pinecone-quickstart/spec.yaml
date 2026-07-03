@@ -12,7 +12,7 @@ spec:
   repository: "https://github.com/pinecone-io/skills"
   ref: "1154c3e71c40b74d3807885769f4326b5ee64e1d"  # main as of 2026-03-11
   path: "skills/pinecone-quickstart"
-  version: "0.1.0"
+  version: "0.1.1"
 
 provenance:
   repository_uri: "https://github.com/pinecone-io/skills"
