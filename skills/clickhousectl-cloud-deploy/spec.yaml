@@ -28,3 +28,9 @@ security:
     # in SKILL.md docs. Both are benign documentation, not executable threats.
     - rule_id: ATR_2026_00111
       reason: "FP: cisco-ai-skill-scanner matched the documented `curl ... | sh` ClickHouse CLI installer and an `openssl rand` random-password example in docs; no executable threat. ClickHouse/agent-skills @f12bbf0fe55147a396ed391976c459276874fb33."
+    # FP: ATR_2026_00012 pattern-matches `$PASSWORD` in the Step 6 dedicated-user
+    # walkthrough (SKILL.md), where a random password is generated via
+    # `openssl rand -base64 32` and referenced when creating the user. Documentation
+    # of a secure credential-generation practice, not a leaked/hardcoded secret.
+    - rule_id: ATR_2026_00012
+      reason: "FP: cisco-ai-skill-scanner matched the `$PASSWORD` shell variable in the documented Step 6 example (generate via `openssl rand -base64 32`, use to create a scoped ClickHouse user). No hardcoded or leaked credential; the value is randomly generated at runtime."
