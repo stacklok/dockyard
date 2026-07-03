@@ -365,7 +365,7 @@ jobs:
       - name: Log in to Container Registry
         # Only login when we're going to push (main branch or manual trigger)
         if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4
+        uses: docker/login-action@c99871dec2022cc055c062a10cc1a1310835ceb4 # v4
         with:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
