@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/pulumi/agent-skills"
-  ref: "592e4da33a779ad780788c5a22f91f0d5bcb401c"
+  ref: "8a276968c9de5c555f720bcce25a165da05f13b8"
   path: "pulumi/skills/pulumi-automation-api"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
