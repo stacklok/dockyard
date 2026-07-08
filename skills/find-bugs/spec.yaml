@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "c81373583417504de2d3be1ae3d81977b11b2981"  # main as of 2026-04-20
+  ref: "5a64b36c62d042d3981b7937d9d6ca7bd1753b9a"  # main as of 2026-04-20
   path: "skills/find-bugs"
-  version: "0.1.1"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
@@ -30,3 +30,8 @@ security:
         the command is hard-coded skill content (not attacker-controlled) and uses
         only read-only tools (`git diff`, `gh repo view`). Verified at digest
         5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    # The scanner now emits this same finding under a numbered ATR_2026_* id
+    # instead of the named rule above (rule-id scheme changed upstream in the
+    # scanner tooling) -- same command, same justification, re-verified at 5a64b36.
+    - rule_id: ATR_2026_00111
+      reason: "FP: same finding as ATR_MCP_MALICIOUS_RESPONSE above -- the scanner's rule_id naming changed from named (ATR_MCP_*) to numbered (ATR_2026_*) ids. Matched $(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name') (SKILL.md:7), a read-only command substitution for diff-scoping. Re-verified at getsentry/skills @5a64b36."

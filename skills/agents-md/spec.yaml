@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "c81373583417504de2d3be1ae3d81977b11b2981"  # main as of 2026-04-20
+  ref: "5a64b36c62d042d3981b7937d9d6ca7bd1753b9a"  # main as of 2026-04-20
   path: "skills/agents-md"
-  version: "0.1.1"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
