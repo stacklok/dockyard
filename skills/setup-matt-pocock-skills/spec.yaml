@@ -6,11 +6,11 @@
 
 metadata:
   name: setup-matt-pocock-skills
-  description: "Sets up an `## Agent skills` block in AGENTS.md/CLAUDE.md and `docs/agents/` so the engineering skills know this repo's issue tracker (GitHub or local markdown), triage label vocabulary, and domain doc layout. Run before first use of `to-issues`, `to-prd`, `triage`, `diagnose`, `tdd`, `improve-codebase-architecture`, or `zoom-out` — or if those skills appear to be missing context about the issue tracker, triage labels, or domain docs."
+  description: "Configure this repo for the engineering skills — set up its issue tracker, triage label vocabulary, and domain doc layout. Run once before first use of the other engineering skills."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "f304057d61d3df3c9fd992ac2b6e3833cb9325fb"  # main as of 2026-04-30
+  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
   path: "skills/engineering/setup-matt-pocock-skills"
   version: "0.1.1"
 

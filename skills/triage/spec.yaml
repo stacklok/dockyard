@@ -5,11 +5,11 @@
 
 metadata:
   name: triage
-  description: "Triage issues through a state machine driven by triage roles. Use when the user wants to create an issue, triage issues, review incoming bugs or feature requests, prepare issues for an AFK agent, or manage issue workflow."
+  description: "Move issues and external PRs through a state machine of triage roles — categorise, verify, grill if needed, and write agent-ready briefs."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "f304057d61d3df3c9fd992ac2b6e3833cb9325fb"  # main as of 2026-04-30
+  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
   path: "skills/engineering/triage"
   version: "0.1.1"
 

@@ -5,11 +5,11 @@
 
 metadata:
   name: grill-me
-  description: "Interview the user relentlessly about a plan or design until reaching shared understanding, resolving each branch of the decision tree. Use when the user wants to stress-test a plan, get grilled on their design, or mentions 'grill me'."
+  description: "A relentless interview to sharpen a plan or design."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "f304057d61d3df3c9fd992ac2b6e3833cb9325fb"  # main as of 2026-04-30
+  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
   path: "skills/productivity/grill-me"
   version: "0.1.1"
 

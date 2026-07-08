@@ -1,17 +1,17 @@
-# Matt Pocock grill-with-docs Skill
-# Grilling session that challenges your plan against the existing domain model.
+# Matt Pocock diagnosing-bugs Skill
+# Diagnosis loop for hard bugs and performance regressions.
 # Source: https://github.com/mattpocock/skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/grill-with-docs:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/diagnosing-bugs:0.1.0
 
 metadata:
-  name: grill-with-docs
-  description: "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go."
+  name: diagnosing-bugs
+  description: "Diagnosis loop for hard bugs and performance regressions. Use when the user says 'diagnose'/'debug this', or reports something broken/throwing/failing/slow."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
-  path: "skills/engineering/grill-with-docs"
-  version: "0.1.1"
+  path: "skills/engineering/diagnosing-bugs"
+  version: "0.1.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
