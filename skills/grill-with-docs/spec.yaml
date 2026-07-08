@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
   path: "skills/engineering/grill-with-docs"
-  version: "0.1.1"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
