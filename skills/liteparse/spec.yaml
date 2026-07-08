@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/run-llama/llamaparse-agent-skills"
   ref: "2dcef7c62417bd2ec4671fce4621bb1e8cce48d0"  # main as of 2026-03-03
   path: "skills/liteparse"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/run-llama/llamaparse-agent-skills"
