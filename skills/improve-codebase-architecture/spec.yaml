@@ -21,3 +21,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # FP: PG_EXFIL_HTML_TAG pattern-matches the <script src="https://cdn.tailwindcss.com">
+    # tag in HTML-REPORT.md's scaffold example. The file documents how to render the
+    # architecture review as a static local HTML file; the only external references are
+    # the official Tailwind and Mermaid CDNs and no user data is transmitted anywhere.
+    - rule_id: PG_EXFIL_HTML_TAG
+      reason: "FP: scanner matched the Tailwind CDN <script> tag in HTML-REPORT.md's static report scaffold; a script include from the official CDN in a local, self-contained report template, no data exfiltration."
