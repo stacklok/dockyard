@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/ClickHouse/agent-skills"
-  ref: "faa5b11bfa6c1b615cfff0ac017c73b8c255a3f7"  # main as of 2026-04-20
+  ref: "71cc41a35ab55d508bed1ab24699ef03da687eae"  # main as of 2026-04-20
   path: "skills/clickhouse-architecture-advisor"
   version: "0.1.3"
 
