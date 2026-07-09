@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "a56045e9ae00b3506cacefea0f672aab0a1a6e3c"  # main as of 2026-04-17
+  ref: "cfe5d7b1619e47fb5b38b7e2561dad7e5f1e89af"  # main as of 2026-04-17
   path: "plugins/zeroize-audit/skills/zeroize-audit"
-  version: "0.1.0"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
@@ -27,3 +27,10 @@ security:
       reason: "Matches the phrase 'secret argument' in tools/scripts/check_llvm_patterns.py where it labels compiler-detected patterns; the skill audits zeroization of secrets so references to the word 'secret' are expected."
     - rule_id: DATA_EXFIL_SENSITIVE_FILES
       reason: "tools/scripts/check_rust_asm.py reads a JSON config of Rust symbol names to audit; 'secrets_path' is the skill's internal config file path, not exfiltration of user secrets."
+    # FP: BEHAVIOR_EVAL_SUBPROCESS flags two list-form subprocess.run() calls,
+    # neither uses shell=True and neither takes attacker-controlled input:
+    # generate_poc.py invokes a local sibling script via sys.executable with
+    # fixed flag names; check_rust_asm.py invokes the fixed command "rustfilt"
+    # with an explicit timeout, piping asm text via stdin (not argv/shell).
+    - rule_id: BEHAVIOR_EVAL_SUBPROCESS
+      reason: "FP: matched list-form subprocess.run() calls in tools/generate_poc.py (invokes sys.executable + a local script with fixed flag names) and tools/scripts/check_rust_asm.py (invokes the fixed command 'rustfilt' with a timeout, input piped via stdin). Neither uses shell=True or attacker-controlled arguments."
