@@ -1,0 +1,23 @@
+# Matt Pocock to-tickets Skill
+# Break a plan or spec into tracer-bullet tickets with blocking edges.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/to-tickets:0.1.0
+
+metadata:
+  name: to-tickets
+  description: "Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker — edges as text in a local file, or native blocking links on a real tracker."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
+  path: "skills/engineering/to-tickets"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

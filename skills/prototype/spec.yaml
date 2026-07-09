@@ -1,0 +1,23 @@
+# Matt Pocock prototype Skill
+# Build a throwaway prototype to answer a design question.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/prototype:0.1.0
+
+metadata:
+  name: prototype
+  description: "Build a throwaway prototype to answer a design question. Use when the user wants to sanity-check whether a state model or logic feels right, or explore what a UI should look like."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
+  path: "skills/engineering/prototype"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

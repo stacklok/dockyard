@@ -1,0 +1,23 @@
+# Matt Pocock ask-matt Skill
+# Router that recommends which skill or flow fits your situation.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/ask-matt:0.1.0
+
+metadata:
+  name: ask-matt
+  description: "Ask which skill or flow fits your situation. A router over the skills in this repo."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
+  path: "skills/engineering/ask-matt"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
