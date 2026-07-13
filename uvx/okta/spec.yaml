@@ -1,0 +1,26 @@
+# Okta MCP Server Configuration
+# Official MCP server for Okta Admin Management API integration
+# Package: https://pypi.org/project/okta-mcp-server/
+# Repository: https://github.com/okta/okta-mcp-server
+# Will build as: ghcr.io/stacklok/dockyard/uvx/okta
+
+metadata:
+  name: okta
+  description: "Official Okta MCP server for managing users, groups, applications, policies, and other Okta Admin Management API resources"
+  protocol: uvx
+
+spec:
+  package: "okta-mcp-server"
+  version: "1.1.3"
+
+provenance:
+  repository_uri: "https://github.com/okta/okta-mcp-server"
+  repository_ref: "refs/tags/v1.1.3"
+
+security:
+  # Server requires a live Okta org and completes OAuth (device authorization
+  # or browserless client-credentials JWT) against it during startup before
+  # registering any tools - mock credentials fail fast via sys.exit(1) before
+  # the tool list is ever exposed, so it cannot be scanned in CI.
+  insecure_ignore: true
+  allowed_issues: []
