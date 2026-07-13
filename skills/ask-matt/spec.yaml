@@ -1,17 +1,17 @@
-# Matt Pocock migrate-to-shoehorn Skill
-# Migrate test files from `as` type assertions to @total-typescript/shoehorn.
+# Matt Pocock ask-matt Skill
+# Router that recommends which skill or flow fits your situation.
 # Source: https://github.com/mattpocock/skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/migrate-to-shoehorn:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/ask-matt:0.1.0
 
 metadata:
-  name: migrate-to-shoehorn
-  description: "Migrate test files from `as` type assertions to @total-typescript/shoehorn. Use when the user mentions shoehorn, wants to replace `as` in tests, or needs partial test data."
+  name: ask-matt
+  description: "Ask which skill or flow fits your situation. A router over the skills in this repo."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
-  path: "skills/misc/migrate-to-shoehorn"
-  version: "0.2.0"
+  path: "skills/engineering/ask-matt"
+  version: "0.1.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"

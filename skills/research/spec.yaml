@@ -1,17 +1,17 @@
-# Matt Pocock migrate-to-shoehorn Skill
-# Migrate test files from `as` type assertions to @total-typescript/shoehorn.
+# Matt Pocock research Skill
+# Investigate a question against high-trust primary sources and capture findings.
 # Source: https://github.com/mattpocock/skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/migrate-to-shoehorn:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/research:0.1.0
 
 metadata:
-  name: migrate-to-shoehorn
-  description: "Migrate test files from `as` type assertions to @total-typescript/shoehorn. Use when the user mentions shoehorn, wants to replace `as` in tests, or needs partial test data."
+  name: research
+  description: "Investigate a question against high-trust primary sources and capture the findings as a Markdown file in the repo. Use when the user wants a topic researched, docs or API facts gathered, or reading legwork delegated to a background agent."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
-  path: "skills/misc/migrate-to-shoehorn"
-  version: "0.2.0"
+  path: "skills/engineering/research"
+  version: "0.1.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"

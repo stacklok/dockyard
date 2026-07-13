@@ -1,17 +1,17 @@
-# Matt Pocock migrate-to-shoehorn Skill
-# Migrate test files from `as` type assertions to @total-typescript/shoehorn.
+# Matt Pocock domain-modeling Skill
+# Build and sharpen a project's domain model.
 # Source: https://github.com/mattpocock/skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/migrate-to-shoehorn:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/domain-modeling:0.1.0
 
 metadata:
-  name: migrate-to-shoehorn
-  description: "Migrate test files from `as` type assertions to @total-typescript/shoehorn. Use when the user mentions shoehorn, wants to replace `as` in tests, or needs partial test data."
+  name: domain-modeling
+  description: "Build and sharpen a project's domain model. Use when the user wants to pin down domain terminology or a ubiquitous language, record an architectural decision, or when another skill needs to maintain the domain model."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
-  path: "skills/misc/migrate-to-shoehorn"
-  version: "0.2.0"
+  path: "skills/engineering/domain-modeling"
+  version: "0.1.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"

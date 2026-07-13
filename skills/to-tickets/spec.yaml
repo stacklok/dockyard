@@ -1,17 +1,17 @@
-# Matt Pocock migrate-to-shoehorn Skill
-# Migrate test files from `as` type assertions to @total-typescript/shoehorn.
+# Matt Pocock to-tickets Skill
+# Break a plan or spec into tracer-bullet tickets with blocking edges.
 # Source: https://github.com/mattpocock/skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/migrate-to-shoehorn:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/to-tickets:0.1.0
 
 metadata:
-  name: migrate-to-shoehorn
-  description: "Migrate test files from `as` type assertions to @total-typescript/shoehorn. Use when the user mentions shoehorn, wants to replace `as` in tests, or needs partial test data."
+  name: to-tickets
+  description: "Break a plan, spec, or the current conversation into a set of tracer-bullet tickets, each declaring its blocking edges, published to the configured tracker — edges as text in a local file, or native blocking links on a real tracker."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
-  path: "skills/misc/migrate-to-shoehorn"
-  version: "0.2.0"
+  path: "skills/engineering/to-tickets"
+  version: "0.1.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
