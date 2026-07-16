@@ -7,6 +7,17 @@
   ],
   "labels": ["dependencies"],
   "postUpdateOptions": ["gomodTidy"],
+  "packageRules": [
+    {
+      "description": "Group the toolhive Go modules so they update in one PR. Both feed dockhand's artifact/Dockerfile packaging, and the build workflows rebuild every artifact when either changes; grouping keeps that to a single rebuild.",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "github.com/stacklok/toolhive",
+        "github.com/stacklok/toolhive-core"
+      ],
+      "groupName": "toolhive"
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",
