@@ -23,15 +23,16 @@ on:
 
 permissions: {}
 
-# Cancel superseded PR runs, but let main-branch runs queue rather than
-# cancel — each push publishes/signs/attests images for that specific
-# commit, and cancelling one would silently skip its release. queue: max
-# keeps every queued push pending instead of just the latest, since the
-# default queue depth of 1 would otherwise drop a push sandwiched between
-# two others.
+# Never cancel a run outright — each push or PR update publishes/signs/
+# attests images for that specific commit, and cancelling one would
+# silently skip its release. queue: max keeps every queued run pending
+# instead of just the latest, since the default queue depth of 1 would
+# otherwise drop a run sandwiched between two others. GitHub rejects
+# queue: max combined with a cancel-in-progress that can resolve to true,
+# so this can no longer cancel superseded PR runs the way it used to.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: false
   queue: max
 
 env:
