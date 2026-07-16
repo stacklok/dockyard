@@ -27,6 +27,13 @@ on:
 
 permissions: {}
 
+# Cancel superseded PR runs, but let main-branch runs queue rather than
+# cancel — each push publishes/signs/attests artifacts for that specific
+# commit, and cancelling one would silently skip its release.
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
 env:
   REGISTRY: ghcr.io
 
