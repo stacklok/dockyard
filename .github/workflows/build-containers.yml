@@ -372,7 +372,7 @@ jobs:
       # signatures, and attestations from every cell at once and burst past
       # GHCR's manifest write limit. Only bites when there are more cells than
       # this; single-spec changes are unaffected.
-      max-parallel: 10
+      max-parallel: 20
 
     permissions:
       contents: read
