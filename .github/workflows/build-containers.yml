@@ -25,10 +25,14 @@ permissions: {}
 
 # Cancel superseded PR runs, but let main-branch runs queue rather than
 # cancel — each push publishes/signs/attests images for that specific
-# commit, and cancelling one would silently skip its release.
+# commit, and cancelling one would silently skip its release. queue: max
+# keeps every queued push pending instead of just the latest, since the
+# default queue depth of 1 would otherwise drop a push sandwiched between
+# two others.
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  queue: max
 
 env:
   REGISTRY: ghcr.io
