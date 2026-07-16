@@ -81,6 +81,8 @@ spec:
   version: "{exact-version}"
   # args:                          # Optional: CLI arguments
   #   - "start"                    # Some packages need specific commands
+  # env:                           # Optional: env vars baked into the runtime image
+  #   SOME_VAR: "some-value"       # For values the server reads at process start
 
 provenance:
   repository_uri: "{github-repo-url}"
