@@ -58,6 +58,26 @@ jobs:
           # Find all spec.yaml files in protocol directories
           all_configs=$(find npx uvx go -name "spec.yaml" -type f 2>/dev/null | sort)
 
+          # Decide whether a change to core build inputs warrants rebuilding
+          # every container. dockhand source always triggers a full rebuild
+          # (it generates the Dockerfiles). go.mod/go.sum only count when the
+          # toolhive modules changed — they drive Dockerfile generation, so a
+          # bump there can alter every image. Unrelated dependency bumps must
+          # not rebuild everything and flood GHCR.
+          # Args: $1 = git diff range, $2 = newline-separated changed files.
+          core_rebuild_needed() {
+            local range="$1" changed="$2"
+            if echo "$changed" | grep -qE "(cmd/dockhand/)"; then
+              return 0
+            fi
+            if echo "$changed" | grep -qE "^go\.(mod|sum)$"; then
+              if git diff "$range" -- go.mod go.sum | grep -qE '^[+-].*stacklok/toolhive'; then
+                return 0
+              fi
+            fi
+            return 1
+          }
+
           if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
             # For manual triggers, build all configs
             configs_to_build="$all_configs"
@@ -65,7 +85,8 @@ jobs:
             echo "Manual trigger - building all configurations"
           elif [ "$EVENT_NAME" == "pull_request" ]; then
             # For PRs, build configs that changed compared to target branch
-            changed_files=$(git diff --name-only origin/"$BASE_REF"...HEAD)
+            diff_range="origin/${BASE_REF}...HEAD"
+            changed_files=$(git diff --name-only "$diff_range")
             configs_to_build=""
             configs_to_scan=""
 
@@ -78,15 +99,16 @@ jobs:
               fi
             done
 
-            # If dockhand source, go.mod, or go.sum changed, rebuild all containers
-            # but only scan the spec.yaml files that actually changed
-            if echo "$changed_files" | grep -E "(cmd/dockhand/|go\.mod|go\.sum)"; then
-              echo "Core files changed - rebuilding all containers (scanning only changed specs)"
+            # If core build inputs changed, rebuild all containers but only
+            # scan the spec.yaml files that actually changed.
+            if core_rebuild_needed "$diff_range" "$changed_files"; then
+              echo "Core build inputs changed - rebuilding all containers (scanning only changed specs)"
               configs_to_build="$all_configs"
             fi
           else
             # For pushes to main, build configs that changed in this push
-            changed_files=$(git diff --name-only HEAD~1..HEAD)
+            diff_range="HEAD~1..HEAD"
+            changed_files=$(git diff --name-only "$diff_range")
             configs_to_build=""
             configs_to_scan=""
 
@@ -99,10 +121,10 @@ jobs:
               fi
             done
 
-            # If dockhand source, go.mod, or go.sum changed, rebuild all containers
-            # but only scan the spec.yaml files that actually changed
-            if echo "$changed_files" | grep -E "(cmd/dockhand/|go\.mod|go\.sum)"; then
-              echo "Core files changed - rebuilding all containers (scanning only changed specs)"
+            # If core build inputs changed, rebuild all containers but only
+            # scan the spec.yaml files that actually changed.
+            if core_rebuild_needed "$diff_range" "$changed_files"; then
+              echo "Core build inputs changed - rebuilding all containers (scanning only changed specs)"
               configs_to_build="$all_configs"
             fi
           fi
@@ -334,13 +356,24 @@ jobs:
     needs: [discover-configs, verify-provenance, mcp-security-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 60
-    # Only proceed if security scans passed or were skipped (provenance check is informational only)
-    if: ${{ needs.discover-configs.outputs.changed-configs != '[]' && (needs.mcp-security-scan.result == 'success' || needs.mcp-security-scan.result == 'skipped') }}
+    # `!cancelled()` disables the implicit success() gate on `needs` so this
+    # job still runs when mcp-security-scan was skipped (e.g. a toolhive bump
+    # that rebuilds every container but changes no spec, so nothing needs
+    # re-scanning). Without it, a skipped scan silently skipped the whole
+    # build. The security gate is preserved per-cell by the `Pre-flight scan
+    # gate` step below, which reads scan-summary.json from the artifact
+    # produced by mcp-security-scan. verify-provenance is informational.
+    if: ${{ !cancelled() && needs.discover-configs.outputs.changed-configs != '[]' && needs.verify-provenance.result == 'success' }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
       fail-fast: false
-    
+      # Cap concurrency so a full rebuild (toolhive bump) doesn't push images,
+      # signatures, and attestations from every cell at once and burst past
+      # GHCR's manifest write limit. Only bites when there are more cells than
+      # this; single-spec changes are unaffected.
+      max-parallel: 10
+
     permissions:
       contents: read
       packages: write
@@ -409,6 +442,58 @@ jobs:
           image_name="${REGISTRY}/${IMAGE_NAME}/${protocol}/${server_name}"
           echo "image_name=$image_name" >> $GITHUB_OUTPUT
 
+      # Pull the per-server security scan artifact before spending time on the
+      # build. `continue-on-error: true` so this succeeds when the artifact
+      # does not exist (this server was not in scan-configs for this run); the
+      # Pre-flight scan gate below decides whether that is acceptable.
+      - name: Download MCP security scan results
+        id: download-scan
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
+        with:
+          name: mcp-scan-${{ steps.meta.outputs.server_name }}
+          path: /tmp/scan-results
+        continue-on-error: true
+
+      # Per-cell scan gate. Preserves the security gate at the individual
+      # server level now that the job-level `mcp-security-scan.result` check is
+      # gone (it skipped the whole build when the scan job was skipped).
+      # - If this server was in scan-configs, require a fresh scan-summary.json
+      #   with status in {passed, warning}. Anything else fails the cell.
+      # - If it was NOT in scan-configs (e.g. a toolhive bump that rebuilds
+      #   everything but re-scans nothing), proceed on prior trust: the
+      #   previous run on main must have been clean for this pinned version.
+      - name: Pre-flight scan gate
+        env:
+          CONFIG: ${{ matrix.config }}
+          SCAN_CONFIGS: ${{ needs.discover-configs.outputs.scan-configs }}
+          SERVER_NAME: ${{ steps.meta.outputs.server_name }}
+        run: |
+          set -euo pipefail
+          summary=/tmp/scan-results/scan-summary.json
+
+          expected=$(jq -r --arg c "$CONFIG" 'index($c) // "missing"' <<<"$SCAN_CONFIGS")
+
+          if [ ! -f "$summary" ]; then
+            if [ "$expected" = "missing" ]; then
+              echo "No scan ran for ${SERVER_NAME} in this workflow (not in scan-configs); proceeding on prior trust."
+              exit 0
+            fi
+            echo "::error title=Scan artifact missing::scan-summary.json absent for ${SERVER_NAME} but the server was in scan-configs; refusing to publish."
+            exit 1
+          fi
+
+          status=$(jq -r '.status // "missing"' "$summary")
+          case "$status" in
+            passed|warning)
+              echo "MCP scan status for ${SERVER_NAME}: ${status} - publish allowed."
+              ;;
+            *)
+              echo "::error title=Scan blocked publish::MCP server ${SERVER_NAME} scan status is '${status}'; refusing to publish."
+              jq -r '.blocking_issues[]? | "  - [\(.code)] (\(.severity)) \(.message)"' "$summary" 2>/dev/null || true
+              exit 1
+              ;;
+          esac
+
       - name: Generate Dockerfile
         id: dockerfile
         env:
@@ -472,23 +557,35 @@ jobs:
           IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
           VERSION: ${{ steps.meta.outputs.version }}
         run: |
+          # Retry cosign on non-zero exit. During a full rebuild the concurrent
+          # matrix cells push signatures fast enough to trip GHCR's manifest
+          # rate limit (TOOMANYREQUESTS); the retry-after is tiny, so a short
+          # linear backoff clears it. cosign does not retry these itself.
+          retry() {
+            local max_attempts=5 attempt=1 backoff
+            while :; do
+              if "$@"; then
+                return 0
+              fi
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "cosign failed after ${attempt} attempt(s): $*" >&2
+                return 1
+              fi
+              backoff=$(( 5 * attempt ))
+              echo "cosign failed; retrying in ${backoff}s: $*" >&2
+              sleep "$backoff"
+              attempt=$(( attempt + 1 ))
+            done
+          }
+
           echo "Signing image ${IMAGE_NAME}@${DIGEST}"
-          cosign sign --yes "${IMAGE_NAME}@${DIGEST}"
+          retry cosign sign --yes "${IMAGE_NAME}@${DIGEST}"
 
           # Also sign the tagged versions for better UX
-          cosign sign --yes "${IMAGE_NAME}:${VERSION}"
-          cosign sign --yes "${IMAGE_NAME}:latest"
+          retry cosign sign --yes "${IMAGE_NAME}:${VERSION}"
+          retry cosign sign --yes "${IMAGE_NAME}:latest"
 
           echo "✅ Images signed with Sigstore/Cosign" >> $GITHUB_STEP_SUMMARY
-
-      - name: Download MCP security scan results
-        id: download-scan
-        if: github.event_name != 'pull_request'
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8
-        with:
-          name: mcp-scan-${{ steps.meta.outputs.server_name }}
-          path: /tmp/scan-results
-        continue-on-error: false  # Fail if scan results are missing
 
       - name: Create security scan attestation (SCAI format)
         if: github.event_name != 'pull_request'
@@ -501,6 +598,15 @@ jobs:
           SERVER_URL: ${{ github.server_url }}
           REPO: ${{ github.repository }}
         run: |
+          # Prior-trust path: this server was not in scan-configs for this run
+          # (e.g. a toolhive bump that rebuilds everything but re-scans no
+          # specs). The previous SCAI attestation on the registry remains
+          # authoritative; skipping here is safe and intentional.
+          if [ ! -f /tmp/scan-results/scan-summary.json ]; then
+            echo "No fresh scan summary for this run; skipping SCAI attestation (server not in this run's scan-configs)."
+            exit 0
+          fi
+
           echo "Creating SCAI security scan attestation for ${IMAGE_NAME}@${DIGEST}"
 
           # Read scanner version from scan results
@@ -532,8 +638,27 @@ jobs:
           echo "Generated SCAI attestation:"
           cat /tmp/security-attestation.json
 
-          # Attest the security scan results with SCAI predicate type
-          cosign attest --yes \
+          # Attest the security scan results with SCAI predicate type. Retry
+          # against GHCR rate limiting (see the signing step); cosign does not
+          # retry TOOMANYREQUESTS itself.
+          retry() {
+            local max_attempts=5 attempt=1 backoff
+            while :; do
+              if "$@"; then
+                return 0
+              fi
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "cosign attest failed after ${attempt} attempt(s)" >&2
+                return 1
+              fi
+              backoff=$(( 5 * attempt ))
+              echo "cosign attest failed; retrying in ${backoff}s..." >&2
+              sleep "$backoff"
+              attempt=$(( attempt + 1 ))
+            done
+          }
+
+          retry cosign attest --yes \
             --predicate /tmp/security-attestation.json \
             --type https://in-toto.io/attestation/scai/v0.3 \
             "${IMAGE_NAME}@${DIGEST}"
