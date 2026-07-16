@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "mcp-server-git"
-  version: "2026.6.16"
+  version: "2026.7.10"
 
 provenance:
   repository_uri: "https://github.com/modelcontextprotocol/servers"
