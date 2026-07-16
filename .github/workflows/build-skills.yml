@@ -67,12 +67,34 @@ jobs:
             exit 0
           fi
 
+          # Decide whether a change to core build inputs warrants rebuilding
+          # every skill. dockhand source, the skills packaging library, the
+          # scan scripts, and this workflow always trigger a full rebuild.
+          # go.mod/go.sum only count when the toolhive modules changed — they
+          # drive the OCI packaging (internal/skills, cmd/dockhand), so a bump
+          # there can alter every artifact. Unrelated dependency bumps must not
+          # rebuild all ~160 skills (it floods GHCR and hits its rate limit).
+          # Args: $1 = git diff range, $2 = newline-separated changed files.
+          core_rebuild_needed() {
+            local range="$1" changed="$2"
+            if echo "$changed" | grep -qE "(cmd/dockhand/|internal/skills/|scripts/skill-scan/|\.github/workflows/build-skills\.yml)"; then
+              return 0
+            fi
+            if echo "$changed" | grep -qE "^go\.(mod|sum)$"; then
+              if git diff "$range" -- go.mod go.sum | grep -qE '^[+-].*stacklok/toolhive'; then
+                return 0
+              fi
+            fi
+            return 1
+          }
+
           if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
             configs_to_build="$all_configs"
             configs_to_scan="$all_configs"
             echo "Manual trigger - building all skill configurations"
           elif [ "$EVENT_NAME" == "pull_request" ]; then
-            changed_files=$(git diff --name-only origin/"$BASE_REF"...HEAD)
+            diff_range="origin/${BASE_REF}...HEAD"
+            changed_files=$(git diff --name-only "$diff_range")
             configs_to_build=""
             configs_to_scan=""
 
@@ -86,12 +108,13 @@ jobs:
             done
 
             # If core build inputs changed, rebuild all skills — but only scan specs that truly changed.
-            if echo "$changed_files" | grep -E "(cmd/dockhand/|internal/skills/|scripts/skill-scan/|\.github/workflows/build-skills\.yml|go\.mod|go\.sum)"; then
-              echo "Core files changed - rebuilding all skill configurations (scan only changed specs)"
+            if core_rebuild_needed "$diff_range" "$changed_files"; then
+              echo "Core build inputs changed - rebuilding all skill configurations (scan only changed specs)"
               configs_to_build="$all_configs"
             fi
           else
-            changed_files=$(git diff --name-only HEAD~1..HEAD)
+            diff_range="HEAD~1..HEAD"
+            changed_files=$(git diff --name-only "$diff_range")
             configs_to_build=""
             configs_to_scan=""
 
@@ -103,8 +126,8 @@ jobs:
               fi
             done
 
-            if echo "$changed_files" | grep -E "(cmd/dockhand/|internal/skills/|scripts/skill-scan/|\.github/workflows/build-skills\.yml|go\.mod|go\.sum)"; then
-              echo "Core files changed - rebuilding all skill configurations (scan only changed specs)"
+            if core_rebuild_needed "$diff_range" "$changed_files"; then
+              echo "Core build inputs changed - rebuilding all skill configurations (scan only changed specs)"
               configs_to_build="$all_configs"
             fi
           fi
@@ -291,6 +314,12 @@ jobs:
       matrix:
         config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}
       fail-fast: false
+      # Cap concurrency so a full rebuild (toolhive bump) doesn't fan out to
+      # ~160 cells that each push a manifest plus signatures and attestations
+      # at once — that bursts past GHCR's manifest write limit (2000/minute)
+      # and fails signing/attestation. Only bites when there are more cells
+      # than this; single-spec changes are unaffected.
+      max-parallel: 10
 
     permissions:
       contents: read
@@ -465,9 +494,31 @@ jobs:
             echo "No digest available, skipping signing"
             exit 0
           fi
+
+          # Retry cosign on non-zero exit. During a full rebuild the concurrent
+          # matrix cells push signatures fast enough to trip GHCR's manifest
+          # rate limit (TOOMANYREQUESTS); the retry-after is tiny, so a short
+          # linear backoff clears it. cosign does not retry these itself.
+          retry() {
+            local max_attempts=5 attempt=1 backoff
+            while :; do
+              if "$@"; then
+                return 0
+              fi
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "cosign failed after ${attempt} attempt(s): $*" >&2
+                return 1
+              fi
+              backoff=$(( 5 * attempt ))
+              echo "cosign failed; retrying in ${backoff}s: $*" >&2
+              sleep "$backoff"
+              attempt=$(( attempt + 1 ))
+            done
+          }
+
           echo "Signing skill artifact ${IMAGE_NAME}@${DIGEST}"
-          cosign sign --yes "${IMAGE_NAME}@${DIGEST}"
-          cosign sign --yes "${IMAGE_NAME}:${VERSION}"
+          retry cosign sign --yes "${IMAGE_NAME}@${DIGEST}"
+          retry cosign sign --yes "${IMAGE_NAME}:${VERSION}"
           echo "Signed: ${IMAGE_NAME}@${DIGEST} and ${IMAGE_NAME}:${VERSION}" >> $GITHUB_STEP_SUMMARY
 
       - name: Check out skill source for SBOM
@@ -561,7 +612,26 @@ jobs:
           echo "Generated SCAI attestation:"
           cat /tmp/skill-scai.json
 
-          cosign attest --yes \
+          # Retry cosign attest against GHCR rate limiting (see the signing
+          # step). cosign does not retry TOOMANYREQUESTS itself.
+          retry() {
+            local max_attempts=5 attempt=1 backoff
+            while :; do
+              if "$@"; then
+                return 0
+              fi
+              if [ "$attempt" -ge "$max_attempts" ]; then
+                echo "cosign attest failed after ${attempt} attempt(s)" >&2
+                return 1
+              fi
+              backoff=$(( 5 * attempt ))
+              echo "cosign attest failed; retrying in ${backoff}s..." >&2
+              sleep "$backoff"
+              attempt=$(( attempt + 1 ))
+            done
+          }
+
+          retry cosign attest --yes \
             --predicate /tmp/skill-scai.json \
             --type https://in-toto.io/attestation/scai/v0.3 \
             "${IMAGE_NAME}@${DIGEST}"
