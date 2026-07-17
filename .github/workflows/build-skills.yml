@@ -50,6 +50,7 @@ jobs:
     outputs:
       changed-configs: ${{ steps.find-configs.outputs.changed-configs }}
       scan-configs: ${{ steps.find-configs.outputs.scan-configs }}
+      smoke: ${{ steps.find-configs.outputs.smoke }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -73,16 +74,18 @@ jobs:
           fi
 
           # Decide whether a change to core build inputs warrants rebuilding
-          # every skill. dockhand source, the skills packaging library, the
-          # scan scripts, and this workflow always trigger a full rebuild.
-          # go.mod/go.sum only count when the toolhive modules changed — they
-          # drive the OCI packaging (internal/skills, cmd/dockhand), so a bump
-          # there can alter every artifact. Unrelated dependency bumps must not
-          # rebuild all ~160 skills (it floods GHCR and hits its rate limit).
+          # every skill. Only inputs that alter the built artifact do: dockhand
+          # source and the skills packaging library. go.mod/go.sum count only
+          # when the toolhive modules changed — they drive the OCI packaging
+          # (internal/skills, cmd/dockhand), so a bump there can alter every
+          # artifact. Unrelated dependency bumps must not rebuild all ~160
+          # skills (it floods GHCR and hits its rate limit). Changes to the
+          # scan scripts or this workflow do not alter artifacts, so they are
+          # handled as a smoke test below rather than a full rebuild.
           # Args: $1 = git diff range, $2 = newline-separated changed files.
           core_rebuild_needed() {
             local range="$1" changed="$2"
-            if echo "$changed" | grep -qE "(cmd/dockhand/|internal/skills/|scripts/skill-scan/|\.github/workflows/build-skills\.yml)"; then
+            if echo "$changed" | grep -qE "(cmd/dockhand/|internal/skills/)"; then
               return 0
             fi
             if echo "$changed" | grep -qE "^go\.(mod|sum)$"; then
@@ -92,6 +95,10 @@ jobs:
             fi
             return 1
           }
+
+          # Smoke mode: set when the only relevant change is to this workflow
+          # or the scan scripts. See the block after the event dispatch below.
+          smoke=false
 
           if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
             configs_to_build="$all_configs"
@@ -137,10 +144,28 @@ jobs:
             fi
           fi
 
+          # If the only relevant change was to this workflow or the scan
+          # scripts (no spec changed, no full rebuild triggered), run a single
+          # representative skill through the validate-skills and
+          # skill-security-scan legs. This exercises the scan/validate
+          # toolchain (e.g. a Python or scanner bump) without rebuilding or
+          # republishing every skill. build-skill-artifacts is skipped for
+          # smoke runs via the `smoke` output.
+          if [ "$EVENT_NAME" != "workflow_dispatch" ] \
+             && [ -z "$configs_to_build" ] \
+             && echo "$changed_files" | grep -qE "(^\.github/workflows/build-skills\.yml$|^\.github/workflows/skill-scan-report\.yml$|^scripts/skill-scan/)"; then
+            echo "Only workflow/scan-script changed - smoke testing a representative skill (no build/push)"
+            sample=$(find skills -name "spec.yaml" -type f 2>/dev/null | sort | head -1)
+            configs_to_build="$sample"
+            configs_to_scan="$sample"
+            smoke=true
+          fi
+
           configs_json=$(echo "$configs_to_build" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
           scan_configs_json=$(echo "$configs_to_scan" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
           echo "changed-configs=$configs_json" >> $GITHUB_OUTPUT
           echo "scan-configs=$scan_configs_json" >> $GITHUB_OUTPUT
+          echo "smoke=$smoke" >> $GITHUB_OUTPUT
           echo "Skill configurations to build: $configs_json"
           echo "Skill configurations to scan: $scan_configs_json"
 
@@ -314,7 +339,14 @@ jobs:
     # `Pre-flight scan gate` step below preserves the security gate at the
     # individual skill level by reading scan-summary.json from the artifact
     # produced by skill-security-scan (uploaded with `if: always()`).
-    if: ${{ !cancelled() && needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' }}
+    #
+    # On smoke runs (workflow/scan-script-only changes) this builds the
+    # representative skill on PRs to exercise the build path (dockhand
+    # build-skill) but never pushes — the push/sign/SBOM/attest steps are
+    # already gated on `github.event_name != 'pull_request'`. On pushes to
+    # main, smoke skips the build entirely so a workflow edit does not
+    # republish, sign, or attest a sample artifact.
+    if: ${{ !cancelled() && needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' && (needs.discover-skill-configs.outputs.smoke != 'true' || github.event_name == 'pull_request') }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}

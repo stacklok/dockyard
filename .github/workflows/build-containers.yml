@@ -8,6 +8,9 @@ on:
       - 'uvx/**/*.yaml'
       - 'go/**/*.yaml'
       - 'cmd/dockhand/**'
+      - 'scripts/mcp-scan/**'
+      - '.github/workflows/build-containers.yml'
+      - '.github/workflows/mcp-scan-report.yml'
       - 'go.mod'
       - 'go.sum'
   pull_request:
@@ -17,6 +20,9 @@ on:
       - 'uvx/**/*.yaml'
       - 'go/**/*.yaml'
       - 'cmd/dockhand/**'
+      - 'scripts/mcp-scan/**'
+      - '.github/workflows/build-containers.yml'
+      - '.github/workflows/mcp-scan-report.yml'
       - 'go.mod'
       - 'go.sum'
   workflow_dispatch:
@@ -48,6 +54,7 @@ jobs:
       configs: ${{ steps.find-configs.outputs.configs }}
       changed-configs: ${{ steps.find-configs.outputs.changed-configs }}
       scan-configs: ${{ steps.find-configs.outputs.scan-configs }}
+      smoke: ${{ steps.find-configs.outputs.smoke }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
@@ -82,6 +89,10 @@ jobs:
             fi
             return 1
           }
+
+          # Smoke mode: set when the only relevant change is to this workflow
+          # or the scan scripts. See the block after the event dispatch below.
+          smoke=false
 
           if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
             # For manual triggers, build all configs
@@ -134,6 +145,29 @@ jobs:
             fi
           fi
 
+          # If the only relevant change was to this workflow or the scan
+          # scripts (no spec changed, no full rebuild triggered), run a small
+          # representative sample — one config per protocol — through the
+          # verify-provenance and mcp-security-scan legs. This exercises the
+          # scan/verify toolchain (e.g. a Python or scanner bump) without
+          # building or pushing every image. build-containers is skipped for
+          # smoke runs via the `smoke` output.
+          if [ "$EVENT_NAME" != "workflow_dispatch" ] \
+             && [ -z "$configs_to_build" ] \
+             && echo "$changed_files" | grep -qE "(^\.github/workflows/build-containers\.yml$|^\.github/workflows/mcp-scan-report\.yml$|^scripts/mcp-scan/)"; then
+            echo "Only workflow/scan-script changed - smoke testing a representative sample (no build/push)"
+            sample=""
+            for proto in npx uvx go; do
+              first=$(find "$proto" -name "spec.yaml" -type f 2>/dev/null | sort | head -1)
+              if [ -n "$first" ]; then
+                sample="$sample$first"$'\n'
+              fi
+            done
+            configs_to_build="$sample"
+            configs_to_scan="$sample"
+            smoke=true
+          fi
+
           # Convert to JSON array, filtering out empty lines
           configs_json=$(echo "$configs_to_build" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
           scan_configs_json=$(echo "$configs_to_scan" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
@@ -142,6 +176,7 @@ jobs:
           echo "configs=$all_configs_json" >> $GITHUB_OUTPUT
           echo "changed-configs=$configs_json" >> $GITHUB_OUTPUT
           echo "scan-configs=$scan_configs_json" >> $GITHUB_OUTPUT
+          echo "smoke=$smoke" >> $GITHUB_OUTPUT
 
           echo "All configurations: $all_configs_json"
           echo "Configurations to build: $configs_json"
@@ -368,7 +403,14 @@ jobs:
     # build. The security gate is preserved per-cell by the `Pre-flight scan
     # gate` step below, which reads scan-summary.json from the artifact
     # produced by mcp-security-scan. verify-provenance is informational.
-    if: ${{ !cancelled() && needs.discover-configs.outputs.changed-configs != '[]' && needs.verify-provenance.result == 'success' }}
+    #
+    # On smoke runs (workflow/scan-script-only changes) this builds the
+    # representative sample on PRs to exercise the build path (Dockerfile
+    # generation, buildx, Grype) but never pushes — the push/sign/attest
+    # steps are already gated on `github.event_name != 'pull_request'`. On
+    # pushes to main, smoke skips the build entirely so a workflow edit does
+    # not publish, sign, or attest a sample image.
+    if: ${{ !cancelled() && needs.discover-configs.outputs.changed-configs != '[]' && needs.verify-provenance.result == 'success' && (needs.discover-configs.outputs.smoke != 'true' || github.event_name == 'pull_request') }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
