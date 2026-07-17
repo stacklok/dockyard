@@ -11,7 +11,7 @@ metadata:
 
 spec:
   repository: "https://github.com/supabase/agent-skills"
-  ref: "1356046015476711a769601079262b5635929427"  # main as of 2026-04-19
+  ref: "1ad9aaeb49caafd9e95c0a91116f71890eebbc53"  # main as of 2026-04-19
   path: "skills/supabase"
   version: "0.3.0"
 
