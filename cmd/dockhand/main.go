@@ -12,6 +12,7 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/stacklok/toolhive-core/logging"
 	"github.com/stacklok/toolhive/pkg/container/images"
+	"github.com/stacklok/toolhive/pkg/container/templates"
 	"github.com/stacklok/toolhive/pkg/runner"
 	"gopkg.in/yaml.v3"
 
@@ -41,9 +42,10 @@ type MCPServerMetadata struct {
 
 // MCPServerPackageSpec defines the package to be containerized
 type MCPServerPackageSpec struct {
-	Package string   `yaml:"package"`           // e.g., "@upstash/context7-mcp"
-	Version string   `yaml:"version,omitempty"` // e.g., "1.0.14"
-	Args    []string `yaml:"args,omitempty"`    // Additional arguments for the package
+	Package string            `yaml:"package"`           // e.g., "@upstash/context7-mcp"
+	Version string            `yaml:"version,omitempty"` // e.g., "1.0.14"
+	Args    []string          `yaml:"args,omitempty"`    // Additional arguments for the package
+	Env     map[string]string `yaml:"env,omitempty"`     // Environment variables baked into the runtime image
 }
 
 // MCPServerProvenance contains supply chain provenance information
@@ -368,6 +370,12 @@ func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag stri
 	// Create image manager
 	imageManager := images.NewImageManager(ctx)
 
+	// Pass runtime env vars through as a RuntimeConfig override, if declared
+	var runtimeOverride *templates.RuntimeConfig
+	if len(spec.Spec.Env) > 0 {
+		runtimeOverride = &templates.RuntimeConfig{RuntimeEnv: spec.Spec.Env}
+	}
+
 	// Generate Dockerfile using toolhive's BuildFromProtocolSchemeWithName function with dryRun=true
 	dockerfile, err := runner.BuildFromProtocolSchemeWithName(
 		ctx,
@@ -376,8 +384,8 @@ func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag stri
 		"", // caCertPath - empty for now
 		imageTag,
 		spec.Spec.Args, // Pass args from spec if present
-		nil,            // runtimeOverride - use defaults
-		true,           // always dryRun to generate Dockerfile
+		runtimeOverride,
+		true, // always dryRun to generate Dockerfile
 	)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate Dockerfile for protocol scheme %s: %w", protocolScheme, err)

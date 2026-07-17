@@ -12,6 +12,11 @@ metadata:
 spec:
   package: "okta-mcp-server"
   version: "1.1.3"
+  env:
+    # okta-mcp-server caches OAuth tokens via the `keyring` library, which
+    # otherwise tries to reach an OS secret-service/D-Bus backend that
+    # doesn't exist in this minimal container.
+    PYTHON_KEYRING_BACKEND: "keyrings.alt.file.PlaintextKeyring"
 
 provenance:
   repository_uri: "https://github.com/okta/okta-mcp-server"
