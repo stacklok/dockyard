@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/entireio/skills"
-  ref: "0ef47397be5f37586a67b6a87b1f1cd2359422ac"  # main as of 2026-05-07
+  ref: "79682cb0df23cd3066add89e12d1b96fae37f4ed"  # main as of 2026-05-07
   path: "skills/what-happened"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/entireio/skills"
