@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "adb-mysql-mcp-server"
-  version: "1.0.0"
+  version: "2.0.0"
 
 provenance:
   repository_uri: "https://github.com/aliyun/alibabacloud-adb-mysql-mcp-server"
