@@ -7,6 +7,8 @@
   ],
   "labels": ["dependencies"],
   "postUpdateOptions": ["gomodTidy"],
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
   "packageRules": [
     {
       "description": "Group the toolhive Go modules so they update in one PR. Both feed dockhand's artifact/Dockerfile packaging, and the build workflows rebuild every artifact when either changes; grouping keeps that to a single rebuild.",
@@ -16,6 +18,19 @@
         "github.com/stacklok/toolhive-core"
       ],
       "groupName": "toolhive"
+    },
+    {
+      "description": "Group non-major Go module updates (toolhive modules are handled separately above).",
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchPackageNames": ["!github.com/stacklok/toolhive*"],
+      "groupName": "go modules"
+    },
+    {
+      "description": "Group non-major GitHub Actions updates.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pin"],
+      "groupName": "github-actions"
     }
   ],
   "customManagers": [
