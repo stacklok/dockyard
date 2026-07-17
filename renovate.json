@@ -31,6 +31,12 @@
       "matchManagers": ["github-actions"],
       "matchUpdateTypes": ["minor", "patch", "digest", "pin"],
       "groupName": "github-actions"
+    },
+    {
+      "description": "Keep runtime toolchain versions (the github-actions manager extracts these from setup-* `with:` inputs, e.g. actions/setup-python's python-version) out of the github-actions digest group. These are feature-release decisions - for CPython, 3.13 to 3.14 is not a true semver-minor - so they warrant their own reviewable PR rather than riding along with action digest bumps. Ordered after the group rule so it wins.",
+      "matchManagers": ["github-actions"],
+      "matchDepTypes": ["uses-with"],
+      "groupName": "CI runtime versions"
     }
   ],
   "customManagers": [
