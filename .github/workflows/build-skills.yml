@@ -340,10 +340,13 @@ jobs:
     # individual skill level by reading scan-summary.json from the artifact
     # produced by skill-security-scan (uploaded with `if: always()`).
     #
-    # Skipped entirely on smoke runs (workflow/scan-script-only changes): those
-    # exercise validate-skills and skill-security-scan on a representative
-    # skill but must not build or republish any artifact.
-    if: ${{ !cancelled() && needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' && needs.discover-skill-configs.outputs.smoke != 'true' }}
+    # On smoke runs (workflow/scan-script-only changes) this builds the
+    # representative skill on PRs to exercise the build path (dockhand
+    # build-skill) but never pushes — the push/sign/SBOM/attest steps are
+    # already gated on `github.event_name != 'pull_request'`. On pushes to
+    # main, smoke skips the build entirely so a workflow edit does not
+    # republish, sign, or attest a sample artifact.
+    if: ${{ !cancelled() && needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' && (needs.discover-skill-configs.outputs.smoke != 'true' || github.event_name == 'pull_request') }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}

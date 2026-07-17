@@ -404,10 +404,13 @@ jobs:
     # gate` step below, which reads scan-summary.json from the artifact
     # produced by mcp-security-scan. verify-provenance is informational.
     #
-    # Skipped entirely on smoke runs (workflow/scan-script-only changes): those
-    # exercise verify-provenance and mcp-security-scan on a representative
-    # sample but must not build or publish any image.
-    if: ${{ !cancelled() && needs.discover-configs.outputs.changed-configs != '[]' && needs.verify-provenance.result == 'success' && needs.discover-configs.outputs.smoke != 'true' }}
+    # On smoke runs (workflow/scan-script-only changes) this builds the
+    # representative sample on PRs to exercise the build path (Dockerfile
+    # generation, buildx, Grype) but never pushes — the push/sign/attest
+    # steps are already gated on `github.event_name != 'pull_request'`. On
+    # pushes to main, smoke skips the build entirely so a workflow edit does
+    # not publish, sign, or attest a sample image.
+    if: ${{ !cancelled() && needs.discover-configs.outputs.changed-configs != '[]' && needs.verify-provenance.result == 'success' && (needs.discover-configs.outputs.smoke != 'true' || github.event_name == 'pull_request') }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-configs.outputs.changed-configs) }}
