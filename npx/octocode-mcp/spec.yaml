@@ -18,3 +18,17 @@ provenance:
   # Monorepo with multiple packages; npm versions don't match git tags
   repository_uri: "https://github.com/bgauryy/octocode-mcp"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "AITech-8.2"
+      reason: |
+        Flagged on ghSearchCode and localViewStructure, both read-only search/browse
+        tools that return results to the calling agent. This is inherent to
+        octocode-mcp's purpose as a GitHub + local code discovery server. The
+        equivalent tools in v15.0.2 (githubSearchCode, localViewStructure) exposed
+        the same read capability and passed the scan cleanly with 0 findings; the
+        v16.0.0 wording changes add local caching/proof-of-work phrasing (e.g.
+        "cache fetch", "clone", "structured entries[] output") that trips the YARA
+        heuristic without introducing a new data path. The scan's LLM analyzer,
+        run in the same pass, found no corroborating issue on either tool.
