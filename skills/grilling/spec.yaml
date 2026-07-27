@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "ed37663cc5fbef691ddfecd080dff42f7e7e350d"
   path: "skills/productivity/grilling"
-  version: "0.1.0"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
