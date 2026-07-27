@@ -32,3 +32,7 @@ security:
         9067c1e3d3afbb212235356702db6ab4b82ec88a.
     - rule_id: BEHAVIOR_BASH_TAINT_FLOW
       reason: "FP: matched bash/curl code examples in Firestore API documentation — documentation, not agent-executable scripts."
+    - rule_id: ATR_2026_00010
+      reason: "FP: matched 'update rules' and 'fieldUnc' in Firestore security rules documentation — these are rule definition patterns, not executable code."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched 'authorUid' and 'allow update' in Firestore security rules documentation — these are Firestore security rule syntax examples."

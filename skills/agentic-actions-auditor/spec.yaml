@@ -31,3 +31,9 @@ security:
       reason: "FP: security audit skill reference file containing 'cat /etc/passwd' as an example attack payload for detection purposes."
     - rule_id: LLM_PROMPT_INJECTION
       reason: "FP: security audit skill whose reference files contain detailed attack patterns by design. The skill teaches agents to FIND these patterns in user workflows, not to execute them."
+    - rule_id: ATR_2026_00012
+      reason: "FP: security audit skill — reference files contain GitHub AI Inference configuration examples for detection purposes."
+    - rule_id: ATR_2026_00040
+      reason: "FP: security audit skill — reference files contain 'exec'/'shell' in subshell expansion and eval attack pattern documentation."
+    - rule_id: ATR_2026_00066
+      reason: "FP: security audit skill — reference files contain GitHub Actions expression syntax (${{ }}) in attack pattern documentation."

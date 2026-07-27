@@ -21,3 +21,7 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00012
+      reason: "FP: security analysis skill — reference files contain PHP code examples showing dangerous configuration patterns for detection purposes."
+    - rule_id: ATR_2026_00161
+      reason: "FP: security analysis skill — reference files contain '/etc/passwd' as an example of sensitive file paths to check for in security reviews."

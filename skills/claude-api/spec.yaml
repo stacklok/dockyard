@@ -79,3 +79,7 @@ security:
       reason: "FP: matched 'execute anything' in API documentation prose."
     - rule_id: ATR_2026_00265
       reason: "FP: matched 'disregard the previous instruction' — this appears in prompt-injection documentation that teaches developers about the attack, not as an actual injection."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched 'instead of the deprecated' in API migration documentation."
+    - rule_id: ATR_2026_00113
+      reason: "FP: matched 'ant auth print-credentials' and managed-agents onboarding instructions in API documentation — these are official Anthropic CLI commands for the Claude API skill."

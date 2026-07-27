@@ -21,3 +21,11 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00004
+      reason: "FP: YARA rule authoring skill — reference files contain YARA rule examples with system/profile strings for detection purposes."
+    - rule_id: ATR_2026_00012
+      reason: "FP: YARA rule authoring skill — reference files contain file path and hash examples for detection rule authoring."
+    - rule_id: ATR_2026_00063
+      reason: "FP: YARA rule authoring skill — reference files contain 'compress' in the context of YARA rule optimization documentation."
+    - rule_id: ATR_2026_00066
+      reason: "FP: YARA rule authoring skill — reference files contain bash code-fence markers in testing documentation examples."
