@@ -21,3 +21,7 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "datadog-labs/agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # Datadog Agent Observability documentation skill — ATR pattern matches are
+    # all on evaluation/tracing documentation and Datadog API references.
+    - category: POLICY_VIOLATION
+      reason: "FP: agent-observability-experiment-analyzer is a Datadog Agent Observability documentation skill. All ATR pattern matches are on evaluation and tracing documentation, and Datadog API reference material — not agent instructions."

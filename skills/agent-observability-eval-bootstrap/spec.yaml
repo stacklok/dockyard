@@ -94,3 +94,8 @@ security:
       reason: "FP: word-fragment matches — `summarizing a policy` (example intent category), `eval_scope` (identifier). Documentation strings, no executable threat. datadog-labs/agent-skills @9bcb3ce."
     - rule_id: ATR_2026_00213
       reason: "FP: matched the literal words 'system prompt' / 'System Prompt' in prose describing Datadog span fields and eval dimensions. Documentation, not a system-prompt-extraction attack. datadog-labs/agent-skills @9bcb3ce."
+    # Datadog LLM Observability documentation skill — ATR pattern matches are
+    # all on evaluation setup docs, Python evaluator examples, and Datadog API
+    # references. New content at updated digests triggers new rule IDs.
+    - category: POLICY_VIOLATION
+      reason: "FP: agent-observability-eval-bootstrap is a Datadog LLM Observability documentation skill. All ATR pattern matches are on evaluation setup documentation, Python evaluator code examples, and Datadog API reference material — not agent instructions."

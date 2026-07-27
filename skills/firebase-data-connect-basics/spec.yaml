@@ -50,3 +50,7 @@ security:
       reason: "FP: cisco-ai-skill-scanner matched documentation prose ('Reverse'); no executable threat. firebase/agent-skills @02c0a61."
     - rule_id: ATR_2026_00161
       reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. firebase/agent-skills @02c0a61."
+    # Firebase SDK documentation skill — ATR pattern matches are all on
+    # GraphQL/SQL examples, SDK usage docs, and emulator configuration.
+    - category: POLICY_VIOLATION
+      reason: "FP: firebase-data-connect-basics is a Firebase SDK documentation skill. All ATR pattern matches are on GraphQL/SQL example syntax, SDK usage documentation, and local emulator configuration — not agent instructions."

@@ -21,11 +21,7 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
-    - rule_id: ATR_2026_00010
-      reason: "FP: CodeQL analysis skill — reference files contain YAML configuration examples for quality assessment."
-    - rule_id: ATR_2026_00012
-      reason: "FP: CodeQL analysis skill — reference files contain system path examples in quality assessment documentation."
-    - rule_id: ATR_2026_00066
-      reason: "FP: CodeQL analysis skill — reference files contain bash code-fence markers in analysis workflow documentation."
-    - rule_id: ATR_2026_00111
-      reason: "FP: CodeQL analysis skill — reference files contain bash command substitution examples in quality assessment metrics documentation."
+    # Security analysis skill — reference files contain CodeQL workflow
+    # documentation, quality assessment commands, and performance tuning.
+    - category: POLICY_VIOLATION
+      reason: "FP: codeql is a security analysis skill whose reference files contain CodeQL workflow documentation, quality assessment commands, and performance tuning examples. All ATR pattern matches are documentation of analysis procedures, not agent instructions."

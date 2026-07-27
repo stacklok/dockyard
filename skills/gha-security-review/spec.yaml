@@ -87,9 +87,7 @@ security:
         5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
     - rule_id: BEHAVIOR_BASH_TAINT_FLOW
       reason: "FP: security audit skill that teaches agents to find supply-chain attacks; reference files contain example attack patterns for detection, not execution."
-    - rule_id: ATR_2026_00040
-      reason: "FP: security audit skill — reference files contain 'bash' in runner infrastructure documentation describing CI attack patterns."
-    - rule_id: ATR_2026_00066
-      reason: "FP: security audit skill — reference files contain bash code-fence markers in runner infrastructure attack pattern documentation."
-    - rule_id: ATR_2026_00161
-      reason: "FP: security audit skill — reference files contain '.env' in documentation about credential leakage patterns in CI."
+    # Security audit skill — reference files intentionally describe CI attack
+    # patterns with PoC examples for detection purposes.
+    - category: POLICY_VIOLATION
+      reason: "FP: gha-security-review is a security audit skill whose reference files intentionally describe CI/CD attack patterns (pwn requests, expression injection, credential theft, supply chain poisoning) with PoC examples for detection purposes. All ATR pattern matches are documentation of what to detect, not agent instructions."

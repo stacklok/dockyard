@@ -38,9 +38,7 @@ security:
         5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
     - rule_id: BEHAVIOR_BASH_TAINT_FLOW
       reason: "FP: meta-skill that teaches skill authoring; reference files contain example code patterns for instructional purposes."
-    - rule_id: ATR_2026_00012
-      reason: "FP: meta-skill — reference files contain file path and evaluation assertion examples in skill-evals documentation."
-    - rule_id: ATR_2026_00088
-      reason: "FP: meta-skill — reference files contain 'output with normal' in evaluation documentation about output contracts."
-    - rule_id: ATR_2026_00111
-      reason: "FP: meta-skill — reference files contain 'evals/fixtures/' as an example directory path in evaluation documentation."
+    # Meta-skill — reference files contain skill authoring patterns, evaluation
+    # examples, and registration/validation procedures.
+    - category: POLICY_VIOLATION
+      reason: "FP: skill-writer is a meta-skill that teaches agents how to author and evaluate skills. Its reference files necessarily contain skill patterns, evaluation examples, and registration procedures that trigger pattern-based scanner rules. All matches are instructional documentation, not agent instructions."

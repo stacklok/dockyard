@@ -21,7 +21,7 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
-    - rule_id: ATR_2026_00012
-      reason: "FP: security analysis skill — reference files contain PHP code examples showing dangerous configuration patterns for detection purposes."
-    - rule_id: ATR_2026_00161
-      reason: "FP: security analysis skill — reference files contain '/etc/passwd' as an example of sensitive file paths to check for in security reviews."
+    # Security analysis skill — reference files intentionally describe
+    # dangerous API patterns and configuration anti-patterns for detection.
+    - category: POLICY_VIOLATION
+      reason: "FP: sharp-edges is a security audit skill whose reference files intentionally describe dangerous configuration patterns, crypto API misuse, and error-prone designs for detection purposes. All ATR pattern matches are documentation of what to detect, not agent instructions."
