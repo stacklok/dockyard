@@ -85,5 +85,7 @@ security:
       reason: "FP: matched 'ant auth print-credentials' and managed-agents onboarding instructions in API documentation — these are official Anthropic CLI commands for the Claude API skill."
     # Claude API documentation skill — ATR pattern matches are all on API docs,
     # code examples, SDK references, and migration guides.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: claude-api is a Claude API documentation skill. All ATR pattern matches are on API documentation prose, SDK code examples, migration guides, and platform configuration references — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."

@@ -23,5 +23,7 @@ security:
       reason: "mongodb/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     # MongoDB Atlas Stream Processing documentation skill — ATR pattern matches
     # are all on aggregation pipeline syntax, Kafka config examples, and API docs.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: mongodb-atlas-stream-processing is a MongoDB Atlas Stream Processing documentation skill. All ATR pattern matches are on aggregation pipeline syntax ($$NOW, $source, $emit), Kafka configuration examples, and API parameter documentation — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."

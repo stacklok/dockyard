@@ -23,7 +23,9 @@ security:
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     # Security analysis skill — reference files intentionally describe
     # YARA detection patterns, testing approaches, and deployment workflows.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: yara-rule-authoring is a security analysis skill whose reference files intentionally describe YARA detection patterns, testing commands, and deployment procedures. All ATR pattern matches are documentation of detection rule authoring, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
     - rule_id: PG_PII_SSN_HARVESTING
       reason: "FP: matched 'Gather samples' in YARA testing documentation — refers to collecting malware samples for testing detection rules, not harvesting PII."

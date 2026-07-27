@@ -25,7 +25,11 @@ security:
       reason: "Matches eval() example snippets in SKILL.md that illustrate vulnerability patterns a custom Semgrep rule should detect; these are documentation of target code, not executable paths within the skill."
     # Security analysis skill — reference files contain Semgrep rule patterns
     # and example vulnerability code for detection rule authoring.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: semgrep-rule-creator is a security analysis skill whose reference files contain Semgrep rule authoring documentation and example vulnerability patterns for detection purposes. All ATR pattern matches are documentation of detection rule authoring, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
     - rule_id: MDBLOCK_PYTHON_EVAL_EXEC
       reason: "FP: matched eval() example in SKILL.md — illustrates a vulnerability pattern that a Semgrep rule should detect; documentation of target code, not executable within the skill."
+    - category: command_injection
+      reason: "FP: same as above — example code patterns for detection rule authoring, not executable within the skill."

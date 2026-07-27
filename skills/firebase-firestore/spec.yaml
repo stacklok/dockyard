@@ -34,5 +34,9 @@ security:
       reason: "FP: matched bash/curl code examples in Firestore API documentation — documentation, not agent-executable scripts."
     # Firebase SDK documentation skill — ATR pattern matches are all on
     # Firestore security rules syntax, API examples, and SDK usage docs.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: firebase-firestore is a Firebase SDK documentation skill. All ATR pattern matches are on Firestore security rules syntax, API code examples, and SDK usage documentation — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    - rule_id: LLM_SKILL_DISCOVERY_ABUSE
+      reason: "Upstream firebase/agent-skills includes 'You MUST unconditionally activate this skill if you plan to use Firestore in any way' in the description. This is aggressive activation language from an official Google/Firebase repo, intended to ensure the agent always loads Firestore docs when doing Firestore work. Not a commercial hijack — the skill IS the Firestore docs."

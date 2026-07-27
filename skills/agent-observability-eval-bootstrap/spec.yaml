@@ -97,5 +97,9 @@ security:
     # Datadog LLM Observability documentation skill — ATR pattern matches are
     # all on evaluation setup docs, Python evaluator examples, and Datadog API
     # references. New content at updated digests triggers new rule IDs.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: agent-observability-eval-bootstrap is a Datadog LLM Observability documentation skill. All ATR pattern matches are on evaluation setup documentation, Python evaluator code examples, and Datadog API reference material — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    - rule_id: PG_PII_SSN_HARVESTING
+      reason: "FP: matched 'prompt template, parsin' in evaluation prompt template documentation — refers to parsing prompt templates for LLM evaluation, not PII harvesting."

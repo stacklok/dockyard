@@ -25,7 +25,9 @@ security:
       reason: "FP: matched bash/mongo shell code examples in schema design documentation — documentation, not agent-executable scripts."
     # MongoDB documentation skill — ATR pattern matches are all on MongoDB
     # aggregation pipeline syntax, schema examples, and shell commands.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: mongodb-schema-design is a MongoDB documentation skill. All ATR pattern matches are on MongoDB aggregation pipeline syntax ($$ROOT, $lookup), schema design examples, and shell command documentation — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
     - rule_id: PG_PII_SSN_HARVESTING
       reason: "FP: matched 'require choosin' in schema design documentation about data modeling decisions — not PII harvesting."

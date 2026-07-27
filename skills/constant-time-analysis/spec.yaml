@@ -25,5 +25,7 @@ security:
     # cryptographic vulnerability patterns (timing side-channels, key management
     # anti-patterns) for detection purposes. Allow the full ATR pattern-rule
     # category since individual rule IDs change with each upstream content update.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: constant-time-analysis is a security audit skill whose reference files intentionally describe timing side-channel attack patterns and crypto API misuse examples for detection purposes. All ATR pattern matches are documentation of what to detect, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."

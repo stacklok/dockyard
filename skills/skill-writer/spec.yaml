@@ -40,5 +40,7 @@ security:
       reason: "FP: meta-skill that teaches skill authoring; reference files contain example code patterns for instructional purposes."
     # Meta-skill — reference files contain skill authoring patterns, evaluation
     # examples, and registration/validation procedures.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: skill-writer is a meta-skill that teaches agents how to author and evaluate skills. Its reference files necessarily contain skill patterns, evaluation examples, and registration procedures that trigger pattern-based scanner rules. All matches are instructional documentation, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."

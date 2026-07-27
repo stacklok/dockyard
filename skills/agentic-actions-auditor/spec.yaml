@@ -25,5 +25,7 @@ security:
       reason: "FP: security audit skill whose reference files contain detailed attack patterns by design. The skill teaches agents to FIND these patterns in user workflows, not to execute them."
     # Security audit skill — reference files intentionally describe CI/CD attack
     # vectors with PoC examples for detection purposes.
-    - category: POLICY_VIOLATION
+    - category: policy_violation
       reason: "FP: agentic-actions-auditor is a security audit skill whose reference files intentionally describe CI/CD attack patterns (prompt injection, expression injection, subshell expansion, credential exfiltration) with PoC examples for detection purposes. All ATR pattern matches are documentation of what to detect, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
