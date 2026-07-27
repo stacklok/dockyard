@@ -1,0 +1,29 @@
+# MongoDB mongodb-atlas-stream-processing Skill
+# Build real-time stream processing pipelines with MongoDB Atlas.
+# Source: https://github.com/mongodb/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/mongodb-atlas-stream-processing:0.1.0
+
+metadata:
+  name: mongodb-atlas-stream-processing
+  description: "Build real-time stream processing pipelines with MongoDB Atlas Stream Processing — continuous queries over Kafka and MongoDB sources, windowing, aggregations, and enrichment"
+
+spec:
+  repository: "https://github.com/mongodb/agent-skills"
+  ref: "b4ea8150a020b9babaddc6c271c6dc177c06a83f"
+  path: "skills/mongodb-atlas-stream-processing"
+  version: "0.1.1"
+
+provenance:
+  repository_uri: "https://github.com/mongodb/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mongodb/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # MongoDB Atlas Stream Processing documentation skill — ATR pattern matches
+    # are all on aggregation pipeline syntax, Kafka config examples, and API docs.
+    - category: policy_violation
+      reason: "FP: mongodb-atlas-stream-processing is a MongoDB Atlas Stream Processing documentation skill. All ATR pattern matches are on aggregation pipeline syntax ($$NOW, $source, $emit), Kafka configuration examples, and API parameter documentation — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."

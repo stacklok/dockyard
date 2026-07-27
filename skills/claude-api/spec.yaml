@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/anthropics/skills"
-  ref: "6a5bb06904ab164a345e41c381fc9097954b83da"  # main as of 2026-04-07
+  ref: "b29e7cf65e5cb78a5ac33d582270551bc74a14eb"
   path: "skills/claude-api"
-  version: "0.1.2"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/anthropics/skills"
@@ -59,3 +59,33 @@ security:
       reason: "FP: matched prose 'Store MCP credential'; documentation, not credential exfiltration."
     - rule_id: PG_PII_SSN_HARVESTING
       reason: "FP: matched prose fragments ('ask the user...', toggle `thinking`); rule is also misconfigured upstream (unknown category 'pii_exposure')."
+    - rule_id: ATR_2026_00020
+      reason: "FP: matched 'You are a helpful assistant' and 'system prompt:' in API documentation examples."
+    - rule_id: ATR_2026_00083
+      reason: "FP: matched 'new instruction' in API documentation prose."
+    - rule_id: ATR_2026_00084
+      reason: "FP: matched 'Override API host' in API configuration documentation."
+    - rule_id: ATR_2026_00088
+      reason: "FP: matched 'output is billed at normal' in API pricing documentation."
+    - rule_id: ATR_2026_00090
+      reason: "FP: matched 'max_token' in API parameter documentation."
+    - rule_id: ATR_2026_00115
+      reason: "FP: matched 'env;' in code examples within API documentation."
+    - rule_id: ATR_2026_00142
+      reason: "FP: matched URL fragment 'ps://platform.claude.com/workspaces/...' in API documentation examples."
+    - rule_id: ATR_2026_00235
+      reason: "FP: matched 'prompt:' in API code examples."
+    - rule_id: ATR_2026_00240
+      reason: "FP: matched 'execute anything' in API documentation prose."
+    - rule_id: ATR_2026_00265
+      reason: "FP: matched 'disregard the previous instruction' — this appears in prompt-injection documentation that teaches developers about the attack, not as an actual injection."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched 'instead of the deprecated' in API migration documentation."
+    - rule_id: ATR_2026_00113
+      reason: "FP: matched 'ant auth print-credentials' and managed-agents onboarding instructions in API documentation — these are official Anthropic CLI commands for the Claude API skill."
+    # Claude API documentation skill — ATR pattern matches are all on API docs,
+    # code examples, SDK references, and migration guides.
+    - category: policy_violation
+      reason: "FP: claude-api is a Claude API documentation skill. All ATR pattern matches are on API documentation prose, SDK code examples, migration guides, and platform configuration references — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
