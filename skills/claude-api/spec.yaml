@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/anthropics/skills"
   ref: "b29e7cf65e5cb78a5ac33d582270551bc74a14eb"  # main as of 2026-04-07
   path: "skills/claude-api"
-  version: "0.1.2"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/anthropics/skills"
