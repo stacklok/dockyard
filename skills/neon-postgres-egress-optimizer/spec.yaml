@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/neondatabase/agent-skills"
   ref: "ec8ce73e0f10db5578e273a13d7bc8ac7d778dfb"  # main as of 2026-04-14
   path: "skills/neon-postgres-egress-optimizer"
-  version: "0.1.4"
+  version: "0.1.5"
 
 provenance:
   repository_uri: "https://github.com/neondatabase/agent-skills"
