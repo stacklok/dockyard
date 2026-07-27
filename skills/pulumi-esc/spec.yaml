@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/pulumi/agent-skills"
-  ref: "8a276968c9de5c555f720bcce25a165da05f13b8"  # main as of 2026-04-16
+  ref: "49e2562105dbd3bd0e1829c32c023163d139452b"  # main as of 2026-04-16
   path: "pulumi/skills/pulumi-esc"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
