@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/cloudflare/skills"
-  ref: "27ce0c0e159225caa7ed30ebefd4107aa6c52497"  # main as of 2026-04-16
+  ref: "30553f89ae1ef1e3c2917cd09d72dac992bb4e9a"
   path: "skills/cloudflare"
   version: "0.2.0"
 
@@ -23,3 +23,5 @@ security:
       reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: EXCESSIVE_FILE_COUNT
       reason: "This umbrella skill ships one `references/<product>/` subdirectory per Cloudflare product (316 files total). The large file count is by upstream design — the skill functions as a product index that routes to the relevant reference for any Cloudflare task. All files are Cloudflare-authored documentation, not bundled dependencies."
+    - rule_id: BEHAVIOR_BASH_TAINT_FLOW
+      reason: "FP: matched bash code examples in Flagship API documentation (references/flagship/gotchas.md, patterns.md). These are curl command examples showing API usage — documentation, not agent-executable scripts."

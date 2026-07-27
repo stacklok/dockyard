@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
+  ref: "ed37663cc5fbef691ddfecd080dff42f7e7e350d"
   path: "skills/productivity/grilling"
   version: "0.1.0"
 
@@ -21,3 +21,5 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched conversational instruction 'For each question, provide your recommended answer' — interview-flow prose, not a code-execution or tool-call pattern."

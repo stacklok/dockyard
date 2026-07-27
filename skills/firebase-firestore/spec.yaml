@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "02c0a61889121567a9335285eddcf62aa99a2a7c"
+  ref: "7288f7cf2a3ba9dfdd4ddd2b40c5ec9c8f2409b1"
   path: "skills/firebase-firestore"
   version: "0.2.1"
 
@@ -30,3 +30,5 @@ security:
         a documented Firebase developer URL that runs on the user's own
         machine, not an outbound network call. Verified at digest
         9067c1e3d3afbb212235356702db6ab4b82ec88a.
+    - rule_id: BEHAVIOR_BASH_TAINT_FLOW
+      reason: "FP: matched bash/curl code examples in Firestore API documentation — documentation, not agent-executable scripts."

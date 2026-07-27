@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "a56045e9ae00b3506cacefea0f672aab0a1a6e3c"  # main as of 2026-04-17
+  ref: "cfe5d7b1619e47fb5b38b7e2561dad7e5f1e89af"
   path: "plugins/agentic-actions-auditor/skills/agentic-actions-auditor"
   version: "0.1.0"
 
@@ -21,3 +21,13 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00001
+      reason: "FP: this is a security audit skill that teaches agents to find CI/CD vulnerabilities; its reference files intentionally contain attack pattern descriptions. Content is documentation of what to detect, not instructions to execute."
+    - rule_id: ATR_2026_00081
+      reason: "FP: security audit skill reference file describing restriction bypass patterns for detection purposes."
+    - rule_id: ATR_2026_00111
+      reason: "FP: security audit skill reference file containing example exfiltration commands for detection purposes — these are PoC descriptions, not agent instructions."
+    - rule_id: ATR_2026_00263
+      reason: "FP: security audit skill reference file containing 'cat /etc/passwd' as an example attack payload for detection purposes."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "FP: security audit skill whose reference files contain detailed attack patterns by design. The skill teaches agents to FIND these patterns in user workflows, not to execute them."

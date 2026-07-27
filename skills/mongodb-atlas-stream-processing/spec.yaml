@@ -1,16 +1,16 @@
-# MongoDB atlas-stream-processing Skill
+# MongoDB mongodb-atlas-stream-processing Skill
 # Build real-time stream processing pipelines with MongoDB Atlas.
 # Source: https://github.com/mongodb/agent-skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/atlas-stream-processing:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/mongodb-atlas-stream-processing:0.1.0
 
 metadata:
-  name: atlas-stream-processing
+  name: mongodb-atlas-stream-processing
   description: "Build real-time stream processing pipelines with MongoDB Atlas Stream Processing — continuous queries over Kafka and MongoDB sources, windowing, aggregations, and enrichment"
 
 spec:
   repository: "https://github.com/mongodb/agent-skills"
-  ref: "5cbde1c81a8c5e18de0952e52ec90808be11283f"  # main as of 2026-04-07
-  path: "skills/atlas-stream-processing"
+  ref: "b4ea8150a020b9babaddc6c271c6dc177c06a83f"
+  path: "skills/mongodb-atlas-stream-processing"
   version: "0.1.1"
 
 provenance:

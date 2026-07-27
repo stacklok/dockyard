@@ -1,16 +1,16 @@
-# Datadog dd-llmo experiment-analyzer Skill
+# Datadog agent-observability experiment-analyzer Skill
 # Analyze LLM experiments in Datadog LLM Observability.
 # Source: https://github.com/datadog-labs/agent-skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/dd-llmo-experiment-analyzer:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/agent-observability-experiment-analyzer:0.1.0
 
 metadata:
-  name: dd-llmo-experiment-analyzer
+  name: agent-observability-experiment-analyzer
   description: "Analyze LLM experiments in Datadog LLM Observability — compare variants, surface metric deltas, and recommend promotion/rollback based on evaluation results"
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "9bcb3ceafacae78dbba76c9459a878fc7d6a0d10"
-  path: "dd-llmo/llm-obs-experiment-analyzer"
+  ref: "69cca0e752d3a703d0b16ce7eaeaa787f2f90fd4"
+  path: "agent-observability/agent-observability-experiment-analyzer"
   version: "0.3.0"
 
 provenance:
