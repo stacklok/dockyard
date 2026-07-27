@@ -27,3 +27,5 @@ security:
       reason: "FP: agent-observability-trace-rca is a Datadog Agent Observability documentation skill. All ATR pattern matches are on evaluation and tracing documentation, and Datadog API reference material — not agent instructions."
     - category: prompt_injection
       reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    - rule_id: PG_EXFIL_MARKDOWN_LINK
+      reason: "FP: markdown link templates pointing to the user's own Datadog SaaS tenant (app.datadoghq.com) for citing trace evidence — same pattern as agent-observability-eval-bootstrap. Not exfiltration."
