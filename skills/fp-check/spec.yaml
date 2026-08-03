@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/trailofbits/skills"
   ref: "696dee5717bdb976772466c067b60d89d644260d"  # main as of 2026-04-17
   path: "plugins/fp-check/skills/fp-check"
-  version: "0.1.0"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
