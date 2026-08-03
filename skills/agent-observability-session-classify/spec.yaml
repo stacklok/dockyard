@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "69cca0e752d3a703d0b16ce7eaeaa787f2f90fd4"
+  ref: "6a5635ac5fea33a22ca6a57d3bc903944f87fa70"
   path: "agent-observability/agent-observability-session-classify"
   version: "0.3.0"
 
