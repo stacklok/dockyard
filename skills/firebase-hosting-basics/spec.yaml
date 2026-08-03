@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/firebase/agent-skills"
   ref: "d94aaa679d39f41b1ba27536821a768d8a62f483"
   path: "skills/firebase-hosting-basics"
-  version: "0.1.2"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"

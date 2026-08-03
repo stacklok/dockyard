@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/firebase/agent-skills"
   ref: "d94aaa679d39f41b1ba27536821a768d8a62f483"
   path: "skills/firebase-firestore"
-  version: "0.3.0"
+  version: "0.4.0"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
