@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/cloudflare/skills"
   ref: "30553f89ae1ef1e3c2917cd09d72dac992bb4e9a"  # main as of 2026-04-16
   path: "skills/web-perf"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"
