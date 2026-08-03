@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@21st-dev/magic"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/21st-dev/magic-mcp"
