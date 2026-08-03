@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "02c0a61889121567a9335285eddcf62aa99a2a7c"
+  ref: "d94aaa679d39f41b1ba27536821a768d8a62f483"
   path: "skills/firebase-ai-logic-basics"
   version: "0.1.2"
 
