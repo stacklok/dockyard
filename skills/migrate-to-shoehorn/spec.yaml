@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
+  ref: "2ab958093e83e0ec752e6c1c5932da465bf23e0c"  # main as of 2026-07-08
   path: "skills/misc/migrate-to-shoehorn"
   version: "0.2.0"
 
