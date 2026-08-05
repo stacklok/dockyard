@@ -12,6 +12,13 @@ metadata:
 spec:
   package: "adb-mysql-mcp-server"
   version: "2.0.0"
+  constraints:
+    - spec: "mcp<2"
+      reason: |
+        adb-mysql-mcp-server depends on mcp[cli]>=1.8.0 with no upper bound, but
+        mcp 2.0.0 removed the mcp.server.fastmcp module the server imports at
+        startup, so the container fails immediately with ModuleNotFoundError.
+        Cap it below 2 until upstream pins the dependency themselves.
 
 provenance:
   repository_uri: "https://github.com/aliyun/alibabacloud-adb-mysql-mcp-server"
