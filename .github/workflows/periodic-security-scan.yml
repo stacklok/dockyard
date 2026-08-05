@@ -87,12 +87,18 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The SARIF feed exists for visibility in the Security tab, so it stays
+      # broad on purpose: every severity, including findings with no fix
+      # available. Narrowing it would silently drop existing coverage. Note
+      # severity-cutoff only feeds grype's --fail-on and does not filter the
+      # report, so with fail-build disabled it has no effect here; only-fixed is
+      # what would filter, and it is deliberately absent.
       - name: Run Grype vulnerability scan (SARIF)
         id: grype-scan
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: "${{ steps.meta.outputs.image_ref }}"
-          severity-cutoff: "low"
+          fail-build: "false"
           output-format: "sarif"
 
       - name: Upload SARIF to GitHub Security
@@ -107,10 +113,12 @@ jobs:
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: "${{ steps.meta.outputs.image_ref }}"
-          severity-cutoff: "low"
+          severity-cutoff: "high"
+          only-fixed: "true"
+          fail-build: "false"
           output-format: "json"
 
-      - name: Check for critical issues
+      - name: Check for critical or high issues
         id: check-critical
         run: |
           critical=$(jq '[.matches[]? | select(.vulnerability.severity == "Critical")] | length' ${{ steps.grype-scan-json.outputs.json }})
@@ -119,13 +127,16 @@ jobs:
           echo "critical=$critical" >> $GITHUB_OUTPUT
           echo "high=$high" >> $GITHUB_OUTPUT
 
-          if [ "$critical" -gt 0 ]; then
+          # Match the publish gate in build-containers.yml: any fixable
+          # critical or high finding is enough to block a release, so it is
+          # also enough to warrant an issue.
+          if [ "$((critical + high))" -gt 0 ]; then
             echo "should_create_issue=true" >> $GITHUB_OUTPUT
           else
             echo "should_create_issue=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Create issue for critical findings
+      - name: Create issue for critical or high findings
         if: steps.check-critical.outputs.should_create_issue == 'true'
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
         env:
@@ -139,7 +150,7 @@ jobs:
             const high = ${{ steps.check-critical.outputs.high }};
 
             let body = `## 🚨 Security Scan Alert\n\n`;
-            body += `A periodic security scan found critical issues in the container image:\n\n`;
+            body += `A periodic security scan found fixable critical or high severity vulnerabilities in the container image. Findings at this level also block publishing in the build workflow.\n\n`;
             body += `- **Image**: \`${{ steps.meta.outputs.image_ref }}\`\n`;
             body += `- **Critical vulnerabilities**: ${critical}\n`;
             body += `- **High vulnerabilities**: ${high}\n\n`;
@@ -162,8 +173,30 @@ jobs:
               }
             }
 
+            if (high > 0) {
+              body += `#### High Vulnerabilities\n\n`;
+              const highVulns = (results.matches || [])
+                .filter(m => m.vulnerability.severity === 'High')
+                .slice(0, 5);
+
+              for (const match of highVulns) {
+                body += `- **${match.vulnerability.id}** in \`${match.artifact.name}@${match.artifact.version}\`: ${match.vulnerability.description || 'No description'}\n`;
+              }
+
+              if (high > 5) {
+                body += `\n_... and ${high - 5} more. See Security tab for complete list._\n`;
+              }
+            }
+
             body += `\n---\n`;
             body += `_Automated security scan from [periodic-security-scan workflow](../actions/workflows/periodic-security-scan.yml)_`;
+
+            // Label by what was actually found, so a high-only issue is not
+            // labelled critical. security+grype are always applied and are what
+            // the dedup query below matches on.
+            const labels = ['security', 'grype'];
+            if (critical > 0) labels.push('critical');
+            if (high > 0) labels.push('high');
 
             // Check if an issue already exists for this image
             const { data: issues } = await github.rest.issues.listForRepo({
@@ -191,9 +224,9 @@ jobs:
               await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                title: `🚨 Security: Critical issues in ${{ steps.meta.outputs.server_name }} container`,
+                title: `🚨 Security: Critical or high vulnerabilities in ${{ steps.meta.outputs.server_name }} container`,
                 body: body,
-                labels: ['security', 'grype', 'critical']
+                labels: labels
               });
               console.log('Created new security issue');
             }
@@ -218,7 +251,7 @@ jobs:
         run: |
           echo "## Periodic Security Scan Complete" >> $GITHUB_STEP_SUMMARY
           echo "- **Scan Type**: Vulnerability scan (Grype)" >> $GITHUB_STEP_SUMMARY
-          echo "- **Severity Levels**: CRITICAL, HIGH, MEDIUM, LOW" >> $GITHUB_STEP_SUMMARY
+          echo "- **Severity Levels**: CRITICAL, HIGH (fixable only, matching the publish gate)" >> $GITHUB_STEP_SUMMARY
           echo "- **Status**: ${{ needs.scan-images.result }}" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "View detailed results in the [Security tab](../../security/code-scanning)." >> $GITHUB_STEP_SUMMARY
