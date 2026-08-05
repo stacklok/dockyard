@@ -231,6 +231,22 @@ RUN package="mcp-clickhouse@0.3.0"; \
 > runtime even when the image builds and the package imports. Functionally test
 > the server before relying on such an override.
 
+### How overrides interact with the security scan
+
+The `mcp-security-scan` CI job runs the package directly (`uvx <pkg>` / `npx <pkg>`)
+rather than the built image, so it does not automatically inherit anything injected
+into the Dockerfile:
+
+- **uvx `constraints` are reapplied.** `scripts/mcp-scan` writes them to a uv overrides
+  file and passes `uvx --overrides`, so the scanned process resolves the same versions
+  the image ships.
+- **npx `overrides` are not.** npm honors `overrides` only from a `package.json` it
+  installs into, and the scan has no such project directory. The scan logs a note when
+  it skips them. This is safe for the intended use case (swapping a vulnerable but
+  *working* dependency for a patched one) because it changes neither server startup nor
+  the tool surface the scanner analyzes. If you ever need an npm override that affects
+  whether the server *starts*, the scan will fail and this will need revisiting.
+
 ## Step-by-Step Process
 
 ### 1. Find Package Information
