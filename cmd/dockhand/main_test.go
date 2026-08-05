@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -17,6 +18,9 @@ import (
 const (
 	testOverrideVersion = "1.0.0"
 	testFastmcpSpec     = "fastmcp>=3.2.0"
+	testSDKPackage      = "@modelcontextprotocol/sdk"
+	testSDKVersion      = "1.26.0"
+	testInjectionReason = "injection attempt"
 )
 
 // sampleNpxDockerfile mirrors the package.json + npm install steps that toolhive's
@@ -51,7 +55,7 @@ ENTRYPOINT ["sh", "-c", "exec 'mcp-clickhouse' \"$@\"", "--"]
 func TestInjectNpmOverrides(t *testing.T) {
 	t.Parallel()
 	overrides := []OverrideEntry{
-		{Package: "@modelcontextprotocol/sdk", Version: "1.26.0", Reason: "CVE fix; upstream hard-pins 1.21.2"},
+		{Package: testSDKPackage, Version: testSDKVersion, Reason: "CVE fix; upstream hard-pins 1.21.2"},
 	}
 
 	out, err := injectNpmOverrides(sampleNpxDockerfile, overrides)
@@ -63,7 +67,7 @@ func TestInjectNpmOverrides(t *testing.T) {
 	if !strings.Contains(out, `"overrides":`) {
 		t.Errorf("expected an overrides block in the generated package.json, got:\n%s", out)
 	}
-	if !strings.Contains(out, `"@modelcontextprotocol/sdk":"1.26.0"`) {
+	if !strings.Contains(out, fmt.Sprintf(`%q:%q`, testSDKPackage, testSDKVersion)) {
 		t.Errorf("expected the pinned SDK override in the package.json, got:\n%s", out)
 	}
 
@@ -258,7 +262,7 @@ func TestInjectNpmOverrides_AgainstRealTemplate(t *testing.T) {
 	dockerfile := generateRealDockerfile(t, "npx://@brightdata/mcp@2.9.5", nil)
 
 	out, err := injectNpmOverrides(dockerfile, []OverrideEntry{
-		{Package: "@modelcontextprotocol/sdk", Version: "1.26.0", Reason: "CVE fix"},
+		{Package: testSDKPackage, Version: testSDKVersion, Reason: "CVE fix"},
 	})
 	if err != nil {
 		t.Fatalf("injection failed against the real toolhive npx template: %v", err)
@@ -275,8 +279,8 @@ func TestInjectNpmOverrides_AgainstRealTemplate(t *testing.T) {
 	if !ok {
 		t.Fatalf("expected an overrides block in the rewritten package.json, got %q", payload)
 	}
-	if overrides["@modelcontextprotocol/sdk"] != "1.26.0" {
-		t.Errorf("expected the SDK override to be 1.26.0, got %v", overrides["@modelcontextprotocol/sdk"])
+	if overrides[testSDKPackage] != testSDKVersion {
+		t.Errorf("expected the SDK override to be %s, got %v", testSDKVersion, overrides[testSDKPackage])
 	}
 
 	// Whatever toolhive put in the original payload must still be there.
@@ -383,7 +387,7 @@ func TestShellSingleQuote(t *testing.T) {
 		{"plain", "fastmcp>=3.2.0", `'fastmcp>=3.2.0'`},
 		{"pep508 marker with quotes", `fastmcp>=3.2.0; python_version < '3.14'`,
 			`'fastmcp>=3.2.0; python_version < '\''3.14'\'''`},
-		{"injection attempt", `x'; echo pwned; '`, `'x'\''; echo pwned; '\'''`},
+		{testInjectionReason, `x'; echo pwned; '`, `'x'\''; echo pwned; '\'''`},
 		{"double quotes are inert", `pkg=="1.0"`, `'pkg=="1.0"'`},
 	}
 	for _, tt := range tests {
@@ -430,7 +434,7 @@ func TestInjectUvOverrides_NoShellInjection(t *testing.T) {
 	evil := `x'; echo PWNED; '`
 
 	out, err := injectUvOverrides(sampleUvxDockerfile, []ConstraintEntry{
-		{Spec: evil, Reason: "injection attempt"},
+		{Spec: evil, Reason: testInjectionReason},
 	})
 	if err != nil {
 		t.Fatalf("injectUvOverrides returned error: %v", err)
@@ -533,7 +537,7 @@ func TestValidateDependencyOverrides_RejectsControlChars(t *testing.T) {
 func TestInjectNpmOverrides_NoShellInjection(t *testing.T) {
 	t.Parallel()
 	out, err := injectNpmOverrides(sampleNpxDockerfile, []OverrideEntry{
-		{Package: "p", Version: `1.0.0'; echo PWNED; '`, Reason: "injection attempt"},
+		{Package: "p", Version: `1.0.0'; echo PWNED; '`, Reason: testInjectionReason},
 	})
 	if err != nil {
 		t.Fatalf("injectNpmOverrides returned error: %v", err)
