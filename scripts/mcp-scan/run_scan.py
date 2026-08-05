@@ -84,22 +84,45 @@ def main():
         if command != "npx":
             print(f"Error: npm_overrides is only supported for npx, got {command}", file=sys.stderr)
             sys.exit(1)
-        npm_project = tempfile.mkdtemp(prefix="mcp-scan-npm-")
-        with open(os.path.join(npm_project, "package.json"), "w") as f:
-            json.dump({
-                "name": "mcp-scan-overrides",
-                "private": True,
-                "dependencies": {npm_package: npm_version},
-                "overrides": npm_overrides,
-            }, f)
-        install = subprocess.run(
-            ["npm", "install", "--silent", "--no-audit", "--no-fund"],
-            cwd=npm_project, capture_output=True, text=True, check=False, timeout=300,
-        )
-        if install.returncode != 0:
-            print(f"Error: npm install failed while staging overrides:\n{install.stderr}", file=sys.stderr)
-            shutil.rmtree(npm_project, ignore_errors=True)
+        if not npm_package or not npm_version:
+            print("Error: npm_overrides requires npm_package and npm_version", file=sys.stderr)
             sys.exit(1)
+        if shutil.which("npm") is None:
+            print("Error: npm is required to stage npx dependency overrides but was not found on PATH",
+                  file=sys.stderr)
+            sys.exit(1)
+
+        npm_project = tempfile.mkdtemp(prefix="mcp-scan-npm-")
+        # Staging happens before the scanner's own try/finally, so clean up here on any
+        # failure rather than leaving the temp project behind.
+        try:
+            with open(os.path.join(npm_project, "package.json"), "w") as f:
+                json.dump({
+                    "name": "mcp-scan-overrides",
+                    "private": True,
+                    "dependencies": {npm_package: npm_version},
+                    "overrides": npm_overrides,
+                }, f)
+            install = subprocess.run(
+                ["npm", "install", "--silent", "--no-audit", "--no-fund"],
+                cwd=npm_project, capture_output=True, text=True, check=False, timeout=300,
+            )
+            if install.returncode != 0:
+                print(f"Error: npm install failed while staging overrides:\n{install.stderr}",
+                      file=sys.stderr)
+                sys.exit(1)
+        except subprocess.TimeoutExpired:
+            print("Error: npm install timed out after 300 seconds while staging overrides",
+                  file=sys.stderr)
+            sys.exit(1)
+        except OSError as e:
+            print(f"Error: could not stage npx dependency overrides: {e}", file=sys.stderr)
+            sys.exit(1)
+        finally:
+            if npm_project and not os.path.isdir(os.path.join(npm_project, "node_modules")):
+                shutil.rmtree(npm_project, ignore_errors=True)
+                npm_project = None
+
         scanner_args.append("--stdio-arg=--no-install")
 
     # Reapply uvx dependency overrides (spec.constraints) so the scanned process resolves
