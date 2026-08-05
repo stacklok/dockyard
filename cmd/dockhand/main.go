@@ -42,10 +42,11 @@ type MCPServerMetadata struct {
 
 // MCPServerPackageSpec defines the package to be containerized
 type MCPServerPackageSpec struct {
-	Package string            `yaml:"package"`           // e.g., "@upstash/context7-mcp"
-	Version string            `yaml:"version,omitempty"` // e.g., "1.0.14"
-	Args    []string          `yaml:"args,omitempty"`    // Additional arguments for the package
-	Env     map[string]string `yaml:"env,omitempty"`     // Environment variables baked into the runtime image
+	Package   string            `yaml:"package"`              // e.g., "@upstash/context7-mcp"
+	Version   string            `yaml:"version,omitempty"`    // e.g., "1.0.14"
+	Args      []string          `yaml:"args,omitempty"`       // Additional arguments for the package
+	Env       map[string]string `yaml:"env,omitempty"`        // Environment variables baked into the runtime image
+	BuildWith []string          `yaml:"build_with,omitempty"` // Build-time dependency constraints (uvx:// only), e.g. "mcp<2"
 }
 
 // MCPServerProvenance contains supply chain provenance information
@@ -370,10 +371,14 @@ func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag stri
 	// Create image manager
 	imageManager := images.NewImageManager(ctx)
 
-	// Pass runtime env vars through as a RuntimeConfig override, if declared
+	// Pass runtime env vars and build-time dependency constraints through as a
+	// RuntimeConfig override, if declared
 	var runtimeOverride *templates.RuntimeConfig
-	if len(spec.Spec.Env) > 0 {
-		runtimeOverride = &templates.RuntimeConfig{RuntimeEnv: spec.Spec.Env}
+	if len(spec.Spec.Env) > 0 || len(spec.Spec.BuildWith) > 0 {
+		runtimeOverride = &templates.RuntimeConfig{
+			RuntimeEnv: spec.Spec.Env,
+			BuildWith:  spec.Spec.BuildWith,
+		}
 	}
 
 	// Generate Dockerfile using toolhive's BuildFromProtocolSchemeWithName function with dryRun=true
