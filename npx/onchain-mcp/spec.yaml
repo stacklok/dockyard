@@ -12,6 +12,15 @@ metadata:
 spec:
   package: "@bankless/onchain-mcp"
   version: "1.0.6"
+  overrides:
+    - package: "@modelcontextprotocol/sdk"
+      version: "1.26.0"
+      reason: |
+        @bankless/onchain-mcp exact-pins @modelcontextprotocol/sdk 1.7.0, which carries
+        GHSA-8r9q-7v3j-jr4g (ReDoS, fixed 1.25.2) and GHSA-w48q-cv73-mx4w (DNS rebinding,
+        fixed 1.24.0). 1.26.0 rather than 1.25.2 because GHSA-345p-7cg4-v4c7 affects
+        >=1.10.0,<=1.25.3, so a smaller bump would trade two advisories for a third.
+        Same-major, and the server's 10 tools still enumerate correctly.
 
 provenance:
   repository_uri: "https://github.com/Bankless/onchain-mcp"

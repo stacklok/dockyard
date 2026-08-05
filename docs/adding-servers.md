@@ -235,17 +235,25 @@ RUN package="mcp-clickhouse@0.3.0"; \
 
 The `mcp-security-scan` CI job runs the package directly (`uvx <pkg>` / `npx <pkg>`)
 rather than the built image, so it does not automatically inherit anything injected
-into the Dockerfile:
+into the Dockerfile. `scripts/mcp-scan` reapplies both kinds of override so the scanned
+process resolves the same dependency versions the image ships:
 
-- **uvx `constraints` are reapplied.** `scripts/mcp-scan` writes them to a uv overrides
-  file and passes `uvx --overrides`, so the scanned process resolves the same versions
-  the image ships.
-- **npx `overrides` are not.** npm honors `overrides` only from a `package.json` it
-  installs into, and the scan has no such project directory. The scan logs a note when
-  it skips them. This is safe for the intended use case (swapping a vulnerable but
-  *working* dependency for a patched one) because it changes neither server startup nor
-  the tool surface the scanner analyzes. If you ever need an npm override that affects
-  whether the server *starts*, the scan will fail and this will need revisiting.
+- **uvx `constraints`** are written to a uv overrides requirements file and passed as
+  `uvx --overrides <file>`.
+- **npx `overrides`** cannot be passed on the command line, because npm honors
+  `overrides` only from a `package.json` it installs into. The scan stages a throwaway
+  project containing the server package plus the `overrides` block, runs `npm install`
+  in it, and runs the scanner with that directory as its working directory so `npx`
+  resolves the installed tree. `npx --no-install` is passed as well, so npx fails rather
+  than silently fetching an un-overridden copy of the package.
+
+Beyond matching what ships, this means the scan doubles as a check on the override
+itself: an override that breaks the server's startup shows up as a scan failure before
+the image is published, rather than as a broken container afterwards.
+
+Note that servers with `security.insecure_ignore: true` (typically those needing real
+credentials to start) cannot be meaningfully scanned either way, so overrides have no
+observable effect on their scan.
 
 ## Step-by-Step Process
 
