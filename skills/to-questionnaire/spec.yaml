@@ -1,16 +1,16 @@
-# Matt Pocock writing-great-skills Skill
-# Reference for writing and editing skills well.
+# Matt Pocock to-questionnaire Skill
+# Turn a decision you can't fully answer into a questionnaire for someone else.
 # Source: https://github.com/mattpocock/skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/writing-great-skills:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/to-questionnaire:0.1.0
 
 metadata:
-  name: writing-great-skills
-  description: "Reference for writing and editing skills well — the vocabulary and principles that make a skill predictable."
+  name: to-questionnaire
+  description: "Turn a decision you can't fully answer into a questionnaire for someone else to fill in."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
-  path: "skills/productivity/writing-great-skills"
+  ref: "a621cc4f755d1da9c35dc3bb3abbd1d2a3208670"  # main as of 2026-08-05
+  path: "skills/productivity/to-questionnaire"
   version: "0.1.0"
 
 provenance:

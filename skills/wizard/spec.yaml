@@ -1,17 +1,17 @@
-# Matt Pocock grill-with-docs Skill
-# Grilling session that challenges your plan against the existing domain model.
+# Matt Pocock wizard Skill
+# Generate an interactive bash wizard for manual procedures.
 # Source: https://github.com/mattpocock/skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/grill-with-docs:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/wizard:0.1.0
 
 metadata:
-  name: grill-with-docs
-  description: "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go."
+  name: wizard
+  description: "Generate an interactive bash wizard that walks a human through a manual procedure — third-party setup, a one-off migration, an A→B state transition — opening URLs, capturing values, confirming each step, and writing .env files and GitHub Actions secrets."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "a621cc4f755d1da9c35dc3bb3abbd1d2a3208670"  # main as of 2026-08-05
-  path: "skills/engineering/grill-with-docs"
-  version: "0.3.0"
+  path: "skills/engineering/wizard"
+  version: "0.1.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
