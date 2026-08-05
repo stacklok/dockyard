@@ -29,10 +29,6 @@ const (
 	protocolNpx = "npx"
 	protocolUvx = "uvx"
 	protocolGo  = "go"
-
-	// mcpContainerVersion is the placeholder version toolhive's npx template stamps into
-	// the generated package.json; we reuse it when re-emitting that file with overrides.
-	mcpContainerVersion = "1.0.0"
 )
 
 // MCPServerSpec defines the structure of our YAML configuration files
@@ -510,24 +506,14 @@ func injectDependencyOverrides(dockerfile string, spec *MCPServerSpec) (string, 
 //
 //	RUN echo '{"name":"mcp-container","version":"1.0.0"}' > package.json
 //
-// We locate that line by content (the "> package.json" redirect) and replace the JSON payload
-// with one that includes the overrides.
+// We locate that line by content (the "> package.json" redirect), then parse the JSON payload
+// toolhive emitted and add an "overrides" key to it. Parsing and re-emitting (rather than
+// rebuilding the payload from hardcoded values) means any other field toolhive puts in that
+// package.json is preserved rather than silently dropped.
 func injectNpmOverrides(dockerfile string, overrides []OverrideEntry) (string, error) {
 	overrideMap := make(map[string]string, len(overrides))
 	for _, o := range overrides {
 		overrideMap[o.Package] = o.Version
-	}
-
-	// Mirror the package.json name/version that toolhive's npx template emits, adding the
-	// overrides block.
-	pkgJSON := map[string]any{
-		"name":      "mcp-container",
-		"version":   mcpContainerVersion,
-		"overrides": overrideMap,
-	}
-	pkgJSONBytes, err := json.Marshal(pkgJSON)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal package.json with overrides: %w", err)
 	}
 
 	lines := strings.Split(dockerfile, "\n")
@@ -535,11 +521,31 @@ func injectNpmOverrides(dockerfile string, overrides []OverrideEntry) (string, e
 	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
 		// Match the package.json creation step regardless of the exact JSON payload.
-		if strings.HasPrefix(trimmed, "RUN echo '") && strings.Contains(trimmed, "> package.json") {
-			lines[i] = fmt.Sprintf("RUN echo '%s' > package.json", string(pkgJSONBytes))
-			injected = true
-			break
+		if !strings.HasPrefix(trimmed, "RUN echo '") || !strings.Contains(trimmed, "> package.json") {
+			continue
 		}
+
+		// Extract the single-quoted JSON payload between "RUN echo '" and the redirect.
+		start := len("RUN echo '")
+		end := strings.LastIndex(trimmed, "'")
+		if end <= start {
+			return "", fmt.Errorf("could not parse the package.json payload in the generated Dockerfile: %q", trimmed)
+		}
+
+		pkgJSON := map[string]any{}
+		if err := json.Unmarshal([]byte(trimmed[start:end]), &pkgJSON); err != nil {
+			return "", fmt.Errorf("failed to parse the generated package.json payload %q: %w", trimmed[start:end], err)
+		}
+		pkgJSON["overrides"] = overrideMap
+
+		pkgJSONBytes, err := json.Marshal(pkgJSON)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal package.json with overrides: %w", err)
+		}
+
+		lines[i] = fmt.Sprintf("RUN echo '%s' > package.json", string(pkgJSONBytes))
+		injected = true
+		break
 	}
 
 	if !injected {
@@ -581,12 +587,15 @@ func injectUvOverrides(dockerfile string, constraints []ConstraintEntry) (string
 	installIdx := -1
 	for i, line := range lines {
 		// Match the actual install command, not Dockerfile comments that merely mention it.
-		// The toolhive template invokes it as: uv tool install "$package_spec"
+		// Match on the bare "uv tool install" verb rather than requiring the quoted package
+		// spec to follow immediately: toolhive's template conditionally emits flags of its
+		// own between the two (e.g. "--with '<spec>'" for build-time constraints), so
+		// anchoring on `uv tool install "` would silently stop matching in those builds.
 		trimmed := strings.TrimSpace(line)
 		if strings.HasPrefix(trimmed, "#") {
 			continue
 		}
-		if strings.Contains(line, "uv tool install \"") {
+		if strings.Contains(line, "uv tool install ") {
 			installIdx = i
 			break
 		}
