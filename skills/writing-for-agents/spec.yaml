@@ -1,17 +1,17 @@
-# Matt Pocock grill-with-docs Skill
-# Grilling session that challenges your plan against the existing domain model.
+# Matt Pocock writing-for-agents Skill
+# Reference for writing documents agents consume — skills, AGENTS.md, CLAUDE.md.
 # Source: https://github.com/mattpocock/skills
-# Will publish as: ghcr.io/stacklok/dockyard/skills/grill-with-docs:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/writing-for-agents:0.1.0
 
 metadata:
-  name: grill-with-docs
-  description: "A relentless interview to sharpen a plan or design, which also creates docs (ADR's and glossary) as we go."
+  name: writing-for-agents
+  description: "Writing documents for agents. Use when creating or editing skills, or modifying AGENTS.md or CLAUDE.md."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "a621cc4f755d1da9c35dc3bb3abbd1d2a3208670"  # main as of 2026-08-05
-  path: "skills/engineering/grill-with-docs"
-  version: "0.3.0"
+  path: "skills/productivity/writing-for-agents"
+  version: "0.1.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"

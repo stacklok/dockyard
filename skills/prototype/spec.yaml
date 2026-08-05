@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "d574778f94cf620fcc8ce741584093bc650a61d3"  # main as of 2026-07-08
+  ref: "a621cc4f755d1da9c35dc3bb3abbd1d2a3208670"  # main as of 2026-08-05
   path: "skills/engineering/prototype"
-  version: "0.1.0"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
