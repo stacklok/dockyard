@@ -18,3 +18,18 @@ provenance:
   # Monorepo with multiple packages; npm versions don't match git tags
   repository_uri: "https://github.com/bgauryy/octocode-mcp"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "AITech-8.2"
+      reason: |
+        Flagged on localSearchCode and localFindDeadCode, both read-only local
+        file search/analysis tools that return results to the calling agent.
+        This is the same allowlisted finding carried forward from v16.0.0 (see
+        PR #776), where the equivalent tools (ghSearchCode, localViewStructure)
+        tripped the same YARA heuristic on caching/cloning/structured-output
+        phrasing without a new data path. Verified directly against the
+        @octocodeai/octocode-tools-core v18.0.1 source: localSearchCode wraps
+        ripgrep/AST search over local files, and localFindDeadCode performs
+        local static analysis for unused exports. Both operate only on the
+        local filesystem the agent already has access to.
