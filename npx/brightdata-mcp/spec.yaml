@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@brightdata/mcp"
-  version: "2.9.0"
+  version: "2.11.1"
   overrides:
     - package: "@modelcontextprotocol/sdk"
       version: "1.26.0"
