@@ -67,7 +67,13 @@ def main():
     if command == "npx":
         scanner_args.append("--stdio-arg=--yes")
     for arg in package_arg.split():
-        scanner_args.extend(["--stdio-arg", arg])
+        # Args that themselves start with "-" (e.g. uvx's "--with") are
+        # indistinguishable from a new flag to argparse when passed as a
+        # separate token after "--stdio-arg", so fold them into one token.
+        if arg.startswith("-"):
+            scanner_args.append(f"--stdio-arg={arg}")
+        else:
+            scanner_args.extend(["--stdio-arg", arg])
 
     # Add mock environment variables for servers that require them
     # mcp-scanner supports --stdio-env KEY=VALUE (can be repeated)

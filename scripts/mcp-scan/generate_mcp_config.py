@@ -30,9 +30,17 @@ def main():
         spec_args = data['spec'].get('args', [])
         spec_args_str = ' '.join(spec_args) if spec_args else ''
 
+        # Build-time dependency constraints (uvx only, matches dockhand/ToolHive's
+        # --build-with). Passed to uvx's own --with flag so the scanner invokes
+        # the same constrained dependency set as the built container image.
+        build_with = data['spec'].get('build_with', [])
+        build_with_str = ' '.join(f"--with {c}" for c in build_with) if build_with else ''
+
         if protocol in ['npx', 'uvx']:
             command = protocol
             args = f"{package}@{version}"
+            if protocol == 'uvx' and build_with_str:
+                args = f"{build_with_str} {args}"
             if spec_args_str:
                 args = f"{args} {spec_args_str}"
         elif protocol == 'go':
