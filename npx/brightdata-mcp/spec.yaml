@@ -12,6 +12,16 @@ metadata:
 spec:
   package: "@brightdata/mcp"
   version: "2.9.0"
+  overrides:
+    - package: "@modelcontextprotocol/sdk"
+      version: "1.26.0"
+      reason: |
+        @brightdata/mcp exact-pins @modelcontextprotocol/sdk 1.21.2, which carries
+        GHSA-w48q-cv73-mx4w (DNS rebinding, fixed 1.24.0), GHSA-8r9q-7v3j-jr4g
+        (ReDoS, fixed 1.25.2) and GHSA-345p-7cg4-v4c7 (affects >=1.10.0,<=1.25.3,
+        fixed 1.26.0). 1.26.0 is the lowest version that clears all three: 1.25.2
+        would still be inside the GHSA-345p range. Same-major, and the server's
+        tools still enumerate correctly.
 
 provenance:
   repository_uri: "https://github.com/brightdata/brightdata-mcp"
