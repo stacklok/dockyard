@@ -13,6 +13,19 @@ metadata:
 spec:
   package: "octocode-mcp"
   version: "18.0.1"
+  overrides:
+    - package: "minimatch"
+      version: "10.2.6"
+      reason: |
+        octocode-engine pulls bash-language-server -> editorconfig -> minimatch@10.0.1,
+        vulnerable to ReDoS (GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj,
+        GHSA-23c5-xmqv-rm74), fixed in 10.2.3+.
+    - package: "protobufjs"
+      version: "8.7.1"
+      reason: |
+        octocode-engine pulls intelephense -> protobufjs@8.3.0, vulnerable to
+        DoS/prototype-pollution issues (GHSA-94rc-8x27-4472, GHSA-wcpc-wj8m-hjx6,
+        GHSA-f38q-mgvj-vph7, GHSA-jfj6-75fj-8934, GHSA-j3f2-48v5-ccww), fixed in 8.6.6+.
 
 provenance:
   # Monorepo with multiple packages; npm versions don't match git tags
