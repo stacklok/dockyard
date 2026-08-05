@@ -3,6 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"os"
+	"os/exec"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -368,5 +371,206 @@ func TestInjectUvOverrides_AgainstRealTemplate(t *testing.T) {
 				t.Errorf("the install command was not rewritten with --overrides: %q", installCmds[0])
 			}
 		})
+	}
+}
+
+// TestShellSingleQuote covers the quoting used for values interpolated into RUN lines.
+func TestShellSingleQuote(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name, in, want string
+	}{
+		{"plain", "fastmcp>=3.2.0", `'fastmcp>=3.2.0'`},
+		{"pep508 marker with quotes", `fastmcp>=3.2.0; python_version < '3.14'`,
+			`'fastmcp>=3.2.0; python_version < '\''3.14'\'''`},
+		{"injection attempt", `x'; echo pwned; '`, `'x'\''; echo pwned; '\'''`},
+		{"double quotes are inert", `pkg=="1.0"`, `'pkg=="1.0"'`},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if got := shellSingleQuote(tt.in); got != tt.want {
+				t.Errorf("shellSingleQuote(%q) = %q, want %q", tt.in, got, tt.want)
+			}
+		})
+	}
+}
+
+// TestInjectUvOverrides_QuotedMarker verifies that a PEP 508 environment marker containing
+// single quotes survives into the Dockerfile intact, and that a spec cannot break out of its
+// quoting to inject shell. The value is checked by actually running the emitted line through
+// a shell, since correctness here is a property of shell parsing, not of string equality.
+func TestInjectUvOverrides_QuotedMarker(t *testing.T) {
+	t.Parallel()
+	marker := `fastmcp>=3.2.0; python_version < '3.14'`
+
+	out, err := injectUvOverrides(sampleUvxDockerfile, []ConstraintEntry{
+		{Spec: marker, Reason: "marker must survive quoting"},
+	})
+	if err != nil {
+		t.Fatalf("injectUvOverrides returned error: %v", err)
+	}
+
+	// The emitted RUN must carry the marker with its inner quotes escaped, not stripped.
+	if !strings.Contains(out, `'fastmcp>=3.2.0; python_version < '\''3.14'\'''`) {
+		t.Errorf("expected the marker's single quotes to be escaped, got:\n%s", out)
+	}
+
+	// Extract the printf command and run it, asserting the file content is byte-identical
+	// to the original spec.
+	got := runEmittedPrintf(t, out)
+	if got != marker+"\n" {
+		t.Errorf("overrides file content = %q, want %q", got, marker+"\n")
+	}
+}
+
+func TestInjectUvOverrides_NoShellInjection(t *testing.T) {
+	t.Parallel()
+	// A spec that would escape its quoting and run a command if interpolated naively.
+	evil := `x'; echo PWNED; '`
+
+	out, err := injectUvOverrides(sampleUvxDockerfile, []ConstraintEntry{
+		{Spec: evil, Reason: "injection attempt"},
+	})
+	if err != nil {
+		t.Fatalf("injectUvOverrides returned error: %v", err)
+	}
+
+	got := runEmittedPrintf(t, out)
+	if strings.Contains(got, "PWNED") && !strings.Contains(evil, "PWNED>") {
+		// PWNED appearing as literal text is fine; it executing is not. Distinguish by
+		// requiring the content to be exactly the spec.
+		if got != evil+"\n" {
+			t.Errorf("spec was not treated as literal data: got %q, want %q", got, evil+"\n")
+		}
+	}
+	if got != evil+"\n" {
+		t.Errorf("overrides file content = %q, want %q", got, evil+"\n")
+	}
+}
+
+// runEmittedPrintf finds the injected "RUN printf ... > /tmp/uv-overrides.txt" step in a
+// Dockerfile, executes its shell command with the redirect retargeted to a temp file, and
+// returns what was written. This validates the emitted line against a real shell rather
+// than assuming how it parses.
+func runEmittedPrintf(t *testing.T, dockerfile string) string {
+	t.Helper()
+
+	start := strings.Index(dockerfile, "RUN printf")
+	if start == -1 {
+		t.Fatalf("no 'RUN printf' step found in:\n%s", dockerfile)
+	}
+	end := strings.Index(dockerfile[start:], "> /tmp/uv-overrides.txt")
+	if end == -1 {
+		t.Fatalf("no overrides-file redirect found in:\n%s", dockerfile)
+	}
+
+	outFile := filepath.Join(t.TempDir(), "overrides.txt")
+	// Strip the "RUN " prefix and retarget the redirect; the rest is the shell command
+	// exactly as the Dockerfile would run it.
+	script := strings.TrimPrefix(dockerfile[start:start+end], "RUN ") + "> " + outFile
+
+	cmd := exec.Command("sh", "-c", script)
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("emitted shell command failed: %v\nscript:\n%s\nstderr: %s", err, script, stderr.String())
+	}
+
+	content, err := os.ReadFile(outFile)
+	if err != nil {
+		t.Fatalf("could not read the overrides file the command wrote: %v", err)
+	}
+	return string(content)
+}
+
+func TestValidateDependencyOverrides_RejectsControlChars(t *testing.T) {
+	t.Parallel()
+	tests := []struct {
+		name string
+		spec MCPServerSpec
+	}{
+		{
+			name: "newline in constraint spec",
+			spec: MCPServerSpec{
+				Metadata: MCPServerMetadata{Protocol: protocolUvx},
+				Spec: MCPServerPackageSpec{
+					Constraints: []ConstraintEntry{{Spec: "fastmcp>=3.2.0\nRUN echo pwned", Reason: "r"}},
+				},
+			},
+		},
+		{
+			name: "newline in override version",
+			spec: MCPServerSpec{
+				Metadata: MCPServerMetadata{Protocol: protocolNpx},
+				Spec: MCPServerPackageSpec{
+					Overrides: []OverrideEntry{{Package: "p", Version: "1.0.0\nRUN echo pwned", Reason: "r"}},
+				},
+			},
+		},
+		{
+			name: "carriage return in override package",
+			spec: MCPServerSpec{
+				Metadata: MCPServerMetadata{Protocol: protocolNpx},
+				Spec: MCPServerPackageSpec{
+					Overrides: []OverrideEntry{{Package: "p\r", Version: testOverrideVersion, Reason: "r"}},
+				},
+			},
+		},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			t.Parallel()
+			if err := validateDependencyOverrides(&tt.spec); err == nil {
+				t.Error("expected an error for a value containing control characters")
+			}
+		})
+	}
+}
+
+// TestInjectNpmOverrides_NoShellInjection verifies the npm path quotes its JSON payload, so
+// an override value containing a single quote cannot terminate the echo and inject shell.
+func TestInjectNpmOverrides_NoShellInjection(t *testing.T) {
+	t.Parallel()
+	out, err := injectNpmOverrides(sampleNpxDockerfile, []OverrideEntry{
+		{Package: "p", Version: `1.0.0'; echo PWNED; '`, Reason: "injection attempt"},
+	})
+	if err != nil {
+		t.Fatalf("injectNpmOverrides returned error: %v", err)
+	}
+
+	// Run the emitted echo and confirm the result is valid JSON carrying the literal value.
+	start := strings.Index(out, "RUN echo ")
+	if start == -1 {
+		t.Fatalf("no 'RUN echo' step found in:\n%s", out)
+	}
+	line := out[start:]
+	if i := strings.Index(line, "\n"); i != -1 {
+		line = line[:i]
+	}
+	outFile := filepath.Join(t.TempDir(), "package.json")
+	script := strings.Replace(strings.TrimPrefix(line, "RUN "), "> package.json", "> "+outFile, 1)
+
+	cmd := exec.Command("sh", "-c", script)
+	var stderr strings.Builder
+	cmd.Stderr = &stderr
+	if err := cmd.Run(); err != nil {
+		t.Fatalf("emitted shell command failed: %v\nscript:\n%s\nstderr: %s", err, script, stderr.String())
+	}
+	content, err := os.ReadFile(outFile)
+	if err != nil {
+		t.Fatalf("could not read the package.json the command wrote: %v", err)
+	}
+
+	var pkg map[string]any
+	if err := json.Unmarshal(content, &pkg); err != nil {
+		t.Fatalf("emitted package.json is not valid JSON (%q): %v", content, err)
+	}
+	overrides, ok := pkg["overrides"].(map[string]any)
+	if !ok {
+		t.Fatalf("no overrides block in %q", content)
+	}
+	if overrides["p"] != `1.0.0'; echo PWNED; '` {
+		t.Errorf("override value was not preserved literally: got %v", overrides["p"])
 	}
 }

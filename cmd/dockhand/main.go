@@ -413,6 +413,12 @@ func validateDependencyOverrides(spec *MCPServerSpec) error {
 		if strings.TrimSpace(o.Reason) == "" {
 			return fmt.Errorf("spec.overrides[%d].reason is required (document why %s is pinned to %s)", i, o.Package, o.Version)
 		}
+		if err := rejectControlChars(fmt.Sprintf("spec.overrides[%d].package", i), o.Package); err != nil {
+			return err
+		}
+		if err := rejectControlChars(fmt.Sprintf("spec.overrides[%d].version", i), o.Version); err != nil {
+			return err
+		}
 	}
 
 	for i, c := range spec.Spec.Constraints {
@@ -422,8 +428,25 @@ func validateDependencyOverrides(spec *MCPServerSpec) error {
 		if strings.TrimSpace(c.Reason) == "" {
 			return fmt.Errorf("spec.constraints[%d].reason is required (document why %q is constrained)", i, c.Spec)
 		}
+		if err := rejectControlChars(fmt.Sprintf("spec.constraints[%d].spec", i), c.Spec); err != nil {
+			return err
+		}
 	}
 
+	return nil
+}
+
+// rejectControlChars rejects control characters in a value that gets interpolated into the
+// generated Dockerfile. Quoting (see shellSingleQuote) makes shell metacharacters inert, but
+// a newline would still end the RUN instruction and start a new Dockerfile directive, so
+// these are refused outright. Neither an npm package/version nor a single PEP 508 requirement
+// has any legitimate use for them.
+func rejectControlChars(field, value string) error {
+	for _, r := range value {
+		if r == '\n' || r == '\r' || r == 0 || (r < 0x20 && r != '\t') {
+			return fmt.Errorf("%s must not contain control characters (found %q in %q)", field, r, value)
+		}
+	}
 	return nil
 }
 
@@ -475,6 +498,18 @@ func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag stri
 	}
 
 	return dockerfile, nil
+}
+
+// shellSingleQuote wraps s in single quotes for safe use as one shell word inside a
+// Dockerfile RUN instruction. Embedded single quotes are closed, escaped, and reopened
+// ('\”), the only way to represent them inside a single-quoted shell string.
+//
+// This matters because override values are interpolated into RUN lines. A PEP 508
+// requirement legitimately contains single quotes in environment markers
+// (fastmcp>=3.2.0; python_version < '3.14'), which would otherwise terminate the quoting
+// early -- corrupting the marker, and letting anything after it run as shell.
+func shellSingleQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
 }
 
 // injectDependencyOverrides rewrites the generated Dockerfile to force pinned versions
@@ -543,7 +578,7 @@ func injectNpmOverrides(dockerfile string, overrides []OverrideEntry) (string, e
 			return "", fmt.Errorf("failed to marshal package.json with overrides: %w", err)
 		}
 
-		lines[i] = fmt.Sprintf("RUN echo '%s' > package.json", string(pkgJSONBytes))
+		lines[i] = fmt.Sprintf("RUN echo %s > package.json", shellSingleQuote(string(pkgJSONBytes)))
 		injected = true
 		break
 	}
@@ -577,8 +612,8 @@ func injectUvOverrides(dockerfile string, constraints []ConstraintEntry) (string
 	fileBuilder.WriteString("# Write uv override requirements (forces pinned transitive dependency versions)\n")
 	fileBuilder.WriteString("RUN printf '%s\\n' \\\n")
 	for _, c := range constraints {
-		// Single-quote each spec for shell safety.
-		fmt.Fprintf(&fileBuilder, "    '%s' \\\n", c.Spec)
+		// Quote each spec so environment markers containing single quotes survive intact.
+		fmt.Fprintf(&fileBuilder, "    %s \\\n", shellSingleQuote(c.Spec))
 	}
 	fmt.Fprintf(&fileBuilder, "    > %s", overridesFile)
 	overridesRun := fileBuilder.String()
