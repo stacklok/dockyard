@@ -30,3 +30,13 @@ security:
         local-vs-remote scope, not attempts to override the model's system
         prompt. The description does not contain "ignore previous instructions"
         or any system-prompt-override pattern. Verified in v0.4.12.
+    - code: "AITech-8.2"
+      tool: "export_citations"
+      reason: |
+        False positive - YARA's credential_harvesting rule ($leak_param) flags
+        "Export ... keys" in the tool description ("citation keys are
+        deterministic"), matching on the word "keys" as if it referred to
+        API keys/credentials. The tool only calls the public arXiv API and
+        returns citation metadata (title, authors, year, category, url);
+        "keys" here means deterministic BibTeX citation keys
+        (e.g. smith2024attention), not credentials. Verified in v0.6.2.
