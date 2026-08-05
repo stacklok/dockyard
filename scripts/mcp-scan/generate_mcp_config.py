@@ -39,19 +39,14 @@ def main():
         uv_overrides = [c['spec'] for c in data['spec'].get('constraints', []) if c.get('spec')]
 
         # npx: npm honors "overrides" only from a package.json it installs into, and the
-        # scan invokes the package via `npx <pkg>` with no such project directory. These
-        # overrides exist to swap a vulnerable-but-working transitive dep for a patched
-        # one, which does not change server startup or the tool surface being analyzed,
-        # so skipping them here does not affect the scan result. Warn so a future
-        # startup-affecting override does not fail confusingly.
-        npm_overrides = data['spec'].get('overrides', [])
-        if protocol == 'npx' and npm_overrides:
-            print(
-                f"Note: {server_name} declares spec.overrides, which are not applied to the "
-                "security scan (npm overrides require a package.json; npx installs ad hoc). "
-                "The built image still gets them.",
-                file=sys.stderr,
-            )
+        # scan invokes `npx <pkg>` with no project directory of its own, so the package
+        # name and version travel alongside the overrides. run_scan.py stages a throwaway
+        # project from them and runs the scanner there.
+        npm_overrides = {
+            o['package']: o['version']
+            for o in data['spec'].get('overrides', [])
+            if o.get('package') and o.get('version')
+        }
 
         if protocol in ['npx', 'uvx']:
             command = protocol
@@ -76,6 +71,10 @@ def main():
         }
         if protocol == 'uvx' and uv_overrides:
             output["uv_overrides"] = uv_overrides
+        if protocol == 'npx' and npm_overrides:
+            output["npm_overrides"] = npm_overrides
+            output["npm_package"] = package
+            output["npm_version"] = version
         print(json.dumps(output))
 
     except FileNotFoundError:
