@@ -12,6 +12,18 @@ metadata:
 spec:
   package: "chroma-mcp"
   version: "0.2.6"
+  constraints:
+    - spec: "mcp[cli]>=1.28.1,<2"
+      reason: |
+        chroma-mcp 0.2.6 exact-pins mcp[cli]==1.6.0, which excludes every fix
+        for its 5 HIGH findings: GHSA-3qhf-m339-9g5v (1.9.4),
+        GHSA-j975-95f5-7wqh (1.10.0), GHSA-9h52-p55h-vw2f (1.23.0),
+        GHSA-jpw9-pfvf-9f58 (1.27.2) and GHSA-vj7q-gjh5-988w (1.28.1).
+        1.28.1 is the lowest version clearing all five: a smaller bump to
+        1.23.0 would newly expose GHSA-hvrp-rf83-w775 (HIGH,
+        >=1.23.0,<=1.27.1), which 1.6.0 predates. Capped <2 so uv cannot
+        resolve the mcp 2.x major. chroma-mcp only imports
+        mcp.server.fastmcp.FastMCP, which is stable across the 1.x line.
 
 provenance:
   repository_uri: "https://github.com/chroma-core/chroma-mcp"

@@ -12,6 +12,29 @@ metadata:
 spec:
   package: "@browserbasehq/mcp-server-browserbase"
   version: "2.4.3"
+  overrides:
+    - package: "sharp"
+      version: "0.35.3"
+      reason: |
+        @browserbasehq/mcp-server-browserbase caps sharp at ^0.33.0, resolving
+        0.33.5. GHSA-f88m-g3jw-g9cj (inherited libvips CVE-2026-33327,
+        CVE-2026-33328, CVE-2026-35590, CVE-2026-35591) affects all sharp <0.35.0,
+        so no 0.33.x or 0.34.x release can fix it. 0.35.3 is the newest 0.35.x
+        and is the only sharp advisory in play. sharp 0.x minors are breaking by
+        convention, so this is effectively a cross-major force; verified in the
+        container that sharp loads and round-trips a resize on the pinned version.
+    - package: "undici"
+      version: "6.28.0"
+      reason: |
+        undici 5.29.0 arrives via @browserbasehq/stagehand ->
+        @ai-sdk/amazon-bedrock -> @ai-sdk/provider-utils, which caps it at
+        ^5.29.0. The 5.x line is end of life, so the fixes for
+        GHSA-vrm6-8vpv-qv8q and GHSA-v9p9-hfj2-hcw8 (both 6.24.0) and
+        GHSA-vxpw-j846-p89q (6.27.0) only exist in 6.x. 6.28.0 is the last 6.x
+        release and no high advisory affects >=6.27.0 on that line, so it clears
+        all three without stepping into the 7.x advisories. Cross-major force,
+        but @ai-sdk/provider-utils 5.x upstream has itself moved to undici
+        ^7.28.0, so this consumer tracks well past 6.x.
 
 provenance:
   repository_uri: "https://github.com/browserbase/mcp-server-browserbase"

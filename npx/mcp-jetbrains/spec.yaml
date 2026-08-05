@@ -12,6 +12,16 @@ metadata:
 spec:
   package: "@jetbrains/mcp-proxy"
   version: "1.8.0"
+  overrides:
+    - package: "@modelcontextprotocol/sdk"
+      version: "1.26.0"
+      reason: |
+        @jetbrains/mcp-proxy exact-pins @modelcontextprotocol/sdk 1.7.0, which
+        carries GHSA-w48q-cv73-mx4w (DNS rebinding, fixed 1.24.0) and
+        GHSA-8r9q-7v3j-jr4g (ReDoS, fixed 1.25.2). 1.26.0 rather than 1.25.2
+        because GHSA-345p-7cg4-v4c7 affects >=1.10.0,<=1.25.3, which the pinned
+        1.7.0 predates, so a smaller bump would trade two advisories for a third.
+        Same-major, and the proxy still starts and serves its tool list.
 
 provenance:
   repository_uri: "https://github.com/JetBrains/mcp-jetbrains"

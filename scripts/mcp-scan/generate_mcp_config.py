@@ -30,6 +30,24 @@ def main():
         spec_args = data['spec'].get('args', [])
         spec_args_str = ' '.join(spec_args) if spec_args else ''
 
+        # Dependency overrides (see docs/adding-servers.md). The scan runs the package
+        # directly rather than the built image, so it has to reapply these itself or it
+        # would exercise a different dependency set than the one that ships.
+        #
+        # uvx: passed through as data; run_scan.py writes them to a uv overrides
+        # requirements file, since uv needs a file rather than inline specifiers.
+        uv_overrides = [c['spec'] for c in data['spec'].get('constraints', []) if c.get('spec')]
+
+        # npx: npm honors "overrides" only from a package.json it installs into, and the
+        # scan invokes `npx <pkg>` with no project directory of its own, so the package
+        # name and version travel alongside the overrides. run_scan.py stages a throwaway
+        # project from them and runs the scanner there.
+        npm_overrides = {
+            o['package']: o['version']
+            for o in data['spec'].get('overrides', [])
+            if o.get('package') and o.get('version')
+        }
+
         if protocol in ['npx', 'uvx']:
             command = protocol
             args = f"{package}@{version}"
@@ -51,6 +69,12 @@ def main():
             "server_name": server_name,
             "mock_env": mock_env
         }
+        if protocol == 'uvx' and uv_overrides:
+            output["uv_overrides"] = uv_overrides
+        if protocol == 'npx' and npm_overrides:
+            output["npm_overrides"] = npm_overrides
+            output["npm_package"] = package
+            output["npm_version"] = version
         print(json.dumps(output))
 
     except FileNotFoundError:
