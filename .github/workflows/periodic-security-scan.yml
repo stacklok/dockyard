@@ -87,13 +87,17 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      # The SARIF feed exists for visibility in the Security tab, so it stays
+      # broad on purpose: every severity, including findings with no fix
+      # available. Narrowing it would silently drop existing coverage. Note
+      # severity-cutoff only feeds grype's --fail-on and does not filter the
+      # report, so with fail-build disabled it has no effect here; only-fixed is
+      # what would filter, and it is deliberately absent.
       - name: Run Grype vulnerability scan (SARIF)
         id: grype-scan
         uses: anchore/scan-action@e1165082ffb1fe366ebaf02d8526e7c4989ea9d2 # v7.4.0
         with:
           image: "${{ steps.meta.outputs.image_ref }}"
-          severity-cutoff: "high"
-          only-fixed: "true"
           fail-build: "false"
           output-format: "sarif"
 
