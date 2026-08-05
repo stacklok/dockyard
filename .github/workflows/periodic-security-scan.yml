@@ -191,6 +191,13 @@ jobs:
             body += `\n---\n`;
             body += `_Automated security scan from [periodic-security-scan workflow](../actions/workflows/periodic-security-scan.yml)_`;
 
+            // Label by what was actually found, so a high-only issue is not
+            // labelled critical. security+grype are always applied and are what
+            // the dedup query below matches on.
+            const labels = ['security', 'grype'];
+            if (critical > 0) labels.push('critical');
+            if (high > 0) labels.push('high');
+
             // Check if an issue already exists for this image
             const { data: issues } = await github.rest.issues.listForRepo({
               owner: context.repo.owner,
@@ -219,7 +226,7 @@ jobs:
                 repo: context.repo.repo,
                 title: `🚨 Security: Critical or high vulnerabilities in ${{ steps.meta.outputs.server_name }} container`,
                 body: body,
-                labels: ['security', 'grype', 'critical']
+                labels: labels
               });
               console.log('Created new security issue');
             }
