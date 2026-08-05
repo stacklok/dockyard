@@ -7,6 +7,7 @@ import shutil
 import subprocess
 import sys
 import os
+import tempfile
 
 
 def is_scanner_installed():
@@ -30,6 +31,7 @@ def main():
             command = config.get("command")
             package_arg = config.get("args")
             mock_env = config.get("mock_env", [])
+            uv_overrides = config.get("uv_overrides", [])
         except (FileNotFoundError, json.JSONDecodeError) as e:
             print(f"Error reading config file: {e}", file=sys.stderr)
             sys.exit(1)
@@ -38,6 +40,7 @@ def main():
         command = args.command
         package_arg = args.package_arg
         mock_env = []
+        uv_overrides = []
     else:
         print("Usage: run_scan.py --config <config.json>", file=sys.stderr)
         print("   or: run_scan.py <command> <package_arg>", file=sys.stderr)
@@ -66,6 +69,26 @@ def main():
     # Use --stdio-arg=VALUE syntax because --yes looks like a flag to argparse.
     if command == "npx":
         scanner_args.append("--stdio-arg=--yes")
+
+    # Reapply uvx dependency overrides (spec.constraints) so the scanned process resolves
+    # the same dependency versions as the built image. uv takes these as a requirements
+    # file, so write one; it must outlive this function's setup and be cleaned up after
+    # the scan, hence the try/finally around the subprocess call below.
+    overrides_file = None
+    if uv_overrides:
+        if command != "uvx":
+            print(f"Error: uv_overrides is only supported for uvx, got {command}", file=sys.stderr)
+            sys.exit(1)
+        with tempfile.NamedTemporaryFile(
+            mode="w", suffix=".txt", prefix="uv-overrides-", delete=False
+        ) as f:
+            f.write("\n".join(uv_overrides) + "\n")
+            overrides_file = f.name
+        # The flag must precede the package spec. Use --stdio-arg=VALUE for the flag
+        # itself, since a bare "--overrides" would be read as a new argparse flag.
+        scanner_args.append("--stdio-arg=--overrides")
+        scanner_args.extend(["--stdio-arg", overrides_file])
+
     for arg in package_arg.split():
         scanner_args.extend(["--stdio-arg", arg])
 
@@ -100,6 +123,12 @@ def main():
     except Exception as e:
         print(f"Error running mcp-scanner: {e}", file=sys.stderr)
         sys.exit(1)
+    finally:
+        if overrides_file:
+            try:
+                os.unlink(overrides_file)
+            except OSError:
+                pass
 
 if __name__ == "__main__":
     main()

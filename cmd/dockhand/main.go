@@ -3,6 +3,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
 	"log/slog"
 	"os"
@@ -21,6 +22,13 @@ import (
 	"github.com/stacklok/dockyard/internal/provenance/pypi"
 	"github.com/stacklok/dockyard/internal/provenance/service"
 	skillpkg "github.com/stacklok/dockyard/internal/skills"
+)
+
+// Supported package protocols.
+const (
+	protocolNpx = "npx"
+	protocolUvx = "uvx"
+	protocolGo  = "go"
 )
 
 // MCPServerSpec defines the structure of our YAML configuration files
@@ -46,6 +54,33 @@ type MCPServerPackageSpec struct {
 	Version string            `yaml:"version,omitempty"` // e.g., "1.0.14"
 	Args    []string          `yaml:"args,omitempty"`    // Additional arguments for the package
 	Env     map[string]string `yaml:"env,omitempty"`     // Environment variables baked into the runtime image
+
+	// Overrides forces specific versions of transitive npm dependencies (npx protocol).
+	// Each entry is injected into an "overrides" block of the generated package.json so
+	// that npm resolves the pinned version regardless of upstream's declared range.
+	Overrides []OverrideEntry `yaml:"overrides,omitempty"`
+
+	// Constraints forces specific versions of transitive Python dependencies (uvx protocol).
+	// Each entry is written to a uv overrides requirements file and passed to
+	// "uv tool install --overrides" so that uv resolves the pinned version even when
+	// upstream caps the dependency.
+	Constraints []ConstraintEntry `yaml:"constraints,omitempty"`
+}
+
+// OverrideEntry pins a transitive npm dependency to a specific version (npx protocol).
+// Reason is mandatory so the justification for circumventing the upstream pin is auditable
+// in-repo, mirroring security.allowed_issues.
+type OverrideEntry struct {
+	Package string `yaml:"package"` // e.g., "@modelcontextprotocol/sdk"
+	Version string `yaml:"version"` // e.g., "1.26.0"
+	Reason  string `yaml:"reason"`  // why this override is needed (required)
+}
+
+// ConstraintEntry pins a transitive Python dependency via a uv override requirement
+// (uvx protocol). Reason is mandatory so the justification is auditable in-repo.
+type ConstraintEntry struct {
+	Spec   string `yaml:"spec"`   // a PEP 508 requirement, e.g., "fastmcp>=3.2.0"
+	Reason string `yaml:"reason"` // why this constraint is needed (required)
 }
 
 // MCPServerProvenance contains supply chain provenance information
@@ -337,7 +372,7 @@ func loadMCPServerSpec(configPath string) (*MCPServerSpec, error) {
 	}
 
 	// Validate protocol
-	validProtocols := []string{"npx", "uvx", "go"}
+	validProtocols := []string{protocolNpx, protocolUvx, protocolGo}
 	isValid := false
 	for _, p := range validProtocols {
 		if spec.Metadata.Protocol == p {
@@ -349,7 +384,70 @@ func loadMCPServerSpec(configPath string) (*MCPServerSpec, error) {
 		return nil, fmt.Errorf("invalid protocol %s, must be one of: %v", spec.Metadata.Protocol, validProtocols)
 	}
 
+	// Validate dependency overrides/constraints
+	if err := validateDependencyOverrides(&spec); err != nil {
+		return nil, err
+	}
+
 	return &spec, nil
+}
+
+// validateDependencyOverrides validates the optional overrides (npx) and constraints
+// (uvx) blocks. Every entry must carry a non-empty Reason so the justification for
+// circumventing an upstream version pin is auditable in-repo.
+func validateDependencyOverrides(spec *MCPServerSpec) error {
+	if len(spec.Spec.Overrides) > 0 && spec.Metadata.Protocol != protocolNpx {
+		return fmt.Errorf("spec.overrides is only supported for the npx protocol, got %q", spec.Metadata.Protocol)
+	}
+	if len(spec.Spec.Constraints) > 0 && spec.Metadata.Protocol != protocolUvx {
+		return fmt.Errorf("spec.constraints is only supported for the uvx protocol, got %q", spec.Metadata.Protocol)
+	}
+
+	for i, o := range spec.Spec.Overrides {
+		if o.Package == "" {
+			return fmt.Errorf("spec.overrides[%d].package is required", i)
+		}
+		if o.Version == "" {
+			return fmt.Errorf("spec.overrides[%d].version is required", i)
+		}
+		if strings.TrimSpace(o.Reason) == "" {
+			return fmt.Errorf("spec.overrides[%d].reason is required (document why %s is pinned to %s)", i, o.Package, o.Version)
+		}
+		if err := rejectControlChars(fmt.Sprintf("spec.overrides[%d].package", i), o.Package); err != nil {
+			return err
+		}
+		if err := rejectControlChars(fmt.Sprintf("spec.overrides[%d].version", i), o.Version); err != nil {
+			return err
+		}
+	}
+
+	for i, c := range spec.Spec.Constraints {
+		if strings.TrimSpace(c.Spec) == "" {
+			return fmt.Errorf("spec.constraints[%d].spec is required", i)
+		}
+		if strings.TrimSpace(c.Reason) == "" {
+			return fmt.Errorf("spec.constraints[%d].reason is required (document why %q is constrained)", i, c.Spec)
+		}
+		if err := rejectControlChars(fmt.Sprintf("spec.constraints[%d].spec", i), c.Spec); err != nil {
+			return err
+		}
+	}
+
+	return nil
+}
+
+// rejectControlChars rejects control characters in a value that gets interpolated into the
+// generated Dockerfile. Quoting (see shellSingleQuote) makes shell metacharacters inert, but
+// a newline would still end the RUN instruction and start a new Dockerfile directive, so
+// these are refused outright. Neither an npm package/version nor a single PEP 508 requirement
+// has any legitimate use for them.
+func rejectControlChars(field, value string) error {
+	for _, r := range value {
+		if r == '\n' || r == '\r' || r == 0 || (r < 0x20 && r != '\t') {
+			return fmt.Errorf("%s must not contain control characters (found %q in %q)", field, r, value)
+		}
+	}
+	return nil
 }
 
 // generateDockerfile generates a Dockerfile using toolhive's library
@@ -391,7 +489,182 @@ func generateDockerfile(ctx context.Context, spec *MCPServerSpec, customTag stri
 		return "", fmt.Errorf("failed to generate Dockerfile for protocol scheme %s: %w", protocolScheme, err)
 	}
 
+	// Post-process the generated Dockerfile to inject any dependency overrides.
+	// toolhive returns the Dockerfile as a string, which is our injection seam; toolhive
+	// itself needs no changes.
+	dockerfile, err = injectDependencyOverrides(dockerfile, spec)
+	if err != nil {
+		return "", fmt.Errorf("failed to inject dependency overrides: %w", err)
+	}
+
 	return dockerfile, nil
+}
+
+// shellSingleQuote wraps s in single quotes for safe use as one shell word inside a
+// Dockerfile RUN instruction. Embedded single quotes are closed, escaped, and reopened
+// ('\”), the only way to represent them inside a single-quoted shell string.
+//
+// This matters because override values are interpolated into RUN lines. A PEP 508
+// requirement legitimately contains single quotes in environment markers
+// (fastmcp>=3.2.0; python_version < '3.14'), which would otherwise terminate the quoting
+// early -- corrupting the marker, and letting anything after it run as shell.
+func shellSingleQuote(s string) string {
+	return "'" + strings.ReplaceAll(s, "'", `'\''`) + "'"
+}
+
+// injectDependencyOverrides rewrites the generated Dockerfile to force pinned versions
+// of transitive dependencies. For npx it injects an npm "overrides" block; for uvx it
+// adds a uv overrides requirements file to the "uv tool install" step. It matches the
+// relevant install step by content (not line number) so it stays robust to changes in
+// toolhive's template formatting.
+func injectDependencyOverrides(dockerfile string, spec *MCPServerSpec) (string, error) {
+	switch spec.Metadata.Protocol {
+	case protocolNpx:
+		if len(spec.Spec.Overrides) == 0 {
+			return dockerfile, nil
+		}
+		return injectNpmOverrides(dockerfile, spec.Spec.Overrides)
+	case protocolUvx:
+		if len(spec.Spec.Constraints) == 0 {
+			return dockerfile, nil
+		}
+		return injectUvOverrides(dockerfile, spec.Spec.Constraints)
+	default:
+		return dockerfile, nil
+	}
+}
+
+// injectNpmOverrides rewrites the package.json creation step so the generated package.json
+// carries an "overrides" block. npm honors "overrides" only when present in the package.json
+// it installs into, so this is injected before the "npm install" step. The toolhive template
+// creates the package.json with a line of the form:
+//
+//	RUN echo '{"name":"mcp-container","version":"1.0.0"}' > package.json
+//
+// We locate that line by content (the "> package.json" redirect), then parse the JSON payload
+// toolhive emitted and add an "overrides" key to it. Parsing and re-emitting (rather than
+// rebuilding the payload from hardcoded values) means any other field toolhive puts in that
+// package.json is preserved rather than silently dropped.
+func injectNpmOverrides(dockerfile string, overrides []OverrideEntry) (string, error) {
+	overrideMap := make(map[string]string, len(overrides))
+	for _, o := range overrides {
+		overrideMap[o.Package] = o.Version
+	}
+
+	lines := strings.Split(dockerfile, "\n")
+	injected := false
+	for i, line := range lines {
+		trimmed := strings.TrimSpace(line)
+		// Match the package.json creation step regardless of the exact JSON payload.
+		if !strings.HasPrefix(trimmed, "RUN echo '") || !strings.Contains(trimmed, "> package.json") {
+			continue
+		}
+
+		// Extract the single-quoted JSON payload between "RUN echo '" and the redirect.
+		start := len("RUN echo '")
+		end := strings.LastIndex(trimmed, "'")
+		if end <= start {
+			return "", fmt.Errorf("could not parse the package.json payload in the generated Dockerfile: %q", trimmed)
+		}
+
+		pkgJSON := map[string]any{}
+		if err := json.Unmarshal([]byte(trimmed[start:end]), &pkgJSON); err != nil {
+			return "", fmt.Errorf("failed to parse the generated package.json payload %q: %w", trimmed[start:end], err)
+		}
+		pkgJSON["overrides"] = overrideMap
+
+		pkgJSONBytes, err := json.Marshal(pkgJSON)
+		if err != nil {
+			return "", fmt.Errorf("failed to marshal package.json with overrides: %w", err)
+		}
+
+		lines[i] = fmt.Sprintf("RUN echo %s > package.json", shellSingleQuote(string(pkgJSONBytes)))
+		injected = true
+		break
+	}
+
+	if !injected {
+		return "", fmt.Errorf("could not find the 'package.json' creation step in the generated Dockerfile to inject npm overrides")
+	}
+
+	return strings.Join(lines, "\n"), nil
+}
+
+// injectUvOverrides rewrites the "uv tool install" step so it passes a uv overrides
+// requirements file. uv honors override requirements via "--overrides <file>", forcing the
+// resolved version of a transitive dependency even when upstream caps it. The toolhive
+// template installs with a line of the form:
+//
+//	uv tool install "$package_spec" && \
+//
+// We write the override specs to a file (created via a heredoc RUN injected before the
+// install step) and add "--overrides" to the install invocation, matching the install line
+// by content rather than line number.
+func injectUvOverrides(dockerfile string, constraints []ConstraintEntry) (string, error) {
+	const overridesFile = "/tmp/uv-overrides.txt"
+
+	// Build a RUN step that writes the overrides requirements file. Each constraint is a
+	// PEP 508 requirement on its own line.
+	// Emit a single logical RUN that writes each spec (one per line) to the overrides file.
+	// Every printed line ends with a backslash continuation so the trailing redirect stays
+	// part of the same shell command and is not parsed as a new Dockerfile instruction.
+	var fileBuilder strings.Builder
+	fileBuilder.WriteString("# Write uv override requirements (forces pinned transitive dependency versions)\n")
+	fileBuilder.WriteString("RUN printf '%s\\n' \\\n")
+	for _, c := range constraints {
+		// Quote each spec so environment markers containing single quotes survive intact.
+		fmt.Fprintf(&fileBuilder, "    %s \\\n", shellSingleQuote(c.Spec))
+	}
+	fmt.Fprintf(&fileBuilder, "    > %s", overridesFile)
+	overridesRun := fileBuilder.String()
+
+	lines := strings.Split(dockerfile, "\n")
+	installIdx := -1
+	for i, line := range lines {
+		// Match the actual install command, not Dockerfile comments that merely mention it.
+		// Match on the bare "uv tool install" verb rather than requiring the quoted package
+		// spec to follow immediately: toolhive's template conditionally emits flags of its
+		// own between the two (e.g. "--with '<spec>'" for build-time constraints), so
+		// anchoring on `uv tool install "` would silently stop matching in those builds.
+		trimmed := strings.TrimSpace(line)
+		if strings.HasPrefix(trimmed, "#") {
+			continue
+		}
+		if strings.Contains(line, "uv tool install ") {
+			installIdx = i
+			break
+		}
+	}
+	if installIdx == -1 {
+		return "", fmt.Errorf("could not find the 'uv tool install' step in the generated Dockerfile to inject uv overrides")
+	}
+
+	// Add the --overrides flag to the install invocation.
+	lines[installIdx] = strings.Replace(
+		lines[installIdx],
+		"uv tool install ",
+		fmt.Sprintf("uv tool install --overrides %s ", overridesFile),
+		1,
+	)
+
+	// Insert the file-writing RUN step before the install step. The install step is often
+	// preceded by comment lines and a "RUN package=..." opener; we insert immediately before
+	// the line that opens the install RUN (the first line at or above installIdx that begins
+	// with "RUN ").
+	insertIdx := installIdx
+	for j := installIdx; j >= 0; j-- {
+		if strings.HasPrefix(strings.TrimSpace(lines[j]), "RUN ") {
+			insertIdx = j
+			break
+		}
+	}
+
+	out := make([]string, 0, len(lines)+1)
+	out = append(out, lines[:insertIdx]...)
+	out = append(out, overridesRun)
+	out = append(out, lines[insertIdx:]...)
+
+	return strings.Join(out, "\n"), nil
 }
 
 // generateImageTag creates a container image tag based on the repository structure
