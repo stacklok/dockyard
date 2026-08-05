@@ -40,6 +40,8 @@ spec:
   args:                            # Optional: CLI arguments for the package
     - "arg1"                       # Passed to the entrypoint command
     - "arg2"
+  env:                             # Optional: env vars baked into the runtime image
+    SOME_VAR: "some-value"         # Present in the running container, not just at build time
 
   # Optional (npx only): force pinned versions of transitive npm dependencies.
   # Injected as an "overrides" block in the generated package.json. Each entry
@@ -319,7 +321,7 @@ security:
       reason: "Destructive flow mitigated by container sandboxing"
 ```
 
-### Servers Requiring Environment Variables
+### Servers Requiring Environment Variables During Scanning
 
 Some MCP servers require environment variables to start (e.g., API URLs, tokens). Since the security scanner needs to start the server to discover its tools, you can provide mock values that allow the server to start without functional credentials:
 
@@ -338,9 +340,26 @@ security:
 - Mock values are **not secrets** - they are committed to the repository
 - Values should be obviously fake (use `mock-`, placeholder UUIDs, example.com domains)
 - Purpose is to allow server startup for scanning, not functional operation
+- Only consumed by the scan tooling (`scripts/mcp-scan/`) - it is **not** wired into the built container
 - Servers still need to pass security scans or allowlist known issues
 
 See [Security Overview](security.md) for more details on what we scan for.
+
+### Servers Requiring Environment Variables at Runtime
+
+`security.mock_env` above only affects scanning. If your server actually needs an environment variable set in the **shipped, running container** - for example, to select a non-default backend when a dependency assumes capabilities the container doesn't have - use `spec.env` instead:
+
+```yaml
+spec:
+  package: "your-package-name"
+  version: "1.0.0"
+  env:
+    PYTHON_KEYRING_BACKEND: "keyrings.alt.file.PlaintextKeyring"
+```
+
+This is baked into the final stage of the generated Dockerfile as an `ENV` instruction, so it's present in the process environment every time the container runs - not just during the build. `uvx/okta/spec.yaml` uses this for exactly this reason: `okta-mcp-server` caches OAuth tokens via Python's `keyring` library, which otherwise tries to reach an OS secret-service/D-Bus backend that doesn't exist in the container.
+
+Don't use `spec.env` to embed secrets or credentials - it's committed to the repository just like the rest of `spec.yaml`. It's for non-sensitive configuration values only.
 
 ### After Merge
 

@@ -10,9 +10,9 @@ metadata:
 
 spec:
   repository: "https://github.com/vercel-labs/agent-skills"
-  ref: "b9c8ee0643d87d3c5a953d1e22382ff2ead39229"  # main as of 2026-04-30
+  ref: "7c180d9044c9ae2b442b567aad4e42a28dd5ed62"  # main as of 2026-04-30
   path: "skills/vercel-cli-with-tokens"
-  version: "0.1.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/vercel-labs/agent-skills"
@@ -22,3 +22,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "vercel-labs/agent-skills declares MIT in README.md; upstream does not include a LICENSE file at the repository root, and this skill's SKILL.md frontmatter does not embed an SPDX license identifier."
+    # FP: ATR_2026_00115 pattern-matches `printenv | grep -i vercel` in SKILL.md's
+    # "Token not found" troubleshooting section — a read-only local environment
+    # lookup (plus grepping a local .env file) to help diagnose missing config,
+    # not a credential exfiltration vector.
+    - rule_id: ATR_2026_00115
+      reason: "FP: cisco-ai-skill-scanner matched 'printenv | grep -i vercel' in SKILL.md's Troubleshooting > Token not found section; a read-only local env/'.env' lookup for diagnosing missing config, no exfiltration."

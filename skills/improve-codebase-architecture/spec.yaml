@@ -5,13 +5,13 @@
 
 metadata:
   name: improve-codebase-architecture
-  description: "Find deepening opportunities in a codebase, informed by the domain language in CONTEXT.md and the decisions in docs/adr/. Use when the user wants to improve architecture, find refactoring opportunities, consolidate tightly-coupled modules, or make a codebase more testable and AI-navigable."
+  description: "Scan a codebase for deepening opportunities, present them as a visual HTML report, then grill through whichever one you pick."
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "f304057d61d3df3c9fd992ac2b6e3833cb9325fb"  # main as of 2026-04-30
+  ref: "a621cc4f755d1da9c35dc3bb3abbd1d2a3208670"  # main as of 2026-08-05
   path: "skills/engineering/improve-codebase-architecture"
-  version: "0.1.1"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
@@ -21,3 +21,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # FP: PG_EXFIL_HTML_TAG pattern-matches the <script src="https://cdn.tailwindcss.com">
+    # tag in HTML-REPORT.md's scaffold example. The file documents how to render the
+    # architecture review as a static local HTML file; the only external references are
+    # the official Tailwind and Mermaid CDNs and no user data is transmitted anywhere.
+    - rule_id: PG_EXFIL_HTML_TAG
+      reason: "FP: scanner matched the Tailwind CDN <script> tag in HTML-REPORT.md's static report scaffold; a script include from the official CDN in a local, self-contained report template, no data exfiltration."

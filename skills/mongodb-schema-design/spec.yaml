@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/mongodb/agent-skills"
-  ref: "5cbde1c81a8c5e18de0952e52ec90808be11283f"  # main as of 2026-04-07
+  ref: "b4ea8150a020b9babaddc6c271c6dc177c06a83f"
   path: "skills/mongodb-schema-design"
-  version: "0.1.1"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/mongodb/agent-skills"
@@ -21,3 +21,13 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "mongodb/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: BEHAVIOR_BASH_TAINT_FLOW
+      reason: "FP: matched bash/mongo shell code examples in schema design documentation — documentation, not agent-executable scripts."
+    # MongoDB documentation skill — ATR pattern matches are all on MongoDB
+    # aggregation pipeline syntax, schema examples, and shell commands.
+    - category: policy_violation
+      reason: "FP: mongodb-schema-design is a MongoDB documentation skill. All ATR pattern matches are on MongoDB aggregation pipeline syntax ($$ROOT, $lookup), schema design examples, and shell command documentation — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    - rule_id: PG_PII_SSN_HARVESTING
+      reason: "FP: matched 'require choosin' in schema design documentation about data modeling decisions — not PII harvesting."

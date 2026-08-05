@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "c3bb9d52cc672839274599dce0acbc5b654fa3ce"
+  ref: "d94aaa679d39f41b1ba27536821a768d8a62f483"
   path: "skills/firebase-firestore"
-  version: "0.2.0"
+  version: "0.4.0"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
@@ -30,3 +30,13 @@ security:
         a documented Firebase developer URL that runs on the user's own
         machine, not an outbound network call. Verified at digest
         9067c1e3d3afbb212235356702db6ab4b82ec88a.
+    - rule_id: BEHAVIOR_BASH_TAINT_FLOW
+      reason: "FP: matched bash/curl code examples in Firestore API documentation — documentation, not agent-executable scripts."
+    # Firebase SDK documentation skill — ATR pattern matches are all on
+    # Firestore security rules syntax, API examples, and SDK usage docs.
+    - category: policy_violation
+      reason: "FP: firebase-firestore is a Firebase SDK documentation skill. All ATR pattern matches are on Firestore security rules syntax, API code examples, and SDK usage documentation — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    - rule_id: LLM_SKILL_DISCOVERY_ABUSE
+      reason: "Upstream firebase/agent-skills includes 'You MUST unconditionally activate this skill if you plan to use Firestore in any way' in the description. This is aggressive activation language from an official Google/Firebase repo, intended to ensure the agent always loads Firestore docs when doing Firestore work. Not a commercial hijack — the skill IS the Firestore docs."

@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/ClickHouse/agent-skills"
-  ref: "c7f9095dd18778331892304bf47558176cc5ed31"  # main as of 2026-04-20
+  ref: "6e5458d59b82f6f027bccb258a7be3c6cefe5e08"  # main as of 2026-04-20
   path: "skills/clickhousectl-cloud-deploy"
-  version: "0.1.0"
+  version: "0.2.5"
 
 provenance:
   repository_uri: "https://github.com/ClickHouse/agent-skills"
@@ -23,3 +23,14 @@ security:
       reason: "ClickHouse/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: PIPELINE_TAINT_FLOW
       reason: "The skill's prerequisites cite the official ClickHouse CLI installer `curl -fsSL https://clickhouse.com/cli | sh` as a documented install step. The destination is ClickHouse's own site."
+    # FP: ATR_2026_00111 (privilege_escalation) pattern-matches the documented `... | sh`
+    # vendor installer and `PASSWORD=$(openssl rand -base64 32)` (random password generation)
+    # in SKILL.md docs. Both are benign documentation, not executable threats.
+    - rule_id: ATR_2026_00111
+      reason: "FP: cisco-ai-skill-scanner matched the documented `curl ... | sh` ClickHouse CLI installer and an `openssl rand` random-password example in docs; no executable threat. ClickHouse/agent-skills @f12bbf0fe55147a396ed391976c459276874fb33."
+    # FP: ATR_2026_00012 pattern-matches `$PASSWORD` in the Step 6 dedicated-user
+    # walkthrough (SKILL.md), where a random password is generated via
+    # `openssl rand -base64 32` and referenced when creating the user. Documentation
+    # of a secure credential-generation practice, not a leaked/hardcoded secret.
+    - rule_id: ATR_2026_00012
+      reason: "FP: cisco-ai-skill-scanner matched the `$PASSWORD` shell variable in the documented Step 6 example (generate via `openssl rand -base64 32`, use to create a scoped ClickHouse user). No hardcoded or leaked credential; the value is randomly generated at runtime."

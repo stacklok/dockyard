@@ -48,8 +48,14 @@ For each changed `spec.yaml`:
 3. **Check for breaking changes** that might affect:
    - Tool names or signatures
    - Required arguments (`spec.args`)
+   - Runtime environment variables (`spec.env`)
    - Authentication requirements
    - API endpoints
+
+4. **If the PR adds or changes `spec.env`**, verify:
+   - The value is non-sensitive configuration, not a secret or credential (it's committed to the repo in plaintext)
+   - The comment or PR description explains why the variable is needed at runtime (not just at build time - that's `security.mock_env`, a separate mechanism used only for scanning)
+   - It isn't being used to silently disable a security-relevant default in the packaged server
 
 ### Step 3: Verify CI Status
 
@@ -193,6 +199,8 @@ spec:
   version: "x.y.z"              # Exact version
   args:                         # Optional CLI arguments
     - "arg1"
+  env:                          # Optional env vars baked into the runtime image
+    SOME_VAR: "some-value"
 
 provenance:
   repository_uri: "https://..."

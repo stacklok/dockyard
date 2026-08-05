@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "a56045e9ae00b3506cacefea0f672aab0a1a6e3c"  # main as of 2026-04-17
+  ref: "696dee5717bdb976772466c067b60d89d644260d"
   path: "plugins/static-analysis/skills/codeql"
-  version: "0.1.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
@@ -21,3 +21,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
+    # Security analysis skill — reference files contain CodeQL workflow
+    # documentation, quality assessment commands, and performance tuning.
+    - category: policy_violation
+      reason: "FP: codeql is a security analysis skill whose reference files contain CodeQL workflow documentation, quality assessment commands, and performance tuning examples. All ATR pattern matches are documentation of analysis procedures, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."

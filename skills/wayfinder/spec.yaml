@@ -1,0 +1,23 @@
+# Matt Pocock wayfinder Skill
+# Plan a huge chunk of work as a shared map of investigation tickets.
+# Source: https://github.com/mattpocock/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/wayfinder:0.1.0
+
+metadata:
+  name: wayfinder
+  description: "Plan a huge chunk of work — more than one agent session can hold — as a shared map of investigation tickets on your issue tracker, and resolve them one at a time until the way to the destination is clear."
+
+spec:
+  repository: "https://github.com/mattpocock/skills"
+  ref: "a621cc4f755d1da9c35dc3bb3abbd1d2a3208670"  # main as of 2026-08-05
+  path: "skills/engineering/wayfinder"
+  version: "0.2.0"
+
+provenance:
+  repository_uri: "https://github.com/mattpocock/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "a56045e9ae00b3506cacefea0f672aab0a1a6e3c"  # main as of 2026-04-17
+  ref: "696dee5717bdb976772466c067b60d89d644260d"
   path: "plugins/semgrep-rule-creator/skills/semgrep-rule-creator"
-  version: "0.1.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
@@ -23,3 +23,13 @@ security:
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: YARA_code_execution_generic
       reason: "Matches eval() example snippets in SKILL.md that illustrate vulnerability patterns a custom Semgrep rule should detect; these are documentation of target code, not executable paths within the skill."
+    # Security analysis skill — reference files contain Semgrep rule patterns
+    # and example vulnerability code for detection rule authoring.
+    - category: policy_violation
+      reason: "FP: semgrep-rule-creator is a security analysis skill whose reference files contain Semgrep rule authoring documentation and example vulnerability patterns for detection purposes. All ATR pattern matches are documentation of detection rule authoring, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    - rule_id: MDBLOCK_PYTHON_EVAL_EXEC
+      reason: "FP: matched eval() example in SKILL.md — illustrates a vulnerability pattern that a Semgrep rule should detect; documentation of target code, not executable within the skill."
+    - category: command_injection
+      reason: "FP: same as above — example code patterns for detection rule authoring, not executable within the skill."

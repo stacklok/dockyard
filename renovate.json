@@ -7,6 +7,38 @@
   ],
   "labels": ["dependencies"],
   "postUpdateOptions": ["gomodTidy"],
+  "prConcurrentLimit": 0,
+  "prHourlyLimit": 0,
+  "packageRules": [
+    {
+      "description": "Group the toolhive Go modules so they update in one PR. Both feed dockhand's artifact/Dockerfile packaging, and the build workflows rebuild every artifact when either changes; grouping keeps that to a single rebuild.",
+      "matchManagers": ["gomod"],
+      "matchPackageNames": [
+        "github.com/stacklok/toolhive",
+        "github.com/stacklok/toolhive-core"
+      ],
+      "groupName": "toolhive"
+    },
+    {
+      "description": "Group non-major Go module updates (toolhive modules are handled separately above).",
+      "matchManagers": ["gomod"],
+      "matchUpdateTypes": ["minor", "patch", "digest"],
+      "matchPackageNames": ["!github.com/stacklok/toolhive*"],
+      "groupName": "go modules"
+    },
+    {
+      "description": "Group non-major GitHub Actions updates.",
+      "matchManagers": ["github-actions"],
+      "matchUpdateTypes": ["minor", "patch", "digest", "pin"],
+      "groupName": "github-actions"
+    },
+    {
+      "description": "Keep runtime toolchain versions (the github-actions manager extracts these from setup-* `with:` inputs, e.g. actions/setup-python's python-version) out of the github-actions digest group. These are feature-release decisions - for CPython, 3.13 to 3.14 is not a true semver-minor - so they warrant their own reviewable PR rather than riding along with action digest bumps. Ordered after the group rule so it wins.",
+      "matchManagers": ["github-actions"],
+      "matchDepTypes": ["uses-with"],
+      "groupName": "CI runtime versions"
+    }
+  ],
   "customManagers": [
     {
       "customType": "regex",

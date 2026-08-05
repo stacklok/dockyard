@@ -29,6 +29,8 @@ spec:
   version: string        # Required: Exact version (no ranges)
   args:                  # Optional: CLI arguments array
     - string
+  env:                   # Optional: Environment variables baked into the runtime image
+    KEY: value
 
 provenance:
   repository_uri: string    # Optional: Expected source repository URL
@@ -91,6 +93,17 @@ security:
     - "start"
     - "--port"
     - "8080"
+  ```
+
+### spec.env
+
+- **Required**: No
+- **Format**: Map of uppercase env var names to string values
+- **Purpose**: Environment variables baked into the final runtime image (not just the build stage) - for values the packaged server reads at process start, e.g. selecting a non-default backend when a dependency assumes capabilities the container doesn't have
+- **Example**:
+  ```yaml
+  env:
+    PYTHON_KEYRING_BACKEND: "keyrings.alt.file.PlaintextKeyring"
   ```
 
 ### provenance.repository_uri

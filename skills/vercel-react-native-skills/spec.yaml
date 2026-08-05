@@ -11,9 +11,9 @@ metadata:
 
 spec:
   repository: "https://github.com/vercel-labs/agent-skills"
-  ref: "b9c8ee0643d87d3c5a953d1e22382ff2ead39229"  # main as of 2026-04-30
+  ref: "7c180d9044c9ae2b442b567aad4e42a28dd5ed62"  # main as of 2026-04-30
   path: "skills/react-native-skills"
-  version: "0.1.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/vercel-labs/agent-skills"

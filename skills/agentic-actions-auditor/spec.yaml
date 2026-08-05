@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "a56045e9ae00b3506cacefea0f672aab0a1a6e3c"  # main as of 2026-04-17
+  ref: "696dee5717bdb976772466c067b60d89d644260d"
   path: "plugins/agentic-actions-auditor/skills/agentic-actions-auditor"
-  version: "0.1.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
@@ -21,3 +21,11 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "FP: security audit skill whose reference files contain detailed attack patterns by design. The skill teaches agents to FIND these patterns in user workflows, not to execute them."
+    # Security audit skill — reference files intentionally describe CI/CD attack
+    # vectors with PoC examples for detection purposes.
+    - category: policy_violation
+      reason: "FP: agentic-actions-auditor is a security audit skill whose reference files intentionally describe CI/CD attack patterns (prompt injection, expression injection, subshell expansion, credential exfiltration) with PoC examples for detection purposes. All ATR pattern matches are documentation of what to detect, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."

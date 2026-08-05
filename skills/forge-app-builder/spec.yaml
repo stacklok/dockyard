@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/atlassian/forge-skills"
-  ref: "bfe376cee02cac671b3b7d91e2ed34ac0220da5c"  # main as of 2026-04-19
+  ref: "ea409cc73b8cac3b6710c3ca7976dd64e570a2fc"  # main as of 2026-04-19
   path: "skills/forge-app-builder"
-  version: "0.1.2"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/atlassian/forge-skills"

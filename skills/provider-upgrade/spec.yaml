@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/pulumi/agent-skills"
-  ref: "08a842ebcea42d958fb2843b26c525929de6f6a9"
-  path: "authoring/skills/provider-upgrade"
-  version: "0.1.0"
+  ref: "0ac67d4fdf93a42ddaa52a87aeb14454dac62bbc"
+  path: "pulumi/skills/provider-upgrade"
+  version: "0.1.4"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
@@ -23,3 +23,26 @@ security:
       reason: "pulumi/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: COMPOUND_EXTRACT_EXECUTE
       reason: "The skill documents standard `npm install` / `pip install` / `go get` upgrade workflows which involve extracting packaged archives and running their lifecycle scripts. The scanner itself notes 'found in documentation — may be instructional'."
+    # FP: ATR_2026_00066 pattern-matches the `${VERSION}`/`${OS}`/`${ARCH}` shell
+    # variable interpolation in a documented `schema-tools` release-download URL
+    # (references/diagnostic-toolbox.md). Standard shell variable substitution
+    # building a GitHub release asset URL, not an injection vector.
+    - rule_id: ATR_2026_00066
+      reason: "FP: cisco-ai-skill-scanner matched ${VERSION}/schema-tools-${VERSION}-${OS}-${ARCH} in the documented schema-tools download example (references/diagnostic-toolbox.md); standard shell variable substitution for a GitHub release URL, no injection risk."
+    # FP: ATR_2026_00050 pattern-matches "Same error persists" in SKILL.md's
+    # "Preview Progress" troubleshooting list — plain prose guidance on
+    # interpreting repeated `pulumi preview` errors, no executable content.
+    # Non-deterministic scanner: this finding wasn't present on the prior run.
+    - rule_id: ATR_2026_00050
+      reason: "FP: cisco-ai-skill-scanner matched the phrase 'Same error persists' in a bulleted troubleshooting list (SKILL.md, Preview Progress section) describing how to interpret repeated pulumi preview errors. Plain documentation prose, no executable content."
+    # FP: ATR_2026_00111 pattern-matches $(uname -s | tr ...) and $(uname -m) in
+    # the same documented schema-tools download script (references/diagnostic-
+    # toolbox.md) as ATR_2026_00066 above — detecting the local OS/arch to build
+    # the release download URL. Not attacker-controllable input.
+    - rule_id: ATR_2026_00111
+      reason: "FP: cisco-ai-skill-scanner matched $(uname -s | tr '[:upper:]' '[:lower:]') and $(uname -m) in the documented schema-tools download example (references/diagnostic-toolbox.md); used only to detect the local OS/arch for a release URL, not attacker-controllable input."
+    # FP: ATR_2026_00040 pattern-matches `chmod +x /tmp/schema-tools` in the same
+    # schema-tools download script — making the just-downloaded release binary
+    # executable, a standard install step, not a privilege-escalation pattern.
+    - rule_id: ATR_2026_00040
+      reason: "FP: cisco-ai-skill-scanner matched 'chmod' in the documented schema-tools install script (references/diagnostic-toolbox.md), which does `chmod +x /tmp/schema-tools` on the binary it just downloaded and extracted. Standard install step, not privilege escalation."

@@ -1,0 +1,31 @@
+# Datadog agent-observability trace-rca Skill
+# Root-cause analysis over LLM evaluation traces.
+# Source: https://github.com/datadog-labs/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/agent-observability-trace-rca:0.1.0
+
+metadata:
+  name: agent-observability-trace-rca
+  description: "Root-cause analysis over LLM evaluation traces in Datadog LLM Observability — drill into failed spans, identify common failure patterns, and produce actionable findings"
+
+spec:
+  repository: "https://github.com/datadog-labs/agent-skills"
+  ref: "6a5635ac5fea33a22ca6a57d3bc903944f87fa70"
+  path: "agent-observability/agent-observability-trace-rca"
+  version: "0.3.1"
+
+provenance:
+  repository_uri: "https://github.com/datadog-labs/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "datadog-labs/agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # Datadog Agent Observability documentation skill — ATR pattern matches are
+    # all on evaluation/tracing documentation and Datadog API references.
+    - category: policy_violation
+      reason: "FP: agent-observability-trace-rca is a Datadog Agent Observability documentation skill. All ATR pattern matches are on evaluation and tracing documentation, and Datadog API reference material — not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    - rule_id: PG_EXFIL_MARKDOWN_LINK
+      reason: "FP: markdown link templates pointing to the user's own Datadog SaaS tenant (app.datadoghq.com) for citing trace evidence — same pattern as agent-observability-eval-bootstrap. Not exfiltration."

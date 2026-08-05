@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "c81373583417504de2d3be1ae3d81977b11b2981"  # main as of 2026-04-20
+  ref: "e7a87fa72645158f9b5e722cbb1c7e09266f48f1"
   path: "skills/skill-writer"
-  version: "0.1.1"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
@@ -36,3 +36,11 @@ security:
         documentation about workflow patterns ("kill switch", "execution model",
         "format pattern"). They are not tool invocations. Verified at digest
         5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: BEHAVIOR_BASH_TAINT_FLOW
+      reason: "FP: meta-skill that teaches skill authoring; reference files contain example code patterns for instructional purposes."
+    # Meta-skill — reference files contain skill authoring patterns, evaluation
+    # examples, and registration/validation procedures.
+    - category: policy_violation
+      reason: "FP: skill-writer is a meta-skill that teaches agents how to author and evaluate skills. Its reference files necessarily contain skill patterns, evaluation examples, and registration procedures that trigger pattern-based scanner rules. All matches are instructional documentation, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."

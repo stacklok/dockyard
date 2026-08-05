@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "f304057d61d3df3c9fd992ac2b6e3833cb9325fb"  # main as of 2026-04-30
+  ref: "a621cc4f755d1da9c35dc3bb3abbd1d2a3208670"  # main as of 2026-08-05
   path: "skills/misc/setup-pre-commit"
-  version: "0.1.1"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"

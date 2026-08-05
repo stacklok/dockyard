@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "c81373583417504de2d3be1ae3d81977b11b2981"  # main as of 2026-04-20
+  ref: "e7a87fa72645158f9b5e722cbb1c7e09266f48f1"
   path: "skills/gha-security-review"
-  version: "0.1.1"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
@@ -85,3 +85,11 @@ security:
         that reference file (how to spot credential-extraction attacks in
         GitHub Actions). Verified at digest
         5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: BEHAVIOR_BASH_TAINT_FLOW
+      reason: "FP: security audit skill that teaches agents to find supply-chain attacks; reference files contain example attack patterns for detection, not execution."
+    # Security audit skill — reference files intentionally describe CI attack
+    # patterns with PoC examples for detection purposes.
+    - category: policy_violation
+      reason: "FP: gha-security-review is a security audit skill whose reference files intentionally describe CI/CD attack patterns (pwn requests, expression injection, credential theft, supply chain poisoning) with PoC examples for detection purposes. All ATR pattern matches are documentation of what to detect, not agent instructions."
+    - category: prompt_injection
+      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
