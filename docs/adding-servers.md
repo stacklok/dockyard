@@ -42,6 +42,8 @@ spec:
     - "arg2"
   env:                             # Optional: env vars baked into the runtime image
     SOME_VAR: "some-value"         # Present in the running container, not just at build time
+  build_with:                      # Optional, uvx only: PEP 508 constraints on transitive deps
+    - "some-transitive-dep<2"      # Passed to `uv tool install --with`; see uvx section below
 
 provenance:                        # Optional but recommended
   repository_uri: "https://github.com/user/repo"
@@ -120,6 +122,30 @@ provenance:
   repository_uri: "https://github.com/your-org/python-mcp-server"
   repository_ref: "refs/tags/v1.5.2"
 ```
+
+Some packages leave a transitive dependency unbounded upstream, which can break
+the build the moment that dependency ships a breaking release. Constrain it
+with `build_with` rather than waiting on an upstream fix:
+
+```yaml
+# adb-mysql-mcp-server depends on mcp[cli]>=1.8.0 with no upper bound; mcp 2.0.0
+# removed the module this server imports at startup, so pin it below 2 until
+# upstream caps the dependency themselves.
+spec:
+  package: "adb-mysql-mcp-server"
+  version: "2.0.0"
+  build_with:
+    - "mcp<2"
+# Results in: uv tool install --with 'mcp<2' adb-mysql-mcp-server==2.0.0
+```
+
+`build_with` entries are PEP 508 requirement specifiers (exact pin, version
+cap, or any other valid specifier) and only apply to `uvx://` builds; setting
+them on an `npx` or `go` spec fails the build with an explicit error instead
+of silently ignoring the constraint. The same values also apply to the
+security scan (`scripts/mcp-scan`), which invokes the package directly via
+`uvx --with ... package@version` so scanning matches what actually ships in
+the built image.
 
 ### Go
 
@@ -321,6 +347,7 @@ go build -o build/dockhand ./cmd/dockhand
 | Version error | Ensure version exists in package registry |
 | Wrong protocol | Verify package type matches directory (uvx/npx/go) |
 | Security scan fails | Review issues, allowlist false positives with explanation |
+| `ModuleNotFoundError` from an unpinned transitive dep | Add a `build_with` constraint (uvx only), e.g. `mcp<2` |
 
 ## Key Rules
 
