@@ -1,0 +1,25 @@
+# GitHub gh-stack Skill
+# Manage stacked branches and pull requests with the gh-stack GitHub CLI extension.
+# Source: https://github.com/github/gh-stack
+# Will publish as: ghcr.io/stacklok/dockyard/skills/gh-stack:0.1.0
+
+metadata:
+  name: gh-stack
+  description: "Manage stacked branches and pull requests with the gh-stack GitHub CLI extension: stack creation, viewing, push, submit, sync, rebase, merge, and checkout"
+
+spec:
+  repository: "https://github.com/github/gh-stack"
+  ref: "14fc42ed9b6c376a53b2f999f138d3bd26dac546"  # main as of 2026-08-05
+  path: "skills/gh-stack"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/github/gh-stack"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched 'hyphens and underscores become spaces' describing gh-stack's branch-name-to-title humanization, not an injection pattern."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched 'stop that process' in troubleshooting prose about killing a stale lock-holding gh process, not an instruction-override attempt."
