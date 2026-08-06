@@ -64,8 +64,8 @@ func checkoutSkill(ctx context.Context, repository, ref, skillPath string) (*ski
 	}
 
 	if skillPath != "" {
-		// --no-cone allows checking out a nested path without its parents' other children.
-		if err := runGit(ctx, repoDir, "sparse-checkout", "set", "--no-cone", skillPath); err != nil {
+		// Cone-mode sparse-checkout of the skill directory (and its children).
+		if err := runGit(ctx, repoDir, "sparse-checkout", "set", skillPath); err != nil {
 			cleanupOnError()
 			return nil, fmt.Errorf("configuring sparse-checkout for %q: %w", skillPath, err)
 		}

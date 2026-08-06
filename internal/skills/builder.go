@@ -3,7 +3,6 @@ package skills
 import (
 	"context"
 	"fmt"
-	"io"
 	"io/fs"
 	"log/slog"
 	"os"
@@ -73,11 +72,6 @@ func BuildSkill(ctx context.Context, spec *SkillSpec) (*BuildResult, error) {
 		"commit", checkout.CommitHash,
 	)
 
-	skillDir := filepath.Join(checkout.RootDir, "skill")
-	if err := copyDir(checkout.SkillDir, skillDir); err != nil {
-		return nil, fmt.Errorf("copying skill files: %w", err)
-	}
-
 	storeDir := filepath.Join(checkout.RootDir, "oci-store")
 	store, err := ociskills.NewStore(storeDir)
 	if err != nil {
@@ -85,7 +79,7 @@ func BuildSkill(ctx context.Context, spec *SkillSpec) (*BuildResult, error) {
 	}
 
 	opts := ociskills.DefaultPackageOptions()
-	pkgResult, err := ociskills.NewPackager(store).Package(ctx, skillDir, opts)
+	pkgResult, err := ociskills.NewPackager(store).Package(ctx, checkout.SkillDir, opts)
 	if err != nil {
 		return nil, fmt.Errorf("packaging skill: %w", err)
 	}
@@ -176,44 +170,4 @@ func countFiles(root string) (int, error) {
 		return nil
 	})
 	return count, err
-}
-
-func copyDir(src, dst string) error {
-	return filepath.WalkDir(src, func(path string, d fs.DirEntry, err error) error {
-		if err != nil {
-			return err
-		}
-
-		rel, err := filepath.Rel(src, path)
-		if err != nil {
-			return err
-		}
-		target := filepath.Join(dst, rel)
-
-		if d.IsDir() {
-			return os.MkdirAll(target, 0o755)
-		}
-		if !d.Type().IsRegular() {
-			return nil
-		}
-
-		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
-			return err
-		}
-
-		in, err := os.Open(path) //#nosec G304 -- path walked from a temp checkout we created
-		if err != nil {
-			return err
-		}
-		defer in.Close() //nolint:errcheck
-
-		out, err := os.OpenFile(target, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o644) //#nosec G302,G304 -- skill files are non-executable content
-		if err != nil {
-			return err
-		}
-		defer out.Close() //nolint:errcheck
-
-		_, err = io.Copy(out, in)
-		return err
-	})
 }
