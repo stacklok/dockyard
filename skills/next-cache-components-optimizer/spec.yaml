@@ -1,0 +1,24 @@
+# Next.js next-cache-components-optimizer Skill
+# Drive Next.js routes to instant navigation under Cache Components / PPR with
+# @next/playwright instant() e2e guards.
+# Source: https://github.com/vercel/next.js
+# Will publish as: ghcr.io/stacklok/dockyard/skills/next-cache-components-optimizer:0.1.0
+
+metadata:
+  name: next-cache-components-optimizer
+  description: "Drive a Next.js route to instant navigation by setting up an agentic loop, under Cache Components / PPR, on initial load (hard navigation) and client-side navigation (soft navigation). Encode the goal as a failing @next/playwright instant() e2e and work it to green, one verified route at a time; the shipped test then guards against regression. Use when asked to make a route's navigation instant (its static shell commits immediately), fix a route whose static shell isn't prerendered/served/prefetched, grow a route's static shell or fix its slow first paint, diagnose which Suspense boundary keeps a route out of its static shell, or write the instant() e2e guard for one. Requires Next.js 16.3+ with cacheComponents; directs an upgrade if older."
+
+spec:
+  repository: "https://github.com/vercel/next.js"
+  ref: "ede8799c40a63a8c2a6cdbd9c52cf89218534e4c"  # canary as of 2026-08-06
+  path: "skills/next-cache-components-optimizer"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/vercel/next.js"
+  repository_ref: "refs/heads/canary"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "vercel/next.js is licensed MIT in license.md at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

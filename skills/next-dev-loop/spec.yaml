@@ -1,0 +1,23 @@
+# Next.js next-dev-loop Skill
+# Verify Next.js runtime behavior after edits using /_next/mcp and agent-browser.
+# Source: https://github.com/vercel/next.js
+# Will publish as: ghcr.io/stacklok/dockyard/skills/next-dev-loop:0.1.0
+
+metadata:
+  name: next-dev-loop
+  description: "Verify Next.js runtime behavior after editing app code. Use this skill to confirm a change actually works in a running app — not just that it compiles or type-checks. Combines /_next/mcp (Next.js's view) with agent-browser (the browser's view). Requires a running `next dev`."
+
+spec:
+  repository: "https://github.com/vercel/next.js"
+  ref: "ede8799c40a63a8c2a6cdbd9c52cf89218534e4c"  # canary as of 2026-08-06
+  path: "skills/next-dev-loop"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/vercel/next.js"
+  repository_ref: "refs/heads/canary"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "vercel/next.js is licensed MIT in license.md at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

@@ -1,0 +1,23 @@
+# Next.js next-partial-prefetching-adoption Skill
+# Enable Partial Prefetching and work through the insights it surfaces.
+# Source: https://github.com/vercel/next.js
+# Will publish as: ghcr.io/stacklok/dockyard/skills/next-partial-prefetching-adoption:0.1.0
+
+metadata:
+  name: next-partial-prefetching-adoption
+  description: "Turn on Partial Prefetching in a Next.js app and work through the insights it surfaces. Use when the user wants to enable or adopt Partial Prefetching, flip the `partialPrefetching` flag, opt routes in with `export const prefetch = 'partial'`, audit `<Link prefetch={true}>` calls, or resolve the link-prefetch-partial and instant-shell-url-data insights."
+
+spec:
+  repository: "https://github.com/vercel/next.js"
+  ref: "ede8799c40a63a8c2a6cdbd9c52cf89218534e4c"  # canary as of 2026-08-06
+  path: "skills/next-partial-prefetching-adoption"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/vercel/next.js"
+  repository_ref: "refs/heads/canary"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "vercel/next.js is licensed MIT in license.md at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

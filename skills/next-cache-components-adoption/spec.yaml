@@ -1,0 +1,23 @@
+# Next.js next-cache-components-adoption Skill
+# Enable Cache Components and resolve blocking routes in a Next.js App Router app.
+# Source: https://github.com/vercel/next.js
+# Will publish as: ghcr.io/stacklok/dockyard/skills/next-cache-components-adoption:0.1.0
+
+metadata:
+  name: next-cache-components-adoption
+  description: "Turn on Cache Components in a Next.js app and resolve the blocking routes it surfaces. Use when the user wants to enable, adopt, or migrate to Cache Components, flip the `cacheComponents` flag, work through a flood of blocking-prerender / instant validation errors, run the `cache-components-instant-false` codemod, or decide between opting routes out with `export const instant = false` and fixing them in place."
+
+spec:
+  repository: "https://github.com/vercel/next.js"
+  ref: "ede8799c40a63a8c2a6cdbd9c52cf89218534e4c"  # canary as of 2026-08-06
+  path: "skills/next-cache-components-adoption"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/vercel/next.js"
+  repository_ref: "refs/heads/canary"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "vercel/next.js is licensed MIT in license.md at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
