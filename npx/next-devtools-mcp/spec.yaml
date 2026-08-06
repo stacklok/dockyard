@@ -1,0 +1,47 @@
+# Next.js DevTools MCP Server Configuration
+# Connects coding agents to a running Next.js 16+ dev server (runtime errors, routes, logs)
+# Package: https://www.npmjs.com/package/next-devtools-mcp
+# Repository: https://github.com/vercel/next-devtools-mcp
+# Will build as: ghcr.io/stacklok/dockyard/npx/next-devtools-mcp:0.4.0
+
+metadata:
+  name: next-devtools-mcp
+  description: "Next.js DevTools MCP server - connects agents to a running Next.js 16+ dev server for live runtime errors, routes, and logs"
+  protocol: npx
+
+spec:
+  package: "next-devtools-mcp"
+  version: "0.4.0"
+  overrides:
+    - package: "@modelcontextprotocol/sdk"
+      version: "1.26.0"
+      reason: |
+        next-devtools-mcp exact-pins @modelcontextprotocol/sdk 1.25.2, which is inside
+        the GHSA-345p-7cg4-v4c7 range (>=1.10.0,<=1.25.3; HIGH, cross-client data leak).
+        Fixed in 1.26.0. Same-major bump, no API break.
+
+provenance:
+  repository_uri: "https://github.com/vercel/next-devtools-mcp"
+  repository_ref: "refs/tags/v0.4.0"
+
+security:
+  allowed_issues:
+    - code: "AITech-1.1"
+      reason: |
+        False positive — LLM analyzer flags legitimate operational guidance in gateway
+        tool descriptions, not prompt injection attempts:
+        - nextjs_call: parameter formatting rules ("MUST be an object", "do NOT pass {}")
+          to prevent invalid MCP calls to the Next.js dev server runtime
+        - nextjs_docs: directive to prefer version-accurate bundled docs over training-data
+          knowledge ("Do not rely on training-data knowledge of Next.js APIs")
+        - browser_eval: setup instructions for the agent-browser CLI gateway (install/run
+          steps returned in tool output, not system-instruction overrides)
+        These are standard MCP workflow guidance from Vercel's official next-devtools-mcp
+        package. Verified in v0.4.0.
+    - code: "AITech-12.1"
+      reason: |
+        False positive — LLM analyzer flags browser_eval as tool poisoning because it is
+        an intentional gateway tool that directs the agent to run the agent-browser CLI
+        directly instead of proxying browser automation through MCP. This is documented,
+        first-party Vercel design ("This tool does NOT drive the browser itself") — not
+        corruption or shadowing of other MCP tools. Verified in v0.4.0.
