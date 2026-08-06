@@ -3,12 +3,13 @@ package skills
 import (
 	"context"
 	"fmt"
+	"io/fs"
 	"log/slog"
 	"os"
 	"path/filepath"
 
 	ociskills "github.com/stacklok/toolhive-core/oci/skills"
-	"github.com/stacklok/toolhive/pkg/skills/gitresolver"
+	thvskills "github.com/stacklok/toolhive/pkg/skills"
 )
 
 // BuildResult contains the result of building a skill into an OCI artifact.
@@ -34,63 +35,52 @@ func (r *BuildResult) Cleanup() {
 	}
 }
 
+// ValidationResult contains the outcome of validating a skill without packaging.
+type ValidationResult struct {
+	SkillConfig *thvskills.ParseResult
+	CommitHash  string
+	FileCount   int
+}
+
 // BuildSkill clones a skill from a git repository and packages it as an OCI artifact.
 func BuildSkill(ctx context.Context, spec *SkillSpec) (*BuildResult, error) {
-	// Construct git reference URI from spec fields
-	gitURI, err := spec.GitReferenceURI()
-	if err != nil {
-		return nil, fmt.Errorf("constructing git reference: %w", err)
-	}
+	slog.Info("Resolving skill from git",
+		"repository", spec.Spec.Repository,
+		"ref", spec.Spec.Ref,
+		"path", spec.Spec.Path,
+	)
 
-	slog.Info("Resolving skill from git", "uri", gitURI)
-
-	// Parse the git reference
-	gitRef, err := gitresolver.ParseGitReference(gitURI)
-	if err != nil {
-		return nil, fmt.Errorf("parsing git reference %q: %w", gitURI, err)
-	}
-
-	// Resolve: clone repo, validate SKILL.md, collect files
-	resolver := gitresolver.NewResolver()
-	resolveResult, err := resolver.Resolve(ctx, gitRef)
+	checkout, err := checkoutSkill(ctx, spec.Spec.Repository, spec.Spec.Ref, spec.Spec.Path)
 	if err != nil {
 		return nil, fmt.Errorf("resolving skill from git: %w", err)
 	}
+	// Ownership of checkout.RootDir transfers to BuildResult.tmpDir on success.
+	cleanupCheckout := true
+	defer func() {
+		if cleanupCheckout {
+			checkout.Cleanup()
+		}
+	}()
+
+	parsed, err := parseAndValidateSkillMD(checkout.SkillDir)
+	if err != nil {
+		return nil, err
+	}
 
 	slog.Info("Skill resolved",
-		"name", resolveResult.SkillConfig.Name,
-		"commit", resolveResult.CommitHash,
-		"files", len(resolveResult.Files),
+		"name", parsed.Name,
+		"commit", checkout.CommitHash,
 	)
 
-	// Create a temp directory for skill files and OCI store.
-	// Caller is responsible for cleanup via CleanupBuild().
-	tmpDir, err := os.MkdirTemp("", "dockyard-skill-*")
-	if err != nil {
-		return nil, fmt.Errorf("creating temp directory: %w", err)
-	}
-
-	cleanupOnError := func() { _ = os.RemoveAll(tmpDir) } //#nosec G104 -- best-effort cleanup on error
-
-	skillDir := filepath.Join(tmpDir, "skill")
-	if err := gitresolver.WriteFiles(resolveResult.Files, skillDir, true); err != nil {
-		cleanupOnError()
-		return nil, fmt.Errorf("writing skill files: %w", err)
-	}
-
-	// Create OCI store for packaging
-	storeDir := filepath.Join(tmpDir, "oci-store")
+	storeDir := filepath.Join(checkout.RootDir, "oci-store")
 	store, err := ociskills.NewStore(storeDir)
 	if err != nil {
-		cleanupOnError()
 		return nil, fmt.Errorf("creating OCI store: %w", err)
 	}
 
-	// Package the skill into an OCI artifact
 	opts := ociskills.DefaultPackageOptions()
-	pkgResult, err := ociskills.NewPackager(store).Package(ctx, skillDir, opts)
+	pkgResult, err := ociskills.NewPackager(store).Package(ctx, checkout.SkillDir, opts)
 	if err != nil {
-		cleanupOnError()
 		return nil, fmt.Errorf("packaging skill: %w", err)
 	}
 
@@ -100,42 +90,84 @@ func BuildSkill(ctx context.Context, spec *SkillSpec) (*BuildResult, error) {
 		"platforms", len(pkgResult.Platforms),
 	)
 
+	cleanupCheckout = false
 	return &BuildResult{
 		PackageResult: pkgResult,
 		Store:         store,
-		CommitHash:    resolveResult.CommitHash,
-		SkillName:     resolveResult.SkillConfig.Name,
+		CommitHash:    checkout.CommitHash,
+		SkillName:     parsed.Name,
 		ImageRef:      spec.ImageTag(),
-		tmpDir:        tmpDir,
+		tmpDir:        checkout.RootDir,
 	}, nil
 }
 
 // ValidateSkill clones a skill from a git repository and validates its SKILL.md.
 // Returns the resolved metadata without packaging.
-func ValidateSkill(ctx context.Context, spec *SkillSpec) (*gitresolver.ResolveResult, error) {
-	gitURI, err := spec.GitReferenceURI()
-	if err != nil {
-		return nil, fmt.Errorf("constructing git reference: %w", err)
-	}
+func ValidateSkill(ctx context.Context, spec *SkillSpec) (*ValidationResult, error) {
+	slog.Info("Validating skill from git",
+		"repository", spec.Spec.Repository,
+		"ref", spec.Spec.Ref,
+		"path", spec.Spec.Path,
+	)
 
-	slog.Info("Validating skill from git", "uri", gitURI)
-
-	gitRef, err := gitresolver.ParseGitReference(gitURI)
-	if err != nil {
-		return nil, fmt.Errorf("parsing git reference %q: %w", gitURI, err)
-	}
-
-	resolver := gitresolver.NewResolver()
-	result, err := resolver.Resolve(ctx, gitRef)
+	checkout, err := checkoutSkill(ctx, spec.Spec.Repository, spec.Spec.Ref, spec.Spec.Path)
 	if err != nil {
 		return nil, fmt.Errorf("resolving skill from git: %w", err)
 	}
+	defer checkout.Cleanup()
+
+	parsed, err := parseAndValidateSkillMD(checkout.SkillDir)
+	if err != nil {
+		return nil, err
+	}
+
+	fileCount, err := countFiles(checkout.SkillDir)
+	if err != nil {
+		return nil, fmt.Errorf("counting skill files: %w", err)
+	}
 
 	slog.Info("Skill validated",
-		"name", result.SkillConfig.Name,
-		"commit", result.CommitHash,
-		"files", len(result.Files),
+		"name", parsed.Name,
+		"commit", checkout.CommitHash,
+		"files", fileCount,
 	)
 
-	return result, nil
+	return &ValidationResult{
+		SkillConfig: parsed,
+		CommitHash:  checkout.CommitHash,
+		FileCount:   fileCount,
+	}, nil
+}
+
+func parseAndValidateSkillMD(skillDir string) (*thvskills.ParseResult, error) {
+	skillMDPath := filepath.Join(skillDir, "SKILL.md")
+	content, err := os.ReadFile(skillMDPath) //#nosec G304 -- path is under a temp checkout we created
+	if err != nil {
+		return nil, fmt.Errorf("reading SKILL.md: %w", err)
+	}
+
+	parsed, err := thvskills.ParseSkillMD(content)
+	if err != nil {
+		return nil, fmt.Errorf("parsing SKILL.md: %w", err)
+	}
+
+	if err := thvskills.ValidateSkillName(parsed.Name); err != nil {
+		return nil, fmt.Errorf("invalid skill name in SKILL.md: %w", err)
+	}
+
+	return parsed, nil
+}
+
+func countFiles(root string) (int, error) {
+	count := 0
+	err := filepath.WalkDir(root, func(_ string, d fs.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.Type().IsRegular() {
+			count++
+		}
+		return nil
+	})
+	return count, err
 }

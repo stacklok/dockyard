@@ -927,7 +927,7 @@ func runValidateSkill(cmd *cobra.Command, cfgFile string) error {
 	cmd.Printf("Description: %s\n", result.SkillConfig.Description)
 	cmd.Printf("Version: %s\n", result.SkillConfig.Version)
 	cmd.Printf("Commit: %s\n", result.CommitHash)
-	cmd.Printf("Files: %d\n", len(result.Files))
+	cmd.Printf("Files: %d\n", result.FileCount)
 	cmd.Printf("Status: VALID\n")
 
 	return nil
