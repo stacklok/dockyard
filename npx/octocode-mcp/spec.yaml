@@ -12,9 +12,37 @@ metadata:
 
 spec:
   package: "octocode-mcp"
-  version: "15.0.2"
+  version: "18.0.1"
+  overrides:
+    - package: "minimatch"
+      version: "10.2.6"
+      reason: |
+        octocode-engine pulls bash-language-server -> editorconfig -> minimatch@10.0.1,
+        vulnerable to ReDoS (GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj,
+        GHSA-23c5-xmqv-rm74), fixed in 10.2.3+.
+    - package: "protobufjs"
+      version: "8.7.1"
+      reason: |
+        octocode-engine pulls intelephense -> protobufjs@8.3.0, vulnerable to
+        DoS/prototype-pollution issues (GHSA-94rc-8x27-4472, GHSA-wcpc-wj8m-hjx6,
+        GHSA-f38q-mgvj-vph7, GHSA-jfj6-75fj-8934, GHSA-j3f2-48v5-ccww), fixed in 8.6.6+.
 
 provenance:
   # Monorepo with multiple packages; npm versions don't match git tags
   repository_uri: "https://github.com/bgauryy/octocode-mcp"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - code: "AITech-8.2"
+      reason: |
+        Flagged on localSearchCode and localFindDeadCode, both read-only local
+        file search/analysis tools that return results to the calling agent.
+        This is the same allowlisted finding carried forward from v16.0.0 (see
+        PR #776), where the equivalent tools (ghSearchCode, localViewStructure)
+        tripped the same YARA heuristic on caching/cloning/structured-output
+        phrasing without a new data path. Verified directly against the
+        @octocodeai/octocode-tools-core v18.0.1 source: localSearchCode wraps
+        ripgrep/AST search over local files, and localFindDeadCode performs
+        local static analysis for unused exports. Both operate only on the
+        local filesystem the agent already has access to.
