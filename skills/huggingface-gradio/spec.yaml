@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "87f9ee5b670a630b022809a8742606c6da21812c"  # main as of 2026-04-16
+  ref: "ec0108293521ef698e451ec044e8b4feba6b732b"  # main as of 2026-04-16
   path: "skills/huggingface-gradio"
   version: "0.2.0"
 
