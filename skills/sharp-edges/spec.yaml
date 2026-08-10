@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/trailofbits/skills"
   ref: "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
   path: "plugins/sharp-edges/skills/sharp-edges"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
