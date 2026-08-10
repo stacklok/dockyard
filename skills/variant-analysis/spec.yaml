@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "696dee5717bdb976772466c067b60d89d644260d"  # main as of 2026-04-17
+  ref: "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"  # main as of 2026-04-17
   path: "plugins/variant-analysis/skills/variant-analysis"
   version: "0.2.0"
 
