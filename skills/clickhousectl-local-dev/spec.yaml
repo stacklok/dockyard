@@ -10,7 +10,7 @@ metadata:
 spec:
   repository: "https://github.com/ClickHouse/agent-skills"
   # Last commit that still contains this skill; 6e5458d merged it into infra-clickhouse.
-  ref: "65ce71fce803014afb69279535c82c72dc55d9ba"
+  ref: "5aec3114379671f33b1c502a51d420a0729c8172"
   path: "skills/clickhousectl-local-dev"
   version: "0.1.7"
 
