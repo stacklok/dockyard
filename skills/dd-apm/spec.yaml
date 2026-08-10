@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/datadog-labs/agent-skills"
   ref: "8511716686f3add54657b83207912a7c497a4327"  # main as of 2026-04-15
   path: "dd-apm"
-  version: "0.4.0"
+  version: "0.4.1"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
