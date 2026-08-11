@@ -1,0 +1,33 @@
+# HashiCorp hashicorp-provider-framework-migration Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-provider-framework-migration:0.1.0
+
+metadata:
+  name: hashicorp-provider-framework-migration
+  description: 'Migrate Terraform provider resources and data sources from Plugin SDKv2 to the Plugin Framework:
+    muxing both plugins in one provider (terraform-plugin-mux, tf5to6server), per-resource migration workflow,
+    SDKv2-to-Framework schema mapping (ForceNew, ValidateFunc, DiffSuppressFunc, Default, Timeouts, blocks),
+    null-vs-zero-value behavioral traps, and state-compatibility verification. Use when converting or translating
+    SDKv2 resources to the Framework, setting up a muxed provider server, deciding whether a resource should
+    be migrated at all, or debugging plan diffs and state errors that appeared after a migration.'
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "4451ceca5456e79cc776efee96a744f7ac96e5bf"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/provider-framework-migration"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched imperative-sounding doc prose (e.g. SKILL.md:131) describing Terraform/Packer usage guidance, not an injected directive to the agent."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched \"every item\"/\"all files\"/\"all table\" describing bulk Terraform operations such as import or code generation in documentation (e.g. references/schema-mapping.md:3), not a bulk-exfiltration action."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:140, SKILL.md:141) — standard HCL/CI syntax, not injected secrets."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched \"constructor\"/\"Constructor\" in Go code documentation describing struct initialization (e.g. references/schema-mapping.md:46), not an obfuscation pattern."
