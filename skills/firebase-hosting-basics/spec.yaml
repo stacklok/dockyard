@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "d94aaa679d39f41b1ba27536821a768d8a62f483"
+  ref: "073edf7bb747c27b9c911a9126adaa5bc4648fdc"
   path: "skills/firebase-hosting-basics"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
