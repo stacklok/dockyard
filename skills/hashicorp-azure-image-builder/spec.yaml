@@ -1,0 +1,31 @@
+# HashiCorp hashicorp-azure-image-builder Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-azure-image-builder:0.1.0
+
+metadata:
+  name: hashicorp-azure-image-builder
+  description: Build Azure managed images and Azure Compute Gallery images with Packer. Use when creating
+    custom images for Azure VMs.
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "4451ceca5456e79cc776efee96a744f7ac96e5bf"  # main as of 2026-08-10
+  path: "plugins/packer/skills/azure-image-builder"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "hashicorp/agent-skills is licensed MPL-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00010
+      reason: "FP: matched the documented package-manager install command (e.g. SKILL.md:76, SKILL.md:77) for the CLI/tooling covered by this skill — the vendor-recommended install step, not a hidden payload."
+    - rule_id: ATR_2026_00065
+      reason: "FP: matched \"data transfer\" describing cloud egress cost considerations in documentation prose (e.g. SKILL.md:7)."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:55, SKILL.md:104) — standard HCL/CI syntax, not injected secrets."
+    - rule_id: ATR_2026_00114
+      reason: "FP: matched placeholder credential values like `CLIENT_SECRET=\"your-client-secret\"` in documented example commands (e.g. SKILL.md:142) — literal placeholders, not real secrets."

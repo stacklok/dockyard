@@ -1,0 +1,29 @@
+# HashiCorp hashicorp-push-to-registry Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-push-to-registry:0.1.0
+
+metadata:
+  name: hashicorp-push-to-registry
+  description: Push Packer build metadata to HCP Packer registry for tracking and managing image lifecycle.
+    Use when integrating Packer builds with HCP Packer for version control and governance.
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "4451ceca5456e79cc776efee96a744f7ac96e5bf"  # main as of 2026-08-10
+  path: "plugins/packer/skills/push-to-registry"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "hashicorp/agent-skills is licensed MPL-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00010
+      reason: "FP: matched the documented package-manager install command (e.g. SKILL.md:60, SKILL.md:61) for the CLI/tooling covered by this skill — the vendor-recommended install step, not a hidden payload."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:38, SKILL.md:130) — standard HCL/CI syntax, not injected secrets."
+    - rule_id: ATR_2026_00114
+      reason: "FP: matched placeholder credential values like `CLIENT_SECRET=\"your-client-secret\"` in documented example commands (e.g. SKILL.md:73) — literal placeholders, not real secrets."
