@@ -1,0 +1,44 @@
+# Figma figma-generate-design Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-generate-design:0.1.0
+
+metadata:
+  name: figma-generate-design
+  description: 'Use this skill alongside figma-use when the task involves translating an application page,
+    view, or multi-section layout into Figma. Triggers: ''write to Figma'', ''create in Figma from code'',
+    ''push page to Figma'', ''take this app/page and build it in Figma'', ''create a screen'', ''build a
+    landing page in Figma'', ''update the Figma screen to match code'', ''convert this modal/dialog/drawer/panel
+    to Figma''. This is the preferred workflow skill whenever the user wants to build or update a full page,
+    modal, dialog, drawer, sidebar, panel, or any composed multi-section view in Figma from code or a description.
+    Discovers design system components, variables, and styles from Code Connect files, existing screens,
+    and library search, then imports them and assembles views incrementally section-by-section using design
+    system tokens instead of hardcoded values.'
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-generate-design"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. SKILL.md:188, SKILL.md:444) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00040
+      reason: "FP: matched \"truncate\"/\"TRUNCATE\" describing text-truncation or table-formatting behavior in documentation (e.g. SKILL.md:376), not a destructive data operation."
+    - rule_id: ATR_2026_00063
+      reason: "FP: matched words like \"upload\"/\"compress\"/\"webhook\" describing legitimate Figma/FigJam features (asset upload, image compression, diagram composition) in documentation (e.g. references/discover-product-font.md:19, references/discover-product-font.md:58), not exfiltration code."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. references/discover-product-font.md:53) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00083
+      reason: "FP: matched \"# Override ...\" code comments describing configuration precedence in documented examples (e.g. SKILL.md:304), not an override instruction to the agent."
+    - rule_id: ATR_2026_02009
+      reason: "FP: matched a bare \"key:\" in a markdown table documenting Plugin API property names (e.g. SKILL.md:75), not a prompt-injection prompt for a missing secret."

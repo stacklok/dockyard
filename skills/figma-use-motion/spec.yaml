@@ -1,0 +1,30 @@
+# Figma figma-use-motion Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-use-motion:0.1.0
+
+metadata:
+  name: figma-use-motion
+  description: Motion / animation context for the `use_figma` MCP tool — animating Figma nodes via manual
+    keyframes, animation styles, easing, and timeline duration. Load alongside figma-use whenever a task
+    involves adding, editing, or inspecting animation on a node.
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-use-motion"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00064
+      reason: "FP: matched inline code / timing values like \"at 0\"/\"at 3\" in documented animation-timing or API examples (e.g. references/motion-patterns.md:109), not a firewall or system command."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. SKILL.md:30, references/motion-patterns.md:59) — standard syntax, not injected secrets."

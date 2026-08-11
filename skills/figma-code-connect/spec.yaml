@@ -1,0 +1,38 @@
+# Figma figma-code-connect Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-code-connect:0.1.0
+
+metadata:
+  name: figma-code-connect
+  description: Creates and maintains Figma Code Connect template files that map Figma components to code
+    snippets. Use when the user mentions Code Connect, Figma component mapping, design-to-code translation,
+    or asks to create/update .figma.ts or .figma.js files.
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-code-connect"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. references/api.md:645) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched \"every item\"/\"all files\"/an example SQL string in documented code snippets (e.g. references/api.md:567), not a bulk-exfiltration action."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. SKILL.md:224, SKILL.md:232) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00090
+      reason: "FP: matched \"Extract `fileKey`\"/\"extract token\" describing how to parse a Figma URL or Plugin API return value in documentation (e.g. SKILL.md:26), not credential extraction."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched escaped newline sequences (`\\n`) or similar tokens in documented code examples (e.g. SKILL.md:423, references/advanced-patterns.md:114), not an obfuscation pattern."
+    - rule_id: ATR_2026_01610
+      reason: "FP: matched backtick-quoted inline code formatting in markdown (e.g. references/api.md:69) — standard Markdown code-span syntax, not shell subshell command substitution."

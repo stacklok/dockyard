@@ -1,0 +1,51 @@
+# Figma figma-generate-diagram Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-generate-diagram:0.1.0
+
+metadata:
+  name: figma-generate-diagram
+  description: MANDATORY prerequisite — load this skill BEFORE every `generate_diagram` tool call. NEVER
+    call `generate_diagram` directly without loading this skill first. Trigger whenever the user asks to
+    create, generate, draw, render, sketch, or build a diagram — flowchart, architecture diagram, sequence
+    diagram, ERD or entity-relationship diagram, state diagram or state machine, gantt chart, or timeline.
+    Also trigger when the user mentions Mermaid syntax or wants a system architecture, decision tree, dependency
+    graph, API call flow, auth handshake, schema, or pipeline visualized in FigJam. Routes to type-specific
+    guidance, sets universal Mermaid constraints, and tells you when to use a different diagram type or
+    skip the tool entirely (mindmaps, pie charts, class diagrams, etc.).
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-generate-diagram"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched imperative-sounding phrases (e.g. references/gantt.md:144, references/gantt.md:209) in the skill's own workflow prose, not an injected directive."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. SKILL.md:84) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched \"every item\"/\"all files\"/an example SQL string in documented code snippets (e.g. references/architecture.md:169), not a bulk-exfiltration action."
+    - rule_id: ATR_2026_00063
+      reason: "FP: matched words like \"upload\"/\"compress\"/\"webhook\" describing legitimate Figma/FigJam features (asset upload, image compression, diagram composition) in documentation (e.g. references/architecture.md:123), not exfiltration code."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. references/erd.md:232, references/flowchart.md:42) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00084
+      reason: "FP: matched \"ignore\" describing a specific documented prop/field to disregard in a code example (e.g. references/flowchart.md:130), not an instruction to ignore safety guidance."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched escaped newline sequences (`\\n`) or similar tokens in documented code examples (e.g. SKILL.md:45, references/flowchart.md:46), not an obfuscation pattern."
+    - rule_id: ATR_2026_00140
+      reason: "FP: matched \"reverse\"/\"opposite\"/\"inverse\" in comparative documentation prose (e.g. references/architecture.md:111, references/erd.md:35)."
+    - rule_id: ATR_2026_01980
+      reason: "FP: matched ER-diagram cardinality terminology (\"A side\"/\"B side\", references/erd.md:162) — coincidental substring overlap with an unrelated CVE signature for a different, unrelated MCP server package; no code execution or attacker-influenceable parameters here."
+    - rule_id: PG_PII_SSN_HARVESTING
+      reason: "FP: matched \"composin\" (from \"composing\") in ordinary documentation prose (e.g. SKILL.md:70), not SSN collection."

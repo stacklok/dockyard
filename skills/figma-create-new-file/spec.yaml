@@ -1,0 +1,30 @@
+# Figma figma-create-new-file Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-create-new-file:0.1.0
+
+metadata:
+  name: figma-create-new-file
+  description: '**MANDATORY prerequisite** — you MUST invoke this skill BEFORE every `create_new_file` tool
+    call. NEVER call `create_new_file` directly without loading this skill first. Trigger whenever the user
+    wants a new blank Figma file — a new design, FigJam, or Slides file — or when you need a fresh file
+    before calling `use_figma`. Usage — /figma-create-new-file [editorType] [fileName] (e.g. /figma-create-new-file
+    figjam My Whiteboard, /figma-create-new-file slides Q3 Review)'
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-create-new-file"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00111
+      reason: "FP: matched `whoami`/`curl` used in a documented troubleshooting or asset-download example (e.g. SKILL.md:28, SKILL.md:30), not a live recon/download action."

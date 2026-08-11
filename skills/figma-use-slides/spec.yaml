@@ -1,0 +1,43 @@
+# Figma figma-use-slides Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-use-slides:0.1.0
+
+metadata:
+  name: figma-use-slides
+  description: This skill helps agents use Figma's use_figma MCP tool in the Slides context. Can be used
+    alongside figma-use which has foundational context for using the use_figma tool.
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-use-slides"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched imperative-sounding phrases (e.g. references/slide-design.md:119) in the skill's own workflow prose, not an injected directive."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. SKILL.md:79) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched \"every item\"/\"all files\"/an example SQL string in documented code snippets (e.g. SKILL.md:90), not a bulk-exfiltration action."
+    - rule_id: ATR_2026_00063
+      reason: "FP: matched words like \"upload\"/\"compress\"/\"webhook\" describing legitimate Figma/FigJam features (asset upload, image compression, diagram composition) in documentation (e.g. references/slide-content.md:74), not exfiltration code."
+    - rule_id: ATR_2026_00064
+      reason: "FP: matched inline code / timing values like \"at 0\"/\"at 3\" in documented animation-timing or API examples (e.g. references/slide-design.md:87), not a firewall or system command."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. references/slide-content.md:7, references/slide-content.md:76) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00088
+      reason: "FP: matched \"return await clean...\"/\"return { clean...\" in example error-recovery code (e.g. references/slide-gotchas.md:294), not an output-billing or cost-evasion pattern."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched escaped newline sequences (`\\n`) or similar tokens in documented code examples (e.g. references/slide-content.md:30, references/slide-content.md:43), not an obfuscation pattern."
+    - rule_id: ATR_2026_00140
+      reason: "FP: matched \"reverse\"/\"opposite\"/\"inverse\" in comparative documentation prose (e.g. SKILL.md:48, references/slide-grid.md:64)."

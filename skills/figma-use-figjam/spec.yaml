@@ -1,0 +1,45 @@
+# Figma figma-use-figjam Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-use-figjam:0.1.0
+
+metadata:
+  name: figma-use-figjam
+  description: This skill helps agents use Figma's use_figma MCP tool in the FigJam context. Can be used
+    alongside figma-use which has foundational context for using the use_figma tool.
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-use-figjam"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched imperative-sounding phrases (e.g. references/position-figjam-nodes.md:60) in the skill's own workflow prose, not an injected directive."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. references/create-text.md:271, references/plan-board-content.md:280) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched comparative \"instead of ...\"/\"this is critical\" phrasing in documentation prose (e.g. references/create-code-block.md:65), not an override instruction."
+    - rule_id: ATR_2026_00040
+      reason: "FP: matched \"truncate\"/\"TRUNCATE\" describing text-truncation or table-formatting behavior in documentation (e.g. references/edit-text.md:133, references/edit-text.md:135), not a destructive data operation."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched \"every item\"/\"all files\"/an example SQL string in documented code snippets (e.g. references/create-code-block.md:75, references/create-table.md:154), not a bulk-exfiltration action."
+    - rule_id: ATR_2026_00063
+      reason: "FP: matched words like \"upload\"/\"compress\"/\"webhook\" describing legitimate Figma/FigJam features (asset upload, image compression, diagram composition) in documentation (e.g. SKILL.md:38), not exfiltration code."
+    - rule_id: ATR_2026_00064
+      reason: "FP: matched inline code / timing values like \"at 0\"/\"at 3\" in documented animation-timing or API examples (e.g. references/create-label.md:289, references/plan-board-content.md:77), not a firewall or system command."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. references/batch-modify.md:55, references/batch-modify.md:66) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched escaped newline sequences (`\\n`) or similar tokens in documented code examples (e.g. references/create-text.md:267, references/create-text.md:292), not an obfuscation pattern."
+    - rule_id: ATR_2026_00111
+      reason: "FP: matched `whoami`/`curl` used in a documented troubleshooting or asset-download example (e.g. SKILL.md:24), not a live recon/download action."

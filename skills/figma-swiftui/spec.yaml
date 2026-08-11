@@ -1,0 +1,51 @@
+# Figma figma-swiftui Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-swiftui:0.1.0
+
+metadata:
+  name: figma-swiftui
+  description: SwiftUI ↔ Figma translation. Use whenever the user mentions Swift, SwiftUI, iOS, iPhone,
+    or iPad — in EITHER direction — translating a Figma design into SwiftUI (design → code), or pushing
+    SwiftUI views / screens / tokens back into a Figma file (code → design). Triggers on phrases like 'implement
+    this Figma design in SwiftUI', 'build this screen in Swift', 'push this SwiftUI view to Figma', 'mirror
+    my Swift code in a Figma file', or whenever a Figma URL appears alongside `.swift` files / an `.xcodeproj`.
+    Routes to a direction-specific reference doc; loads alongside `figma-use` for the code → design path.
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-swiftui"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched imperative-sounding phrases (e.g. references/design-to-code.md:224, references/design-to-code.md:271) in the skill's own workflow prose, not an injected directive."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. references/code-to-design.md:92) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched comparative \"instead of ...\"/\"this is critical\" phrasing in documentation prose (e.g. references/design-to-code.md:210), not an override instruction."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched \"every item\"/\"all files\"/an example SQL string in documented code snippets (e.g. references/design-to-code.md:243, references/design-to-code.md:256), not a bulk-exfiltration action."
+    - rule_id: ATR_2026_00063
+      reason: "FP: matched words like \"upload\"/\"compress\"/\"webhook\" describing legitimate Figma/FigJam features (asset upload, image compression, diagram composition) in documentation (e.g. references/code-to-design.md:94, references/code-to-design.md:120), not exfiltration code."
+    - rule_id: ATR_2026_00064
+      reason: "FP: matched inline code / timing values like \"at 0\"/\"at 3\" in documented animation-timing or API examples (e.g. references/code-to-design.md:29), not a firewall or system command."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. SKILL.md:20, references/code-to-design.md:3) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00084
+      reason: "FP: matched \"ignore\" describing a specific documented prop/field to disregard in a code example (e.g. references/design-to-code.md:114, references/design-to-code.md:115), not an instruction to ignore safety guidance."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched escaped newline sequences (`\\n`) or similar tokens in documented code examples (e.g. references/design-to-code.md:29, references/design-to-code.md:105), not an obfuscation pattern."
+    - rule_id: ATR_2026_00140
+      reason: "FP: matched \"reverse\"/\"opposite\"/\"inverse\" in comparative documentation prose (e.g. references/design-to-code.md:255)."
+    - rule_id: ATR_2026_01610
+      reason: "FP: matched backtick-quoted inline code formatting in markdown (e.g. references/design-to-code.md:241) — standard Markdown code-span syntax, not shell subshell command substitution."

@@ -1,0 +1,49 @@
+# Figma figma-use Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-use:0.1.0
+
+metadata:
+  name: figma-use
+  description: '**MANDATORY prerequisite** — you MUST invoke this skill BEFORE every `use_figma` tool call.
+    NEVER call `use_figma` directly without loading this skill first. Skipping it causes common, hard-to-debug
+    failures. Trigger whenever the user wants to perform a write action or a unique read action that requires
+    JavaScript execution in the Figma file context — e.g. create/edit/delete nodes, set up variables or
+    tokens, build components and variants, modify auto-layout or fills, bind variables to properties, or
+    inspect file structure programmatically.'
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-use"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00002
+      reason: "FP: matched a markdown cross-reference link path (e.g. SKILL.md:15), not indirect prompt injection from external content."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. SKILL.md:3, references/plugin-api-standalone.index.md:19) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00040
+      reason: "FP: matched \"truncate\"/\"TRUNCATE\" describing text-truncation or table-formatting behavior in documentation (e.g. references/gotchas.md:651), not a destructive data operation."
+    - rule_id: ATR_2026_00050
+      reason: "FP: matched `while(true)` inside a troubleshooting table describing a bug to watch out for and avoid (e.g. SKILL.md:327) — documentation warning against a runaway loop, not an actual one."
+    - rule_id: ATR_2026_00063
+      reason: "FP: matched words like \"upload\"/\"compress\"/\"webhook\" describing legitimate Figma/FigJam features (asset upload, image compression, diagram composition) in documentation (e.g. SKILL.md:114, references/api-reference.md:265), not exfiltration code."
+    - rule_id: ATR_2026_00064
+      reason: "FP: matched inline code / timing values like \"at 0\"/\"at 3\" in documented animation-timing or API examples (e.g. SKILL.md:262, references/common-patterns.md:202), not a firewall or system command."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. SKILL.md:171, SKILL.md:375) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00083
+      reason: "FP: matched \"# Override ...\" code comments describing configuration precedence in documented examples (e.g. references/working-with-design-systems/wwds.md:41), not an override instruction to the agent."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched escaped newline sequences (`\\n`) or similar tokens in documented code examples (e.g. SKILL.md:376, references/gotchas.md:240), not an obfuscation pattern."
+    - rule_id: ATR_2026_00130
+      reason: "FP: matched \"Explicit instruction to the agent:\" (references/gotchas.md:197) — this is the skill's own first-party workflow guidance (batch `use_figma` tool calls in parallel), not authority-claiming text embedded in external third-party content."

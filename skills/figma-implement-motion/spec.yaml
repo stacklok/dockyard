@@ -1,0 +1,45 @@
+# Figma figma-implement-motion Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-implement-motion:0.1.0
+
+metadata:
+  name: figma-implement-motion
+  description: Translates Figma motion and animations into production-ready application code. Use when implementing
+    animation/motion from a Figma design — user mentions "implement this motion", "add animation from Figma",
+    "animate this component", provides a Figma URL whose node is animated, or when `get_design_context`
+    returns motion data or instructs you to call `get_motion_context`.
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-implement-motion"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. references/unsupported-and-fallbacks.md:56) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched comparative \"instead of ...\"/\"this is critical\" phrasing in documentation prose (e.g. SKILL.md:74), not an override instruction."
+    - rule_id: ATR_2026_00064
+      reason: "FP: matched inline code / timing values like \"at 0\"/\"at 3\" in documented animation-timing or API examples (e.g. SKILL.md:36, SKILL.md:90), not a firewall or system command."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. SKILL.md:67, references/examples-and-anti-examples.md:16) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00083
+      reason: "FP: matched \"# Override ...\" code comments describing configuration precedence in documented examples (e.g. references/motion-lint-rules.md:12), not an override instruction to the agent."
+    - rule_id: ATR_2026_00084
+      reason: "FP: matched \"ignore\" describing a specific documented prop/field to disregard in a code example (e.g. SKILL.md:60), not an instruction to ignore safety guidance."
+    - rule_id: ATR_2026_00090
+      reason: "FP: matched \"Extract `fileKey`\"/\"extract token\" describing how to parse a Figma URL or Plugin API return value in documentation (e.g. SKILL.md:23), not credential extraction."
+    - rule_id: ATR_2026_00111
+      reason: "FP: matched `whoami`/`curl` used in a documented troubleshooting or asset-download example (e.g. references/gotchas.md:79, references/svg-and-path-motion.md:11), not a live recon/download action."
+    - rule_id: ATR_2026_01610
+      reason: "FP: matched backtick-quoted inline code formatting in markdown (e.g. SKILL.md:114) — standard Markdown code-span syntax, not shell subshell command substitution."

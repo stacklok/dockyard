@@ -1,0 +1,53 @@
+# Figma figma-generate-library Skill
+# Source: https://github.com/figma/mcp-server-guide
+# Usage governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/) — no separate OSS
+# license is declared in this repo.
+# Will publish as: ghcr.io/stacklok/dockyard/skills/figma-generate-library:0.1.0
+
+metadata:
+  name: figma-generate-library
+  description: Build or update a professional-grade design system in Figma from a codebase. Use when the
+    user wants to create variables/tokens, build component libraries, create individual components with
+    proper variant sets and variable bindings, set up theming (light/dark modes), document foundations,
+    or reconcile gaps between code and Figma. Also use when the user asks to create or generate any component
+    in Figma — even a single one — since components require proper variable foundations, variant states,
+    and design token bindings to be production-quality. This skill teaches WHAT to build and in WHAT ORDER
+    — it complements the `figma-use` skill which teaches HOW to call the Plugin API. Both skills should
+    be loaded together.
+
+spec:
+  repository: "https://github.com/figma/mcp-server-guide"
+  ref: "22b2c566d98880ebdb5a8e48eb2c66c596a6d990"  # main as of 2026-08-11
+  path: "skills/figma-generate-library"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/figma/mcp-server-guide"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "figma/mcp-server-guide declares no OSS license (no LICENSE file, none detected by GitHub); usage of the Figma MCP server and these skills is governed by the Figma Developer Terms (https://www.figma.com/legal/developer-terms/), referenced in the repo README."
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched imperative-sounding phrases (e.g. references/discovery-phase.md:472, references/discovery-phase.md:518) in the skill's own workflow prose, not an injected directive."
+    - rule_id: ATR_2026_00003
+      reason: "FP: matched \"Switch to Dev Mode\" (references/code-connect-setup.md:246) — Figma's own named UI feature for developers to inspect specs, not an AI jailbreak \"developer mode\" attempt."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. references/component-creation.md:53, references/discovery-phase.md:77) in JS/Plugin-API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched comparative \"instead of ...\"/\"this is critical\" phrasing in documentation prose (e.g. references/naming-conventions.md:435, references/token-creation.md:486), not an override instruction."
+    - rule_id: ATR_2026_00040
+      reason: "FP: matched \"truncate\"/\"TRUNCATE\" describing text-truncation or table-formatting behavior in documentation (e.g. SKILL.md:155, references/documentation-creation.md:127), not a destructive data operation."
+    - rule_id: ATR_2026_00064
+      reason: "FP: matched inline code / timing values like \"at 0\"/\"at 3\" in documented animation-timing or API examples (e.g. SKILL.md:313, references/token-creation.md:137), not a firewall or system command."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched JS/template string interpolation (`${...}`) or relative doc-link paths (`../../`) in documented code examples (e.g. references/code-connect-setup.md:176, references/component-creation.md:9) — standard syntax, not injected secrets."
+    - rule_id: ATR_2026_00088
+      reason: "FP: matched \"return await clean...\"/\"return { clean...\" in example error-recovery code (e.g. references/error-recovery.md:44), not an output-billing or cost-evasion pattern."
+    - rule_id: ATR_2026_00090
+      reason: "FP: matched \"Extract `fileKey`\"/\"extract token\" describing how to parse a Figma URL or Plugin API return value in documentation (e.g. SKILL.md:59, references/discovery-phase.md:67), not credential extraction."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched escaped newline sequences (`\\n`) or similar tokens in documented code examples (e.g. references/documentation-creation.md:549), not an obfuscation pattern."
+    - rule_id: ATR_2026_02009
+      reason: "FP: matched a bare \"key:\" in a markdown table documenting Plugin API property names (e.g. references/component-creation.md:568), not a prompt-injection prompt for a missing secret."
