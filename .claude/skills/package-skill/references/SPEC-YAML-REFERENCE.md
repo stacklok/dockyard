@@ -41,10 +41,11 @@ spec:
                             # regardless of any upstream version/tag — see
                             # docs/skill-versioning.md.
 
-provenance:                 # Optional but conventional
+provenance:                 # Optional to the parser; required for Renovate
+                            # to keep spec.ref current automatically
   repository_uri: string    # Same as spec.repository, restated for clarity
-  repository_ref: string    # The branch the pinned commit came from, e.g.
-                             # "refs/heads/main"
+  repository_ref: string    # The branch the pinned commit came from and that
+                             # Renovate should follow, e.g. "refs/heads/main"
 
 security:                   # Optional — omit entirely if the scan is clean
   allowed_issues:

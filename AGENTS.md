@@ -95,6 +95,11 @@ Full policy: [docs/skill-versioning.md](docs/skill-versioning.md).
   vendor tag (`hashicorp-provider-docs`) rather than splitting per
   upstream sub-project — that avoids stutter when a skill's own name already
   contains the sub-project name.
+- **Third-party skill licenses**: public source is not automatically open
+  source. Before packaging a skill, verify an explicit upstream license grants
+  redistribution rights. Product or developer terms do not substitute for a
+  repository-content license unless they explicitly grant those rights; stop
+  if the license is missing or ambiguous.
 - **Don't hand-roll spec.yaml semantics** — read `internal/skills/spec.go`
   (skills) or the spec types in `cmd/dockhand/main.go` (MCP servers) for the
   fields that are actually validated before inventing new ones.

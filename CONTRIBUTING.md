@@ -165,6 +165,7 @@ Include in your PR description:
 Include in your PR description:
 - What the skill does
 - Link to the source repository and the pinned commit
+- The license permitting redistribution and where it is declared upstream
 - A brief note on any `security.allowed_issues` entries you added and why
 
 ## Commit Message Guidelines

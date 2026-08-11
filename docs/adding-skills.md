@@ -41,6 +41,25 @@ by 150+ skills from many upstream sources:
 - Check for an existing name collision before picking one:
   `ls skills/ | grep -x '{candidate-name}'`.
 
+### Licensing
+
+Before packaging a third-party skill, verify that an explicit license covers
+the skill content and permits copying, modification, and redistribution in a
+public OCI artifact. Check both the skill directory and repository root for a
+`LICENSE`/`COPYING` file, plus any SPDX-style `license:` field in `SKILL.md`.
+
+Publicly accessible source is not automatically open source. Do not package a
+repository with no license unless the copyright holder has separately granted
+the required redistribution rights. A link to product, API, developer, or
+website terms is not enough unless those terms explicitly license the
+repository content for redistribution. If the license is missing, ambiguous,
+or non-redistributable, stop and resolve that before creating the spec.
+
+Include the license and its location in the PR description. When the repository
+has a root license but the individual `SKILL.md` does not, skill-scanner may
+report `MANIFEST_MISSING_LICENSE`; an allowlist reason should cite the verified
+repository license.
+
 ## spec.yaml Reference
 
 ```yaml
@@ -64,7 +83,7 @@ spec:
 
 provenance:
   repository_uri: "{https-git-clone-url}"
-  repository_ref: "refs/heads/{branch}" # The branch/ref the pinned commit came from
+  repository_ref: "refs/heads/{branch}" # Branch Renovate should follow
 
 security:
   allowed_issues:
@@ -77,16 +96,16 @@ security:
 ### Pinning the ref
 
 `spec.ref` must be a commit SHA, not a branch or tag — this is what makes
-the build reproducible. Get the current HEAD of the branch you want to
-track:
+the build reproducible. Resolve the exact branch named by
+`provenance.repository_ref`:
 
 ```bash
-git ls-remote https://github.com/{org}/{repo} HEAD
+git ls-remote https://github.com/{org}/{repo} refs/heads/{branch}
 ```
 
-Renovate keeps `spec.ref` current automatically once the skill is added
-(see `renovate.json`); you generally only need to pin it once, at
-creation time.
+Renovate reads that branch name from `provenance.repository_ref` and keeps
+`spec.ref` current automatically once the skill is added (see
+`renovate.json`); you generally only need to pin it once, at creation time.
 
 ### version
 
@@ -205,7 +224,8 @@ Source: {upstream-repo-url}"
 ```
 
 Include in your PR description what the skill does and a link to its
-upstream source, same as an MCP server PR (see
+upstream source, pinned commit, and redistribution license, same as an MCP
+server PR (see
 [CONTRIBUTING.md](../CONTRIBUTING.md)).
 
 ## See Also

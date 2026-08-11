@@ -27,14 +27,39 @@ Use this skill when:
 
 ### Step 1: Discover the skill(s)
 
-If packaging from a repo the user names, clone it shallow and find every `SKILL.md`:
+If packaging from a repo the user names, clone it shallow and enumerate candidate `SKILL.md` files:
 
 ```bash
 git clone --depth 1 https://github.com/{org}/{repo} /tmp/{repo}
 find /tmp/{repo} -iname SKILL.md
 ```
 
-For each one, read its YAML frontmatter (`name`, `description`, and any `license`/`version` fields) — that's the source of truth for `metadata.description` and for spotting an upstream `license:` field (see Step 5).
+Treat the results as candidates, not an automatic package list: exclude test
+fixtures, examples, and templates that are not intended for end users. For each
+real skill, read its YAML frontmatter (`name`, `description`, and any
+`license`/`version` fields). The upstream description is the source of truth
+for `metadata.description`.
+
+#### Verify redistribution rights
+
+Before creating any specs, find an explicit license that covers the skill
+content. Check the skill directory and repository root for `LICENSE`/`COPYING`
+files and inspect any SPDX-style `license:` value in `SKILL.md` frontmatter.
+The license must grant the rights needed to copy, modify, and redistribute the
+skill in a public OCI artifact.
+
+Public source is not the same as open source. A repository with no license is
+not eligible for packaging unless the copyright holder separately grants the
+necessary redistribution rights. Likewise, a link to product, API, developer,
+or website terms is not sufficient unless those terms explicitly license the
+repository content for redistribution. If the license is missing, ambiguous,
+or non-redistributable, stop and surface the issue to the user rather than
+creating specs.
+
+Record the license and where it was found in the PR description. If
+skill-scanner later reports `MANIFEST_MISSING_LICENSE` because the license is
+at the repository root rather than in `SKILL.md`, cite that verified license in
+the allowlist reason.
 
 Get the pinned commit SHA once, up front, and reuse it for every skill from that repo:
 
@@ -70,13 +95,13 @@ metadata:
 
 spec:
   repository: "{https-git-clone-url}"
-  ref: "{commit-sha}"  # main as of {date} — pin an exact commit, never a branch
+  ref: "{commit-sha}"  # {branch} as of {date} — pin an exact commit, never a branch
   path: "{path-to-skill-dir}"  # omit entirely if SKILL.md is at repo root
   version: "0.1.0"  # ALWAYS 0.1.0 for a new skill — see Step 4
 
 provenance:
   repository_uri: "{https-git-clone-url}"
-  repository_ref: "refs/heads/{branch}"
+  repository_ref: "refs/heads/{branch}"  # Renovate follows this branch
 ```
 
 Long `description` values often need YAML block scalars (`>-` or a quoted
