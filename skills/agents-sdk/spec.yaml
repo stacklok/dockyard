@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/cloudflare/skills"
-  ref: "30553f89ae1ef1e3c2917cd09d72dac992bb4e9a"  # main as of 2026-04-16
+  ref: "f96bff754e428838818017f75817f0f9428acd48"  # main as of 2026-04-16
   path: "skills/agents-sdk"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"
