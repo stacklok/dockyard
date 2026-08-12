@@ -1,0 +1,27 @@
+# HashiCorp hashicorp-provider-ephemeral-resources Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-provider-ephemeral-resources:0.1.0
+
+metadata:
+  name: hashicorp-provider-ephemeral-resources
+  description: 'Implement Terraform provider ephemeral resources with the Plugin Framework: the Open/Renew/Close
+    lifecycle, ephemeral schema design, registration via EphemeralResources, renewal for expiring credentials,
+    and how ephemeral values flow into write-only attributes and provider configuration. Use when adding
+    an ephemeral resource, exposing secrets/tokens/certificates that must never persist in state or plan,
+    deciding between an ephemeral resource and a data source, or wiring short-lived credentials from one
+    provider into another.'
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "4451ceca5456e79cc776efee96a744f7ac96e5bf"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/provider-ephemeral-resources"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:171) — standard HCL/CI syntax, not injected secrets."

@@ -1,0 +1,24 @@
+# HashiCorp hashicorp-run-acceptance-tests Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-run-acceptance-tests:0.1.0
+
+metadata:
+  name: hashicorp-run-acceptance-tests
+  description: Guide for running acceptance tests for a Terraform provider. Use this when asked to run an
+    acceptance test or to run a test with the prefix `TestAcc`, when a test fails with missing environment
+    variables, or when diagnosing a failing or suspiciously passing acceptance test.
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "4451ceca5456e79cc776efee96a744f7ac96e5bf"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/run-acceptance-tests"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: ATR_2026_00063
+      reason: "FP: matched words like \"exfil\"/\"upload\"/\"encrypt\" in documentation prose — either warning against exfiltration (design-principles guidance) or describing legitimate upload/encryption features (HCP Packer registry push, state upload, disk encryption) (e.g. SKILL.md:20), not exfiltration code."
