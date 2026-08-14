@@ -16,6 +16,13 @@ You're an MCP server author who wants to package and distribute your server via 
 
 - [Adding MCP Servers](adding-servers.md) - Step-by-step contribution guide
 
+### I want to package an agent skill
+
+You want to vendor an agent skill (your own, or a third-party one) as a Dockyard skill artifact.
+
+- [Adding Skills](adding-skills.md) - Step-by-step contribution guide
+- [Skill Versioning](skill-versioning.md) - Semver policy and auto-bump tooling for skills
+
 ### I want to understand the security model
 
 You're evaluating Dockyard for security compliance or want to verify container integrity.
@@ -30,6 +37,7 @@ You're evaluating Dockyard for security compliance or want to verify container i
 |----------|-------------|
 | [Getting Started](getting-started.md) | How to use Dockyard containers |
 | [Adding MCP Servers](adding-servers.md) | Contributing your MCP server |
+| [Adding Skills](adding-skills.md) | Contributing an agent skill |
 | [Security Overview](security.md) | Security model and scanning |
 | [Attestations](attestations.md) | Container attestation details |
 | [Provenance](provenance.md) | Package provenance verification |
