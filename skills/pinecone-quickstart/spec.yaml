@@ -10,9 +10,9 @@ metadata:
 
 spec:
   repository: "https://github.com/pinecone-io/skills"
-  ref: "1154c3e71c40b74d3807885769f4326b5ee64e1d"  # main as of 2026-03-11
+  ref: "e353489827928df56f785ccb203bc059773516de"  # main as of 2026-03-11
   path: "skills/pinecone-quickstart"
-  version: "0.1.1"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/pinecone-io/skills"
