@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/supabase/agent-skills"
-  ref: "1207767388a0ffb55f21fb4e6988fee96942431d"  # main as of 2026-04-19
+  ref: "8331f910845103c08d51f6ca1d86ebb7d1f745e3"  # main as of 2026-04-19
   path: "skills/supabase-postgres-best-practices"
-  version: "0.4.1"
+  version: "0.5.0"
 
 provenance:
   repository_uri: "https://github.com/supabase/agent-skills"
