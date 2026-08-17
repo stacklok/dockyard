@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/entireio/skills"
-  ref: "04ea025c9c71d4509f24ea7dca4a1c38365676d0"  # main as of 2026-05-07
+  ref: "2f9a8758e9c5220685ed049f396c826768957030"  # main as of 2026-05-07
   path: "skills/search"
   version: "0.3.1"
 
