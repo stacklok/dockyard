@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/pinecone-io/skills"
   ref: "e353489827928df56f785ccb203bc059773516de"  # main as of 2026-03-11
   path: "skills/pinecone-help"
-  version: "0.1.1"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/pinecone-io/skills"
