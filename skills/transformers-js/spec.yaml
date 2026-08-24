@@ -21,3 +21,15 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00066
+      reason: "FP: cisco-ai-skill-scanner matched JS template-literal interpolations (e.g. ${HF_TOKEN}, ${info.progress.toFixed(1)}, ${info.status}) and markdown code-fence language tags (`bash) throughout SKILL.md; standard Transformers.js example code and doc formatting, no executable threat."
+    - rule_id: ATR_2026_00010
+      reason: "FP: matched markdown inline-code spans in ordinary prose (e.g. `@huggingface/tokenizers`, `sentence-transformers` naming, backtick-quoted words split mid-sentence by the scanner); documentation formatting, no executable threat."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched markdown table rows and doc text referencing model-hub URLs, API names (get_available, max_new_tokens, pipe.dispose()); ordinary API documentation, no executable threat."
+    - rule_id: ATR_2026_00111
+      reason: "FP: matched backtick-quoted identifiers `env` and `summarization` - Transformers.js's own `env` configuration object and a pipeline task name - in doc prose; no executable threat."
+    - rule_id: ATR_2026_00040
+      reason: "FP: matched the substring 'exec'/'deploy' inside ordinary words and doc mentions (e.g. code comments about execution/deployment); no exec() call or shell command present."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched the prose phrase 'for each' (SKILL.md:512) in ordinary iteration-describing documentation; no executable-autonomy threat."
