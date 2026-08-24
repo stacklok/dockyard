@@ -21,3 +21,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "mongodb/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00010
+      reason: "FP: cisco-ai-skill-scanner matched ordinary prose describing MongoDB query tuning in references/vector-search.md (e.g. \"$meta: vectorSearchScore in a $project stage\", \"increase numCandidates to improve consistency\", a cross-reference to lexical-search-indexing.md). No executable threat or malicious pattern present."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched a code comment on ANN recall/latency tuning (\"tune between 10-50x based on recall and latency\", references/vector-search.md:596); ordinary documentation prose, no executable threat."
+    - rule_id: ATR_2026_00040
+      reason: "FP: matched the substring 'exec'/'Exec' in references/vector-search.md (lines 676, 678); ordinary prose, no exec() call or shell command present."
