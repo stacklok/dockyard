@@ -21,3 +21,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00063
+      reason: "FP: scanner pattern-matches the literal string '.env' in SKILL.md prose describing the wizard's documented purpose - writing .env files during a human-run setup procedure - not a credential leak."
+    - rule_id: ATR_2026_01610
+      reason: "FP: 'bash -n <script>' is the standard non-executing syntax-check flag, used in the skill's own verification step before handing a generated script to the human."
+    - rule_id: ATR_2026_00064
+      reason: "FP: 'chmod +x' makes the skill's generated wizard script executable for the human to run, as documented in the hand-off step; not a privilege-escalation payload."
