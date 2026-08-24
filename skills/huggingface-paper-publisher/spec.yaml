@@ -46,3 +46,9 @@ security:
         module. All network destinations are huggingface.co or
         export.arxiv.org. Verified at digest
         acd2bf5a7126994e15143bec061fe87a882811f3.
+    - rule_id: ATR_2026_01610
+      reason: "FP: renumbered successor of the ATR_2026_00111 finding above - same `$(cat citation.txt)` (SKILL.md:118) / `$(cat abstract.txt)` (SKILL.md:196) command-substitution fragments reading local user-authored paper text; no untrusted input, no host command injection."
+    - rule_id: LLM_COMMAND_INJECTION
+      reason: "Same root cause as the allowlisted ATR_2026_00111/ATR_2026_01610 findings: `$(cat citation.txt)` / `$(cat abstract.txt)` read local files the user authored themselves as CLI arguments to the bundled paper_manager.py script; not attacker-controlled input."
+    - rule_id: LLM_SUPPLY_CHAIN_ATTACK
+      reason: "SKILL.md documents its bundled script's Python dependencies with minimum-version (>=) constraints (huggingface_hub, pyyaml, requests, markdown, python-dotenv) in an informational 'Dependencies' list read by a human setting up the script locally; Dockyard does not execute or resolve this list at packaging or run time, so it isn't an exploitable install path here. Accepted as inherent to how this vendored skill documents its own script's requirements."
