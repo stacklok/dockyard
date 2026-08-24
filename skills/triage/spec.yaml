@@ -21,3 +21,5 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00051
+      reason: "FP: 'all files' matches OUT-OF-SCOPE.md's instruction to read all files in the project-local `.out-of-scope/` knowledge-base directory (OUT-OF-SCOPE.md:72), a scoped and bounded read, not an unbounded filesystem scan."
