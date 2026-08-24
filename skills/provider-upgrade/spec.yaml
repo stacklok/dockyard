@@ -46,3 +46,5 @@ security:
     # executable, a standard install step, not a privilege-escalation pattern.
     - rule_id: ATR_2026_00040
       reason: "FP: cisco-ai-skill-scanner matched 'chmod' in the documented schema-tools install script (references/diagnostic-toolbox.md), which does `chmod +x /tmp/schema-tools` on the binary it just downloaded and extracted. Standard install step, not privilege escalation."
+    - rule_id: ATR_2026_00064
+      reason: "FP: cisco-ai-skill-scanner matched 'chmod +x' in the documented schema-tools install script (references/diagnostic-toolbox.md:48) (rule renumbered from ATR_2026_00040 in this scanner version); standard install step making the just-downloaded release binary executable, not privilege escalation."
