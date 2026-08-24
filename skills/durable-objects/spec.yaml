@@ -21,3 +21,7 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00063
+      reason: "FP: cisco-ai-skill-scanner matched 'UPLOAD' (references/workers.md:40,88) - an R2 bucket binding name ('UPLOADS') in a wrangler.toml config example - and 'sendMessage'/'SendMessage' (references/workers.md:149,163,168,170,180) - a Durable Object RPC method name and a Zod schema name in example chat-room code. Ordinary example code, no executable threat."
+    - rule_id: ATR_2026_00012
+      reason: "FP: cisco-ai-skill-scanner matched 'execute' in `wrangler d1 execute DB --command \"SELECT * FROM _cf_DO\"` (references/workers.md:345) - the standard, documented Wrangler CLI command for querying a D1 database, not arbitrary code execution."
