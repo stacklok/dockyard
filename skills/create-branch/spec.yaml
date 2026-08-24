@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "24fdb833b9e67670a027e3b482189100a69ff7f9"  # main as of 2026-04-20
+  ref: "6abccd60c704f669423d6a06ff0809fa39513ce8"  # main as of 2026-04-20
   path: "skills/create-branch"
   version: "0.2.1"
 
