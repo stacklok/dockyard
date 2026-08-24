@@ -46,3 +46,26 @@ security:
         ripgrep/AST search over local files, and localFindDeadCode performs
         local static analysis for unused exports. Both operate only on the
         local filesystem the agent already has access to.
+    - code: "AITech-1.1"
+      reason: |
+        Flagged on ghSearchCode, a read-only GitHub code-search tool whose
+        entire purpose is to return snippets of third-party repository
+        content to the calling agent. Any code/content search tool that
+        surfaces external repository text is inherently exposed to this
+        class of finding: an attacker-controlled repo can contain
+        instruction-like text (e.g. "ignore previous instructions") inside
+        matched file content, which is a generic indirect-prompt-injection
+        risk of external-content retrieval rather than a vulnerability
+        specific to octocode-mcp or this version. Verified directly: the
+        ghSearchCode tool description and JSON schema are byte-for-byte
+        identical between v18.0.1, which passed this same scan without this
+        finding, and v18.2.2 in this update - no new wording, parameter, or
+        data path was introduced. Returned content passes through
+        ContentSanitizer.sanitizeContent (native Rust sanitizer in
+        @octocodeai/octocode-engine), which redacts detected secrets before
+        reaching the agent; like any code-search tool it does not and cannot
+        filter arbitrary natural-language phrasing embedded in third-party
+        code or comments. This is the same structural risk already
+        allowlisted under AITech-8.2 for this tool family (see PR #776), and
+        is mitigated the same way: by treating all tool output as untrusted
+        data, never as instructions.
