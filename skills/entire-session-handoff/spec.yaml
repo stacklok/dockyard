@@ -21,3 +21,5 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "entireio/skills is MIT-licensed at the repo root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched the prose phrase 'Iterate every' (SKILL.md:119) - loop-over-session-indices guidance for streaming multi-session checkpoint transcripts (0..N-1). Documentation, no executable threat."
