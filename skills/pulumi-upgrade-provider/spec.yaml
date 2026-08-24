@@ -28,3 +28,5 @@ security:
     # `gh api`). Neither reads untrusted input or escalates privilege.
     - rule_id: ATR_2026_00111
       reason: "FP: cisco-ai-skill-scanner matched $(git branch --show-current) and $(cat /tmp/pr_body.txt) in SKILL.md's documented post-run steps; both are read-only/self-authored substitutions (branch name lookup, re-reading a locally-written temp file), not privilege escalation."
+    - rule_id: ATR_2026_01610
+      reason: "FP: cisco-ai-skill-scanner matched $(cat /tmp/pr_body.txt) in SKILL.md's documented post-run steps (rule renumbered from ATR_2026_00111 in this scanner version); read-only re-read of a locally-written temp file used to PATCH the PR body via `gh api`, not privilege escalation or untrusted input."
