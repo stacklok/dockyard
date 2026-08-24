@@ -27,3 +27,24 @@ security:
       reason: "The skill uses network access through its bundled reference scripts that call the public Hugging Face Hub API. The frontmatter does not declare a dedicated network-access tool, but the network calls are documented examples bundled for user education, not runtime execution by the skill itself."
     - rule_id: LOW_ANALYZABILITY
       reason: "The scanner reports that 1 of 8 files is opaque — this is an executable `.tsx` reference script (`references/baseline_hf_api.tsx`) that the scanner cannot fully parse. The file is a small, HF-authored example script and is readable markdown-adjacent TypeScript."
+    - rule_id: LLM_COMMAND_INJECTION
+      reason: |
+        Read the actual flagged scripts (references/hf_enrich_models.sh,
+        references/hf_model_papers_auth.sh). In both, $model_id is always
+        interpolated inside a double-quoted string assigned to a variable
+        (e.g. url="https://huggingface.co/api/models/${model_id}") which is
+        then passed to curl as a single quoted argument ("$url") - there is
+        no eval, no `sh -c`, and no unquoted word-splitting anywhere in these
+        scripts. A model ID with shell metacharacters can at most produce a
+        malformed URL (400/404 from the HF API); it cannot inject a shell
+        command. Not a real command-injection vector.
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: |
+        hf_model_papers_auth.sh fetches a model's README.md from the public
+        HF Hub and extracts arxiv/DOI links via grep/sed, printing them to
+        stdout - fetching and displaying third-party HF Hub content is the
+        documented purpose of this tool-building skill (same reasoning
+        already accepted for skills/hf-mcp's model-card/doc fetching in this
+        repo). This is a bundled reference script for user education, not
+        code the skill silently auto-executes and feeds back into agent
+        context without the user seeing it.
