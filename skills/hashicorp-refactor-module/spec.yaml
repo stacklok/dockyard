@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/hashicorp/agent-skills"
-  ref: "4451ceca5456e79cc776efee96a744f7ac96e5bf"  # main as of 2026-08-10
+  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
   path: "plugins/terraform/skills/refactor-module"
   version: "0.1.0"
 
