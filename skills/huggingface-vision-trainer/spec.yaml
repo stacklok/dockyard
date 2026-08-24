@@ -62,3 +62,5 @@ security:
       reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: ATR_2026_00111
       reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_01600
+      reason: "FP: cisco-ai-skill-scanner matched the literal code comment '# or True for private repo' (references/hub_saving.md:293), which explains the `private` boolean parameter in a `create_repo()` example (`private=False,  # or True for private repo`); not an always-true security bypass."
