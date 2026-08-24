@@ -23,3 +23,7 @@ security:
       reason: "ClickHouse/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: SECRET_CONNECTION_STRING
       reason: "The skill's documentation contains an example `mysql://user:password@host:3306/dbname` connection-string shape illustrating how to connect chDB to external MySQL sources. The value is not a real credential — it's an illustrative string in markdown."
+    - rule_id: ATR_2026_00040
+      reason: "FP: cisco-ai-skill-scanner matched the placeholder username \"root\" in example code (SKILL.md:46) demonstrating chDB's MySQL connector; an illustrative example credential, not a real one."
+    - rule_id: ATR_2026_00021
+      reason: "FP: cisco-ai-skill-scanner matched the example connection string \"***db:3306/shop/orders\" (SKILL.md:52) - the same illustrative connection-string shape as the SECRET_CONNECTION_STRING finding already allowlisted above; not a real credential."
