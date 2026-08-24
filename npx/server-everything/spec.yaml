@@ -29,3 +29,16 @@ security:
         / configuration-tampering risk, but env-var inspection is the
         documented purpose of the tool in a test fixture meant for protocol
         exploration. Not a real exploit vector.
+    - code: "AITech-8.2"
+      tool: "get-env"
+      reason: |
+        False positive — same underlying tool as the AITech-12.1 finding
+        above (env-var inspection), re-flagged this scan under a different
+        taxonomy code by the LLM analyzer. Verified the `get-env`
+        implementation is byte-for-byte unchanged between v2026.7.4 and
+        v2026.8.18 in modelcontextprotocol/servers. This is the official
+        MCP reference/demo server's documented `get-env` tool ("Returns
+        all environment variables, helpful for debugging MCP server
+        configuration"), read-only and scoped to the container's own
+        process env. Not a new or increased exposure; already accepted
+        under AITech-12.1 in PR #749.
