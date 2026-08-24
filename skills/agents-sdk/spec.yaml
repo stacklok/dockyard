@@ -21,3 +21,11 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00012
+      reason: "references/webhooks-push.md:86 documents the standard `npx web-push generate-vapid-keys` CLI command for generating VAPID keypairs; no credential or secret is embedded, it is guidance to run a public key-generation tool."
+    - rule_id: ATR_2026_00040
+      reason: "references/workflows.md:7 matches the substring 'exec' inside the English word 'execution' in prose ('Workflows handle durable execution'); no exec() call or shell command is present."
+    - rule_id: ATR_2026_00030
+      reason: "references/workflows.md:30 is a TypeScript method signature (`async run(event: AgentWorkflowEvent<TaskParams>, step: AgentWorkflowStep)`) from an Agents SDK Workflow class example, not a process/command invocation."
+    - rule_id: ATR_2026_00010
+      reason: "references/workflows.md:57 is a markdown code-fence language tag (```jsonc) introducing a wrangler.jsonc config example; not executable content."
