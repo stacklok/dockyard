@@ -23,3 +23,11 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "supabase/agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: LLM_UNAUTHORIZED_TOOL_USE
+      reason: |
+        references/skill-feedback.md's GitHub-issue-filing workflow is gated on
+        an explicit up-front user consent step ("Ask permission — Ask the user
+        if they'd like to submit feedback... If they decline, move on.") before
+        any draft/submit happens. This is a documented, human-in-the-loop
+        feedback-reporting workflow, not a covert or unconditional external
+        write. supabase/agent-skills @8331f910845103c08d51f6ca1d86ebb7d1f745e3.
