@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "696dee5717bdb976772466c067b60d89d644260d"  # main as of 2026-04-17
+  ref: "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"  # main as of 2026-04-17
   path: "plugins/static-analysis/skills/semgrep"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
@@ -23,3 +23,7 @@ security:
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: ALLOWED_TOOLS_GREP_VIOLATION
       reason: "SKILL.md declares Bash in allowed-tools, which transitively covers regex search via shell tooling; the scanner does not account for this capability."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Risk accepted by maintainer (danbarr, 2026-08-25): the skill clones curated third-party Semgrep ruleset repos (Trail of Bits, 0xdea, Decurity) by GitHub URL to supplement official registry coverage. The rulesets are fixed, skill-selected repos (not arbitrary user-supplied URLs), the content is declarative Semgrep YAML rules rather than executable code, and the user explicitly approves the exact ruleset list at the Step 3 hard gate before any clone happens. Same class of accepted third-party-content exposure as skills/hf-mcp and skills/huggingface-tool-builder."
+    - rule_id: LLM_COMMAND_INJECTION
+      reason: "FP: [TARGET] and [OUTPUT_DIR] in references/scanner-task-prompt.md's bash templates are the codebase path being scanned and the skill's own resolved output directory (Step 1 of SKILL.md) — values the user/agent already controls locally, not attacker-supplied external input. The agent already has full Bash execution on the user's behalf; substituting the same user-provided path into a semgrep command doesn't cross a new trust boundary. Same reasoning already accepted for skills/huggingface-tool-builder and skills/huggingface-paper-publisher."
