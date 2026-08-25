@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@modelcontextprotocol/server-everything"
-  version: "2026.7.4"
+  version: "2026.8.18"
 
 provenance:
   repository_uri: "https://github.com/modelcontextprotocol/servers"
@@ -22,10 +22,22 @@ security:
     - code: "AITech-12.1"
       tool: "get-env"
       reason: |
-        False positive — this is the official MCP reference/demo server,
-        intentionally exposing a `get-env` tool that "Prints all environment
-        variables, helpful for debugging MCP server configuration" (see the
-        server's own description). The scanner flags this as a data-poisoning
-        / configuration-tampering risk, but env-var inspection is the
-        documented purpose of the tool in a test fixture meant for protocol
-        exploration. Not a real exploit vector.
+        Accepted product risk, not a scanner misfire — this is the official
+        MCP reference/demo server, intentionally exposing a `get-env` tool
+        that "Prints all environment variables, helpful for debugging MCP
+        server configuration" (see the server's own description). Env-var
+        inspection genuinely is a data-exposure surface if this container is
+        ever run with real secrets in its environment; it is accepted here
+        because it is the documented, intended purpose of this test fixture
+        for protocol exploration, not because the finding doesn't apply.
+    - code: "AITech-8.2"
+      tool: "get-env"
+      reason: |
+        Same underlying tool and same accepted risk as the AITech-12.1 entry
+        above (env-var inspection), re-flagged this scan under a different
+        taxonomy code by the LLM analyzer rather than because behavior
+        changed. Verified the `get-env` implementation is byte-for-byte
+        unchanged between v2026.7.4 and v2026.8.18 in
+        modelcontextprotocol/servers. Not a new or increased exposure;
+        already explicitly accepted under AITech-12.1 in PR #749 for the
+        reasons given there.
