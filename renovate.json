@@ -80,9 +80,8 @@
         "/^skills/.*/spec\\.ya?ml$/"
       ],
       "matchStrings": [
-        "spec:\\s*\\n\\s*repository:\\s*[\"']?https://github\\.com/(?<depName>[^\"'\\s]+?)(?:\\.git)?\\s*[\"']?\\s*(?:#.*)?\\n\\s*ref:\\s*[\"']?(?<currentDigest>[0-9a-f]{40})[\"']?"
+        "spec:\\s*\\n\\s*repository:\\s*[\"']?https://github\\.com/(?<depName>[^\"'\\s]+?)(?:\\.git)?\\s*[\"']?\\s*(?:#.*)?\\n\\s*ref:\\s*[\"']?(?<currentDigest>[0-9a-f]{40})[\"']?[\\s\\S]*?\\n\\s*repository_ref:\\s*[\"']?refs/heads/(?<currentValue>[^\"'\\s#]+)[\"']?"
       ],
-      "currentValueTemplate": "main",
       "datasourceTemplate": "git-refs",
       "packageNameTemplate": "https://github.com/{{{depName}}}"
     }

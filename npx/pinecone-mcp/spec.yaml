@@ -10,7 +10,7 @@ metadata:
 
 spec:
   package: "@pinecone-database/mcp"
-  version: "0.2.1"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/pinecone-io/pinecone-mcp"

@@ -1,0 +1,45 @@
+# HashiCorp hashicorp-provider-configuration Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-provider-configuration:0.1.0
+
+metadata:
+  name: hashicorp-provider-configuration
+  description: 'Implement Terraform provider configuration and authentication with the Plugin Framework:
+    provider schema for credentials (Optional + Sensitive attributes), environment variable fallbacks, credential
+    provider chains (static config, then environment variables, shared credentials file, and platform identity),
+    unknown-value guards in Configure(), secret redaction, configure-time credential validation, and diagnostics
+    that name every source tried. Use when implementing or reviewing a provider''s Configure method or provider
+    schema, adding authentication options (API keys, tokens, profiles, credentials files, assume-role),
+    deciding how a provider should resolve credentials, debugging "no valid credential sources" or missing-credentials
+    errors, or unit testing credential resolution.'
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/provider-configuration"
+  version: "0.2.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. references/case-studies.md:31, references/credential-chain.md:233) in Go/HCL/API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00013
+      reason: "FP: matched example IP addresses or `internal/` package paths in Terraform configuration/code examples (e.g. references/credential-chain.md:22) — standard placeholder addressing or Go module layout, not exfiltration to an internal network."
+    - rule_id: ATR_2026_00020
+      reason: "FP: matched \"secret settings\" describing where credentials are configured in provider documentation (e.g. SKILL.md:267, references/credential-chain.md:276), not an attempt to expose secrets."
+    - rule_id: ATR_2026_00032
+      reason: "FP: matched comparative \"instead of ...\" phrasing in documentation prose (e.g. references/credential-chain.md:109), not an override instruction."
+    - rule_id: ATR_2026_00085
+      reason: "FP: matched \"skip the identity check\"/\"skip it\" describing a documented configuration opt-out (e.g. SKILL.md:49, SKILL.md:224), not an instruction to silently bypass security."
+    - rule_id: ATR_2026_00091
+      reason: "FP: matched \"constructor\"/\"Constructor\" in Go code documentation describing struct initialization (e.g. SKILL.md:124, SKILL.md:165), not an obfuscation pattern."
+    - rule_id: ATR_2026_00113
+      reason: "FP: matched documented credential-chain/identity-token setup instructions (AWS/Azure/GCP dynamic credentials, `~/.aws/credentials` path) (e.g. references/credential-chain.md:112) — standard provider authentication guidance."
+    - rule_id: ATR_2026_00115
+      reason: "FP: matched shell `env` command usage in documented debugging examples (e.g. SKILL.md:86, SKILL.md:248), not credential dumping for exfiltration."
+    - rule_id: ATR_2026_00140
+      reason: "FP: matched the word \"reverse\"/\"opposite\" in comparative documentation prose (e.g. references/case-studies.md:3)."

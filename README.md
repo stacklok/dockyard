@@ -3,9 +3,9 @@
 [![Build Status](https://github.com/stacklok/dockyard/actions/workflows/build-containers.yml/badge.svg)](https://github.com/stacklok/dockyard/actions/workflows/build-containers.yml)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](LICENSE)
 
-**A centralized repository for packaging Model Context Protocol (MCP) servers into secure, verified containers.**
+**A centralized repository for packaging Model Context Protocol (MCP) servers and agent skills into secure, verified OCI artifacts.**
 
-Dockyard automatically builds, scans, and publishes container images for MCP servers. Every container is security-scanned, signed with Sigstore, and includes full build provenance.
+Dockyard automatically builds, scans, and publishes container images for MCP servers, and OCI skill artifacts for agent skills. Every artifact is security-scanned, signed with Sigstore, and includes full build provenance.
 
 ## Quick Start
 
@@ -29,6 +29,7 @@ docker run -it ghcr.io/stacklok/dockyard/npx/context7:2.1.0
 |--------------|---------|
 | **Use Dockyard containers** | [Getting Started](docs/getting-started.md) |
 | **Add my MCP server** | [Adding MCP Servers](docs/adding-servers.md) |
+| **Package an agent skill** | [Adding Skills](docs/adding-skills.md) |
 | **Understand the security model** | [Security Overview](docs/security.md) |
 | **Verify attestations** | [Container Attestations](docs/attestations.md) |
 | **Check package provenance** | [Package Provenance](docs/provenance.md) |
@@ -42,6 +43,8 @@ docker run -it ghcr.io/stacklok/dockyard/npx/context7:2.1.0
 | `go://` | Go modules | `ghcr.io/stacklok/dockyard/go/netbird:0.1.0` |
 
 Browse available servers: [npx/](npx/) | [uvx/](uvx/) | [go/](go/)
+
+Browse available skills: [skills/](skills/)
 
 ## Add Your MCP Server
 

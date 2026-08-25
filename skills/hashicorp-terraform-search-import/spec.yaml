@@ -1,0 +1,32 @@
+# HashiCorp hashicorp-terraform-search-import Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-terraform-search-import:0.1.0
+
+metadata:
+  name: hashicorp-terraform-search-import
+  description: Discover existing cloud resources using Terraform Search queries and bulk import them into
+    Terraform management. Use when bringing unmanaged infrastructure under Terraform control, auditing cloud
+    resources, or migrating to IaC.
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/terraform-search-import"
+  version: "0.2.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "hashicorp/agent-skills is licensed MPL-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. SKILL.md:207, SKILL.md:378) in Go/HCL/API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00051
+      reason: "FP: matched \"every item\"/\"all files\"/\"all table\" describing bulk Terraform operations such as import or code generation in documentation (e.g. references/MANUAL-IMPORT.md:88), not a bulk-exfiltration action."
+    - rule_id: ATR_2026_00062
+      reason: "FP: matched placeholder tokens like `_SECRET_`/`__generated__`/`_secret_` used as example variable or env-var names in documentation (e.g. SKILL.md:230), not real secrets."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. references/MANUAL-IMPORT.md:99, references/MANUAL-IMPORT.md:104) — standard HCL/CI syntax, not injected secrets."

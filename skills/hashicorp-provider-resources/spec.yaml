@@ -1,0 +1,35 @@
+# HashiCorp hashicorp-provider-resources Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-provider-resources:0.1.0
+
+metadata:
+  name: hashicorp-provider-resources
+  description: 'Implement Terraform Provider resources and data sources using the Plugin Framework: CRUD
+    operations, schema design, plan modifiers and validators, not-found handling, waiters for eventually
+    consistent APIs, import support, resource design principles, and required acceptance test coverage.
+    Use when adding or changing a resource or data source, deciding whether an API concept should be a resource,
+    wiring a resource to the provider''s configured client, handling drift or resource-not-found, or reviewing
+    a resource implementation before submission.'
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/provider-resources"
+  version: "0.2.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: ATR_2026_00001
+      reason: "FP: matched imperative-sounding doc prose (e.g. SKILL.md:24, references/retries-and-waiters.md:5) describing Terraform/Packer usage guidance, not an injected directive to the agent."
+    - rule_id: ATR_2026_00013
+      reason: "FP: matched example IP addresses or `internal/` package paths in Terraform configuration/code examples (e.g. SKILL.md:34) — standard placeholder addressing or Go module layout, not exfiltration to an internal network."
+    - rule_id: ATR_2026_00021
+      reason: "FP: matched the literal attribute name `password` in a Terraform schema or example (e.g. SKILL.md:330) — naming a sensitive field in example code, not a leaked credential."
+    - rule_id: ATR_2026_00063
+      reason: "FP: matched words like \"exfil\"/\"upload\"/\"encrypt\" in documentation prose — either warning against exfiltration (design-principles guidance) or describing legitimate upload/encryption features (HCP Packer registry push, state upload, disk encryption) (e.g. references/design-principles.md:18), not exfiltration code."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:126, SKILL.md:128) — standard HCL/CI syntax, not injected secrets."

@@ -11,9 +11,9 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "87f9ee5b670a630b022809a8742606c6da21812c"  # main as of 2026-04-16
+  ref: "ec0108293521ef698e451ec044e8b4feba6b732b"  # main as of 2026-04-16
   path: "hf-mcp/skills/hf-mcp"
-  version: "0.2.0"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/huggingface/skills"
@@ -57,3 +57,5 @@ security:
       reason: "Risk accepted by maintainer (ozz@stacklok.com, 2026-06-03): SKILL.md documents passing HF_TOKEN as a job secret to hf_jobs so remote jobs can authenticate to the HF Hub. Forwarding the user's own HF credential to HF's own job infrastructure is first-party, user-initiated authentication inherent to the HF MCP server; not covert third-party data exfiltration."
     - rule_id: LLM_PROMPT_INJECTION
       reason: "Risk accepted by maintainer (ozz@stacklok.com, 2026-06-03): the skill fetches HF Hub READMEs/model cards/docs via hub_repo_details(include_readme=true) and hf_doc_fetch. Processing public Hub content is the core purpose of an HF Hub MCP skill; the prompt-injection exposure from untrusted Hub documents is inherent to that first-party, user-initiated browsing surface."
+    - rule_id: ATR_2026_00422
+      reason: "FP: cisco-ai-skill-scanner (non-deterministic, see note above) re-flagged the same 'always include `secrets: {\"HF_TOKEN\": \"$HF_TOKEN\"}`' guidance at SKILL.md:172 already covered by the ATR_2026_00012 and LLM_DATA_EXFILTRATION entries above, under a new rule ID this scan. huggingface/skills @ec0108293521ef698e451ec044e8b4feba6b732b."

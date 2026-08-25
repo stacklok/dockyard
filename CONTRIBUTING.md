@@ -8,6 +8,7 @@ Thank you for your interest in contributing to Dockyard! This document helps you
 - [Reporting Security Vulnerabilities](#reporting-security-vulnerabilities)
 - [Ways to Contribute](#ways-to-contribute)
 - [Adding an MCP Server](#adding-an-mcp-server)
+- [Adding an Agent Skill](#adding-an-agent-skill)
 - [Development Setup](#development-setup)
 - [Pull Request Process](#pull-request-process)
 - [Commit Message Guidelines](#commit-message-guidelines)
@@ -25,6 +26,10 @@ If you think you have found a security vulnerability in Dockyard, please **DO NO
 ### Add an MCP Server
 
 The most common contribution is adding a new MCP server to Dockyard. See [Adding an MCP Server](#adding-an-mcp-server) below.
+
+### Add an Agent Skill
+
+You can also vendor an agent skill (your own, or a third-party one) as a Dockyard skill artifact. See [Adding an Agent Skill](#adding-an-agent-skill) below.
 
 ### Report Bugs
 
@@ -67,6 +72,31 @@ spec:
   version: "1.0.0"
 ```
 
+## Adding an Agent Skill
+
+To add an agent skill to Dockyard:
+
+1. Create a directory: `skills/{skill-name}/`
+2. Add a `spec.yaml` configuration file pointing at the skill's source repo, pinned commit, and path
+3. Run `task validate-skill -- skills/{skill-name}` and `task scan-skill -- skills/{skill-name}` locally, triaging any security findings into the allowlist
+4. Submit a pull request
+
+**Full guide:** [Adding Skills](docs/adding-skills.md)
+
+**Quick example:**
+
+```yaml
+metadata:
+  name: my-skill
+  description: "What my skill does"
+
+spec:
+  repository: "https://github.com/my-org/my-skill-repo"
+  ref: "abc1234..."  # pinned commit SHA
+  path: "skills/my-skill"  # omit if SKILL.md is at repo root
+  version: "0.1.0"
+```
+
 ## Development Setup
 
 ### Prerequisites
@@ -104,11 +134,17 @@ go test ./...
 1. **Fork and clone** the repository
 2. **Create a branch** for your changes
 3. **Make your changes** with clear, focused commits
-4. **Test locally** if adding an MCP server:
-   ```bash
-   task build -- {protocol}/{server-name}
-   task scan -- {protocol}/{server-name}
-   ```
+4. **Test locally**:
+   - If adding an MCP server:
+     ```bash
+     task build -- {protocol}/{server-name}
+     task scan -- {protocol}/{server-name}
+     ```
+   - If adding an agent skill:
+     ```bash
+     task validate-skill -- skills/{skill-name}
+     task scan-skill -- skills/{skill-name}
+     ```
 5. **Submit a PR** with a clear description
 
 ### PR Requirements
@@ -123,6 +159,14 @@ Include in your PR description:
 - What the MCP server does
 - Link to the package registry (npm/PyPI)
 - Link to the source repository
+
+### For Agent Skill PRs
+
+Include in your PR description:
+- What the skill does
+- Link to the source repository and the pinned commit
+- The license permitting redistribution and where it is declared upstream
+- A brief note on any `security.allowed_issues` entries you added and why
 
 ## Commit Message Guidelines
 

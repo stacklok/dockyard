@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "e7a87fa72645158f9b5e722cbb1c7e09266f48f1"  # main as of 2026-04-20
+  ref: "6abccd60c704f669423d6a06ff0809fa39513ce8"  # main as of 2026-04-20
   path: "skills/find-bugs"
-  version: "0.2.0"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
@@ -30,3 +30,16 @@ security:
         the command is hard-coded skill content (not attacker-controlled) and uses
         only read-only tools (`git diff`, `gh repo view`). Verified at digest
         5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
+    - rule_id: ATR_2026_00010
+      reason: |
+        False positive (tool_poisoning) - matches the same hard-coded diff-scoping
+        command already justified above (previously flagged as
+        ATR_MCP_MALICIOUS_RESPONSE): `git diff $(gh repo view --json
+        defaultBranchRef --jq '.defaultBranchRef.name')...HEAD`. This is
+        documented skill content, not attacker-controlled tool output, and uses
+        only read-only commands (git diff, gh repo view). The scanner appears to
+        have renumbered this rule between scans.
+    - rule_id: ATR_2026_00040
+      reason: "False positive (privilege_escalation) - matches the English word 'truncate' in 'If output is truncated, read each changed file individually until you have seen every changed line' (SKILL.md), describing terminal output truncation, not evidence/log tampering."
+    - rule_id: ATR_2026_00051
+      reason: "False positive (excessive_autonomy) - matches ordinary quantifier words ('all files', 'All database', 'EVERY item', 'Unbounded operations', 'every file') inside a read-only security-review checklist enumerating what to inspect (attack surface mapping and a DoS checklist item literally named 'Unbounded operations'), not instructions granting the agent broad destructive authority."

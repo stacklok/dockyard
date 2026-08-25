@@ -1,0 +1,36 @@
+# HashiCorp hashicorp-provider-test-patterns Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-provider-test-patterns:0.1.0
+
+metadata:
+  name: hashicorp-provider-test-patterns
+  description: Terraform provider acceptance test patterns using terraform-plugin-testing with the Plugin
+    Framework. Covers test structure, TestCase/TestStep fields, ConfigStateChecks with custom statecheck.StateCheck
+    implementations, plan checks, CompareValue for cross-step assertions, config helpers, import testing
+    with ImportStateKind, sweepers, and scenario patterns (basic, update, disappears, validation, regression),
+    and ephemeral resource testing with the echoprovider package. Use when writing, reviewing, or debugging
+    provider acceptance tests, including questions about statecheck, plancheck, TestCheckFunc, CheckDestroy,
+    ExpectError, import state verification, ephemeral resources, or how to structure test files.
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/provider-test-patterns"
+  version: "0.2.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "hashicorp/agent-skills is licensed MPL-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00012
+      reason: "FP: matched code-example tokens (e.g. SKILL.md:392) in Go/HCL/API code snippets or shell examples — legitimate example code, not a hidden execution primitive."
+    - rule_id: ATR_2026_00013
+      reason: "FP: matched example IP addresses or `internal/` package paths in Terraform configuration/code examples (e.g. references/ephemeral.md:75) — standard placeholder addressing or Go module layout, not exfiltration to an internal network."
+    - rule_id: ATR_2026_00021
+      reason: "FP: matched the literal attribute name `password` in a Terraform schema or example (e.g. references/ephemeral.md:68) — naming a sensitive field in example code, not a leaked credential."
+    - rule_id: ATR_2026_00084
+      reason: "FP: matched \"override\" describing Terraform variable/precedence override semantics in documentation prose (e.g. SKILL.md:107)."

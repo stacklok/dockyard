@@ -1,0 +1,20 @@
+# HashiCorp hashicorp-new-terraform-provider Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-new-terraform-provider:0.1.0
+
+metadata:
+  name: hashicorp-new-terraform-provider
+  description: 'Use this when scaffolding a new Terraform provider with the Plugin Framework: workspace
+    layout, go module setup, provider server main.go, and a provider.go with schema and Configure. Also
+    use when a user wants to start building a provider for a new API or asks how to begin a terraform-provider-*
+    project.'
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/new-terraform-provider"
+  version: "0.2.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"

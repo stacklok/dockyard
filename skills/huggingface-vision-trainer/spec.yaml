@@ -11,9 +11,9 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "87f9ee5b670a630b022809a8742606c6da21812c"  # main as of 2026-04-16
+  ref: "ec0108293521ef698e451ec044e8b4feba6b732b"  # main as of 2026-04-16
   path: "skills/huggingface-vision-trainer"
-  version: "0.2.0"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/huggingface/skills"
@@ -62,3 +62,5 @@ security:
       reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
     - rule_id: ATR_2026_00111
       reason: "FP: cisco-ai-skill-scanner matched documentation prose/code examples; no executable threat. huggingface/skills @35810a6dbe518a0f7bd99b1e6550cb57b266ff0b."
+    - rule_id: ATR_2026_01600
+      reason: "FP: cisco-ai-skill-scanner matched the literal code comment '# or True for private repo' (references/hub_saving.md:293), which explains the `private` boolean parameter in a `create_repo()` example (`private=False,  # or True for private repo`); not an always-true security bypass."

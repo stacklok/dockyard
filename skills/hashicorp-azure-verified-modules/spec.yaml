@@ -1,0 +1,29 @@
+# HashiCorp hashicorp-azure-verified-modules Skill
+# Source: https://github.com/hashicorp/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/hashicorp-azure-verified-modules:0.1.0
+
+metadata:
+  name: hashicorp-azure-verified-modules
+  description: Azure Verified Modules (AVM) requirements and best practices for developing certified Azure
+    Terraform modules. Use when creating or reviewing Azure modules that need AVM certification.
+
+spec:
+  repository: "https://github.com/hashicorp/agent-skills"
+  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  path: "plugins/terraform/skills/azure-verified-modules"
+  version: "0.2.0"
+
+provenance:
+  repository_uri: "https://github.com/hashicorp/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "hashicorp/agent-skills is licensed MPL-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00013
+      reason: "FP: matched example IP addresses or `internal/` package paths in Terraform configuration/code examples (e.g. SKILL.md:114) — standard placeholder addressing or Go module layout, not exfiltration to an internal network."
+    - rule_id: ATR_2026_00060
+      reason: "FP: matched \"Azure-Verified\"/\"azure-verified\", the official Azure Verified Modules (AVM) program name, in documentation (e.g. SKILL.md:6, SKILL.md:7)."
+    - rule_id: ATR_2026_00066
+      reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:111, SKILL.md:223) — standard HCL/CI syntax, not injected secrets."
