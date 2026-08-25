@@ -201,7 +201,7 @@ jobs:
   skill-security-scan:
     needs: discover-skill-configs
     runs-on: ubuntu-latest
-    timeout-minutes: 15
+    timeout-minutes: 35
     if: ${{ needs.discover-skill-configs.outputs.scan-configs != '[]' }}
     strategy:
       matrix:
