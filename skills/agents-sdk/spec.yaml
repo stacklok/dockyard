@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/cloudflare/skills"
-  ref: "30553f89ae1ef1e3c2917cd09d72dac992bb4e9a"  # main as of 2026-04-16
+  ref: "f96bff754e428838818017f75817f0f9428acd48"  # main as of 2026-04-16
   path: "skills/agents-sdk"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"
@@ -21,3 +21,19 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: ATR_2026_00012
+      reason: "references/webhooks-push.md:86 documents the standard `npx web-push generate-vapid-keys` CLI command for generating VAPID keypairs; no credential or secret is embedded, it is guidance to run a public key-generation tool."
+    - rule_id: ATR_2026_00040
+      reason: "references/workflows.md:7 matches the substring 'exec' inside the English word 'execution' in prose ('Workflows handle durable execution'); no exec() call or shell command is present."
+    - rule_id: ATR_2026_00030
+      reason: "references/workflows.md:30 is a TypeScript method signature (`async run(event: AgentWorkflowEvent<TaskParams>, step: AgentWorkflowStep)`) from an Agents SDK Workflow class example, not a process/command invocation."
+    - rule_id: ATR_2026_00010
+      reason: "references/workflows.md:57 is a markdown code-fence language tag (```jsonc) introducing a wrangler.jsonc config example; not executable content."
+    - rule_id: ATR_2026_00063
+      reason: "FP: cisco-ai-skill-scanner matched the words 'Webhook'/'Webhooks' (SKILL.md:37,63,209) - a doc-table listing linking to Cloudflare's own Webhooks API reference and a bullet describing that capability, plus 'sendEmail'/'send_email' (references/codemode.md:48, references/email.md:17) - the documented Cloudflare Email Workers API method name. Ordinary capability documentation, no executable threat."
+    - rule_id: ATR_2026_00066
+      reason: "FP: cisco-ai-skill-scanner matched JS/TS template-literal interpolations in SDK example code across several reference files: ${id}/${name} (SKILL.md:151,176; references/callable.md:15; references/client-sdk.md:17), ${await getToken()} (references/client-sdk.md:43), ${location}/${to} (references/codemode.md:46,51), a glob pattern string (references/configuration.md:69), and ${parsed.subject}/${email.from}: ${reason} (references/email.md:40,90). Standard example code, no executable threat."
+    - rule_id: ATR_2026_00161
+      reason: "FP: cisco-ai-skill-scanner matched the substring '.env' inside `this.env.BROWSER` / `this.env.LOADER` (references/browse-the-web.md:26,27,60; references/codemode.md:58) - the Cloudflare Workers `env` bindings object accessed via `this.env`, not a dotenv secrets file."
+    - rule_id: ATR_2026_00450
+      reason: "FP: cisco-ai-skill-scanner matched the literal string `system: \"You are a helpful assistant.\"` (references/codemode.md:65) - a generic, textbook LLM system-prompt example in SDK sample code, not a real embedded instruction override."
