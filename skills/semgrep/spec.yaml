@@ -23,3 +23,5 @@ security:
       reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: ALLOWED_TOOLS_GREP_VIOLATION
       reason: "SKILL.md declares Bash in allowed-tools, which transitively covers regex search via shell tooling; the scanner does not account for this capability."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Risk accepted by maintainer (danbarr, 2026-08-25): the skill clones curated third-party Semgrep ruleset repos (Trail of Bits, 0xdea, Decurity) by GitHub URL to supplement official registry coverage. The rulesets are fixed, skill-selected repos (not arbitrary user-supplied URLs), the content is declarative Semgrep YAML rules rather than executable code, and the user explicitly approves the exact ruleset list at the Step 3 hard gate before any clone happens. Same class of accepted third-party-content exposure as skills/hf-mcp and skills/huggingface-tool-builder."
