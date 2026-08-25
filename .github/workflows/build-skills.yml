@@ -251,8 +251,27 @@ jobs:
           echo "ref=$ref" >> $GITHUB_OUTPUT
           echo "skill_path=$skill_path" >> $GITHUB_OUTPUT
 
+      # Keyed on what the scanner actually reads (repository/ref/path), not on
+      # spec.yaml itself. This lets a spec.version-only follow-up commit (e.g.
+      # the skill-version-autofix job in skill-version-check.yml pushing to a
+      # Renovate PR) reuse the prior scan instead of paying for a second
+      # LLM-based scan of identical source. Deliberately excludes
+      # scan-summary.json: the allowlist evaluation (security.allowed_issues
+      # in spec.yaml) is cheap and must always re-run against the current
+      # spec.yaml, so a PR that only adds/edits an allowlist entry still gets
+      # an up-to-date blocking decision even on a cache hit.
+      - name: Restore cached scan result
+        id: scan-cache
+        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            skill-scan-${{ steps.meta.outputs.skill_name }}.json
+            scanner-version.txt
+          key: skill-scan-v1-${{ steps.meta.outputs.skill_name }}-${{ steps.meta.outputs.repository }}-${{ steps.meta.outputs.ref }}-${{ steps.meta.outputs.skill_path }}-${{ hashFiles('scripts/skill-scan/requirements.txt') }}
+
       - name: Check out skill source
         id: skill-src
+        if: steps.scan-cache.outputs.cache-hit != 'true'
         env:
           SKILL_REPO: ${{ steps.meta.outputs.repository }}
           SKILL_REF: ${{ steps.meta.outputs.ref }}
@@ -277,6 +296,7 @@ jobs:
 
       - name: Run skill security scan
         id: scan
+        if: steps.scan-cache.outputs.cache-hit != 'true'
         env:
           # LLM analyzer (LiteLLM-driven). Reuses the same provider key as the
           # MCP scanner — single secret across both pipelines, single rotation.
@@ -288,13 +308,8 @@ jobs:
           SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
           # Optional consensus voting — N>1 multiplies LLM cost per scan.
           SKILL_SCANNER_LLM_CONSENSUS_RUNS: ${{ vars.SKILL_SCANNER_LLM_CONSENSUS_RUNS }}
-          # Severity threshold for blocking. Findings below this severity are
-          # surfaced as warnings but do not fail the job. One of: INFO, LOW,
-          # MEDIUM, HIGH, CRITICAL. Tune via PR.
-          SKILL_SCANNER_BLOCK_SEVERITY: HIGH
           SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
           SOURCE_DIR: ${{ steps.skill-src.outputs.source_dir }}
-          CONFIG_FILE: ${{ matrix.config }}
           SCANNER_VERSION: ${{ steps.install-deps.outputs.scanner_version }}
         run: |
           scan_output="skill-scan-${SKILL_NAME}.json"
@@ -310,14 +325,30 @@ jobs:
             cat "$scan_stderr"
           fi
 
+          echo "$SCANNER_VERSION" > scanner-version.txt
+
+      # Always runs, cache hit or not: evaluates the (possibly cached) raw
+      # scan output against the current spec.yaml, so a PR that edits
+      # security.allowed_issues gets an up-to-date blocking decision without
+      # re-running the LLM scan.
+      - name: Evaluate scan results against allowlist
+        id: evaluate
+        env:
+          # Severity threshold for blocking. Findings below this severity are
+          # surfaced as warnings but do not fail the job. One of: INFO, LOW,
+          # MEDIUM, HIGH, CRITICAL. Tune via PR.
+          SKILL_SCANNER_BLOCK_SEVERITY: HIGH
+          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          scan_output="skill-scan-${SKILL_NAME}.json"
+
           # process_scan_results.py exits 1 on unallowlisted findings — that fails the job.
           python3 scripts/skill-scan/process_scan_results.py \
             "$scan_output" \
             "$SKILL_NAME" \
             "$CONFIG_FILE" \
             > scan-summary.json
-
-          echo "$SCANNER_VERSION" > scanner-version.txt
 
       - name: Upload scan results
         if: always()
