@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "87f9ee5b670a630b022809a8742606c6da21812c"  # main as of 2026-04-16
+  ref: "ec0108293521ef698e451ec044e8b4feba6b732b"  # main as of 2026-04-16
   path: "skills/huggingface-paper-publisher"
-  version: "0.2.0"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/huggingface/skills"
@@ -46,3 +46,21 @@ security:
         module. All network destinations are huggingface.co or
         export.arxiv.org. Verified at digest
         acd2bf5a7126994e15143bec061fe87a882811f3.
+    - rule_id: ATR_2026_01610
+      reason: "FP: renumbered successor of the ATR_2026_00111 finding above - same `$(cat citation.txt)` (SKILL.md:118) / `$(cat abstract.txt)` (SKILL.md:196) command-substitution fragments reading local user-authored paper text; no untrusted input, no host command injection."
+    - rule_id: LLM_COMMAND_INJECTION
+      reason: "Same root cause as the allowlisted ATR_2026_00111/ATR_2026_01610 findings: `$(cat citation.txt)` / `$(cat abstract.txt)` read local files the user authored themselves as CLI arguments to the bundled paper_manager.py script; not attacker-controlled input."
+    - rule_id: LLM_SUPPLY_CHAIN_ATTACK
+      reason: "SKILL.md documents its bundled script's Python dependencies with minimum-version (>=) constraints (huggingface_hub, pyyaml, requests, markdown, python-dotenv) in an informational 'Dependencies' list read by a human setting up the script locally; Dockyard does not execute or resolve this list at packaging or run time, so it isn't an exploitable install path here. Accepted as inherent to how this vendored skill documents its own script's requirements."
+    - rule_id: LLM_UNAUTHORIZED_TOOL_USE
+      reason: |
+        Accepted risk, not a false positive - the skill's `link` command
+        genuinely does write metadata/citations directly to the
+        user-specified Hugging Face repo by default (the --create-pr flag,
+        which routes changes through a PR instead, is optional rather than
+        default). This is real, intended behavior: the user supplies their
+        own write-scoped HF_TOKEN and explicitly names the target repo-id,
+        so it operates only on repos the user already controls and named,
+        not an arbitrary or attacker-chosen target. Accepted as inherent to
+        a first-party HF metadata-publishing tool rather than disputed as
+        inapplicable.
