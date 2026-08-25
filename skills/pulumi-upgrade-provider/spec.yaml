@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/pulumi/agent-skills"
-  ref: "d083ad2cc8e3fecc4375f2dfe2edde941668df22"
+  ref: "641c2fe26d673e4369ca51fd8aaeb5e126f852b9"
   path: "package-maintenance/skills/pulumi-upgrade-provider"
-  version: "0.2.2"
+  version: "0.2.3"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
@@ -28,3 +28,5 @@ security:
     # `gh api`). Neither reads untrusted input or escalates privilege.
     - rule_id: ATR_2026_00111
       reason: "FP: cisco-ai-skill-scanner matched $(git branch --show-current) and $(cat /tmp/pr_body.txt) in SKILL.md's documented post-run steps; both are read-only/self-authored substitutions (branch name lookup, re-reading a locally-written temp file), not privilege escalation."
+    - rule_id: ATR_2026_01610
+      reason: "FP: cisco-ai-skill-scanner matched $(cat /tmp/pr_body.txt) in SKILL.md's documented post-run steps (rule renumbered from ATR_2026_00111 in this scanner version); read-only re-read of a locally-written temp file used to PATCH the PR body via `gh api`, not privilege escalation or untrusted input."

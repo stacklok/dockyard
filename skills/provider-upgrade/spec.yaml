@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/pulumi/agent-skills"
-  ref: "d083ad2cc8e3fecc4375f2dfe2edde941668df22"
+  ref: "641c2fe26d673e4369ca51fd8aaeb5e126f852b9"
   path: "pulumi/skills/provider-upgrade"
-  version: "0.1.5"
+  version: "0.1.6"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
@@ -46,3 +46,5 @@ security:
     # executable, a standard install step, not a privilege-escalation pattern.
     - rule_id: ATR_2026_00040
       reason: "FP: cisco-ai-skill-scanner matched 'chmod' in the documented schema-tools install script (references/diagnostic-toolbox.md), which does `chmod +x /tmp/schema-tools` on the binary it just downloaded and extracted. Standard install step, not privilege escalation."
+    - rule_id: ATR_2026_00064
+      reason: "cisco-ai-skill-scanner matched 'chmod +x' in the documented schema-tools install script (references/diagnostic-toolbox.md:48) (rule renumbered from ATR_2026_00040 in this scanner version). This allowlisting addresses only the privilege-escalation pattern match: making a just-downloaded binary executable is not itself a privilege-escalation technique. It does not establish trust in the downloaded schema-tools release binary's provenance/integrity - that is a separate supply-chain question (no checksum verification is documented in this step) and is not resolved by this entry."
