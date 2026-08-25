@@ -27,3 +27,5 @@ security:
       reason: "Matches the phrase 'secret argument' in tools/scripts/check_llvm_patterns.py where it labels compiler-detected patterns; the skill audits zeroization of secrets so references to the word 'secret' are expected."
     - rule_id: DATA_EXFIL_SENSITIVE_FILES
       reason: "tools/scripts/check_rust_asm.py reads a JSON config of Rust symbol names to audit; 'secrets_path' is the skill's internal config file path, not exfiltration of user secrets."
+    - rule_id: BEHAVIOR_EVAL_SUBPROCESS
+      reason: "FP: matched list-form subprocess.run() calls in tools/generate_poc.py (invokes sys.executable + a local script with fixed flag names) and tools/scripts/check_rust_asm.py (invokes the fixed command 'rustfilt' with a timeout, input piped via stdin). Neither uses shell=True or attacker-controlled arguments. Carried forward from #740, revalidated against this ref."
