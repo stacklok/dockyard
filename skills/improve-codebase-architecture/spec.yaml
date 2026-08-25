@@ -27,3 +27,7 @@ security:
     # the official Tailwind and Mermaid CDNs and no user data is transmitted anywhere.
     - rule_id: PG_EXFIL_HTML_TAG
       reason: "FP: scanner matched the Tailwind CDN <script> tag in HTML-REPORT.md's static report scaffold; a script include from the official CDN in a local, self-contained report template, no data exfiltration."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Risk accepted by maintainer (danbarr, 2026-08-25): SKILL.md instructs the agent to read and incorporate CONTEXT.md and ADR files from docs/adr/ into its architectural analysis. These are project-local files the user already trusts and maintains; processing them is the skill's documented purpose (aligning suggestions with existing domain vocabulary and decisions). Same class of accepted risk as skills/hf-mcp and skills/huggingface-tool-builder."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Risk accepted by maintainer (danbarr, 2026-08-25): SKILL.md instructs the agent to run `git log --oneline` to find commit-history hot spots that guide where to focus analysis. Commit messages come from the project's own history, which the user already trusts; using them as a weighting signal is the skill's documented purpose, not processing of arbitrary external input."
