@@ -77,8 +77,11 @@ def main() -> None:
     else:
         cmd = ["uv", "run", "--with", "cisco-ai-skill-scanner", "skill-scanner"] + scanner_args
 
+    # 600s was too short for large skills (#903); configurable, default 1800.
+    scan_timeout = int(os.environ.get("SKILL_SCANNER_TIMEOUT_SECONDS", "1800"))
+
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=600)
+        result = subprocess.run(cmd, capture_output=True, text=True, check=False, timeout=scan_timeout)
         if result.stdout:
             print(result.stdout)
         if result.stderr:
@@ -91,7 +94,7 @@ def main() -> None:
             )
         sys.exit(0)
     except subprocess.TimeoutExpired:
-        print("Error running skill-scanner: scan timed out after 600 seconds", file=sys.stderr)
+        print(f"Error running skill-scanner: scan timed out after {scan_timeout} seconds", file=sys.stderr)
         sys.exit(1)
     except FileNotFoundError as e:
         print(f"Error running skill-scanner: {e}", file=sys.stderr)
