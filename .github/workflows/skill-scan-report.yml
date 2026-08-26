@@ -1,10 +1,17 @@
 # Runs in the base repository context so it can comment on PRs from forks.
 # Triggered after Build Skill Artifacts completes; downloads scan artifacts
 # and upserts a single "Skill Security Scan Results" PR comment.
+#
+# `workflow_run` is required for that base-repo write access; the trade-off it
+# flags is a privileged workflow trusting event data from an untrusted run.
+# This workflow never checks out or executes the triggering run's code, and
+# the only value it takes from it (the PR number, read from an artifact) is
+# used solely to target the comment, so a bad value means a comment lands on
+# the wrong PR, not privilege escalation.
 name: Skill Scan Report
 
 on:
-  workflow_run:
+  workflow_run:   # zizmor: ignore[dangerous-triggers]
     workflows: ["Build Skill Artifacts"]
     types: [completed]
 
