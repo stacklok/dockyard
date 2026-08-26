@@ -72,8 +72,8 @@ jobs:
     runs-on: ubuntu-latest
     # Only apply the auto-fix for the Renovate bot.
     if: >
-      github.actor == 'renovate[bot]' ||
-      github.actor == 'dependabot[bot]'
+      github.event.pull_request.user.login == 'renovate[bot]' ||
+      github.event.pull_request.user.login == 'dependabot[bot]'
     # No GITHUB_TOKEN access — the push uses a GitHub App installation token
     # (see the "Generate GitHub App token" step below).  Going through the App
     # is required because commits made with the default GITHUB_TOKEN do not
@@ -104,6 +104,9 @@ jobs:
           # Use the head ref directly so we can push to it.
           ref: ${{ github.event.pull_request.head.ref }}
           token: ${{ steps.app-token.outputs.token }}
+          # This job pushes a commit at the end (see "Commit version bumps"
+          # below), so the checkout credential must stay persisted.
+          persist-credentials: true
 
       - name: Set up Go
         uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
