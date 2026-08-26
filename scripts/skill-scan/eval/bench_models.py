@@ -6,9 +6,9 @@ once per model per repetition, and scores each model on:
 
   - latency: wall-clock scan duration
   - blocking churn: findings that would block CI *today* (i.e. not covered
-    by the skill's current allowlist). Every historical blocking finding was
-    human-reviewed and allowlisted as a false positive, so for this corpus
-    any blocking finding is almost certainly noise. Lower is better.
+    by the skill's current allowlist). This measures operational churn, but
+    findings still need review: some are legitimate trust boundaries rather
+    than scanner noise.
   - noise volume: HIGH+ findings ignoring the allowlist entirely. This is
     what a maintainer would have had to triage from scratch. Lower is better.
   - stability: mean pairwise Jaccard similarity of the LLM-analyzer finding

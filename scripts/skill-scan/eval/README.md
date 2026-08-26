@@ -15,10 +15,10 @@ Two problems with the current setup:
    serial LLM output generation, so a faster model directly cuts scan time.
 
 Hypothesis: a faster/cheaper model produces similar blocking decisions on
-this corpus. All historical blocking findings on these skills were
-human-reviewed false positives (see `security.allowed_issues` in the
-spec.yaml files), so the model comparison here is about noise, stability,
-and speed, not detection.
+this corpus. The current allowlists capture previously accepted findings,
+but a new unallowlisted finding is not automatically noise: finding-level
+review is required to distinguish scanner churn from a legitimate trust
+boundary. Detection recall is measured separately on malicious fixtures.
 
 ## Leg 1: Dockyard corpus (noise / stability / latency)
 
@@ -67,7 +67,8 @@ spec.yaml, with `SKILL_SCANNER_LLM_TEMPERATURE=0.0`, using the same
 Metrics per skill x model (see `summary.md` in the results dir):
 
 - **Blocking/run**: findings not covered by the current allowlist. This is
-  the "PR fails CI again" event; on this corpus it is near-certainly noise.
+  the "PR fails CI again" event and measures operational churn. Inspect the
+  findings before calling them false positives.
 - **HIGH+ noise/run**: blocking findings with the allowlist disabled, i.e.
   total triage burden a maintainer would face from scratch.
 - **LLM stability**: mean pairwise Jaccard similarity of the LLM-analyzer
@@ -81,24 +82,43 @@ scanner's eval framework, which ships curated malicious/safe skills with
 `_expected.json` ground truth:
 
 ```bash
-git clone https://github.com/cisco-ai-defense/skill-scanner
-cd skill-scanner
-export SKILL_SCANNER_LLM_API_KEY=... SKILL_SCANNER_LLM_MODEL=anthropic/claude-haiku-4-5
-uv run python evals/runners/benchmark_runner.py --output results-haiku.json
-# repeat per candidate model, compare precision/recall/F1
+git clone --branch 2.0.13 --depth 1 \
+  https://github.com/cisco-ai-defense/skill-scanner \
+  scripts/skill-scan/eval/results/recall-source-2.0.13
+
+python3 scripts/skill-scan/eval/bench_recall.py \
+  --scanner-source scripts/skill-scan/eval/results/recall-source-2.0.13 \
+  --models anthropic/claude-sonnet-4-6 openai/gpt-5.6-terra \
+  --runs 3
 ```
 
-A candidate model must not lose recall on that corpus relative to the
-production model.
+Do not use the scanner's bundled `benchmark_runner.py` for a model
+comparison: in scanner 2.0.13 it constructs `SkillScanner()` with the core
+analyzers only and does not enable the LLM or meta analyzers. `bench_recall.py`
+instead sends every fixture through Dockyard's production `run_scan.py` path.
+
+The recall summary reports fixture-level blocking decisions, safe-fixture
+false positives, expected-category coverage at any severity and at HIGH+,
+wall time, and token usage. A candidate must preserve fixture-level malicious
+and safe decisions; severity/category differences should then be reviewed.
 
 ## Decision criteria
 
 Prefer the cheapest/fastest model that, relative to `claude-sonnet-4-6`:
 
-- has equal or better LLM stability (Jaccard),
-- does not increase mean blocking findings per run on the Dockyard corpus,
-- loses no recall on the scanner's ground-truth corpus,
+- preserves malicious/safe fixture-level decisions on the recall corpus,
+- has acceptable LLM stability and operational blocking churn,
+- does not introduce materially worse finding-level false positives,
 - and cuts p95 scan latency meaningfully.
+
+Aggregate counts are screening metrics, not a substitute for reviewing the
+actual findings. A candidate can report more blockers because it catches a
+real execution boundary, or fewer blockers because it misses one.
+
+## Evaluation records
+
+- [`reports/2026-08-26-sonnet-4.6-vs-terra.md`](reports/2026-08-26-sonnet-4.6-vs-terra.md)
+  records the initial Sonnet 4.6 versus GPT-5.6 Terra shootout.
 
 Orthogonal knobs worth testing in the same harness (both from #904):
 
