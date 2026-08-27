@@ -1,0 +1,27 @@
+# Cloudflare One Skill
+# Source: https://github.com/cloudflare/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/cloudflare-one:0.1.0
+
+metadata:
+  name: cloudflare-one
+  description: >-
+    Guides Cloudflare One Zero Trust and SASE work across Access, Gateway, WARP,
+    Tunnel, Cloudflare WAN, DLP, CASB, device posture, and identity. Use when
+    designing, configuring, troubleshooting, or reviewing Cloudflare One
+    deployments. Retrieval-first: use current Cloudflare docs/API schemas
+    instead of embedded product docs.
+
+spec:
+  repository: "https://github.com/cloudflare/skills"
+  ref: "f96bff754e428838818017f75817f0f9428acd48"  # main as of 2026-08-07
+  path: "skills/cloudflare-one"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/cloudflare/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

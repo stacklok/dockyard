@@ -1,0 +1,26 @@
+# Cloudflare Sandbox Migrate to Next Skill
+# Source: https://github.com/cloudflare/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/sandbox-migrate-to-next:0.1.0
+
+metadata:
+  name: sandbox-migrate-to-next
+  description: >-
+    Use when porting a Cloudflare Sandbox app from stable @cloudflare/sandbox
+    to @cloudflare/sandbox@next (Sandbox SDK 1.0 preview), or when the user asks
+    to migrate or upgrade to Sandbox 1.0 / @next. Not for day-to-day stable work
+    (sandbox-stable) or new @next apps (sandbox-next).
+
+spec:
+  repository: "https://github.com/cloudflare/skills"
+  ref: "f96bff754e428838818017f75817f0f9428acd48"  # main as of 2026-08-07
+  path: "skills/sandbox-migrate-to-next"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/cloudflare/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
