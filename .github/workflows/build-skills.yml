@@ -303,12 +303,12 @@ jobs:
         id: scan
         if: steps.scan-cache.outputs.cache-hit != 'true'
         env:
-          # LLM analyzer (LiteLLM-driven). Reuses the same provider key as the
-          # MCP scanner — single secret across both pipelines, single rotation.
+          # LLM analyzer (LiteLLM-driven). Uses its own provider key, separate
+          # from the MCP scanner's.
           # Toggle via repo variable SKILL_SCANNER_USE_LLM=false to disable in a pinch.
           SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
-          SKILL_SCANNER_LLM_API_KEY: ${{ secrets.MCP_SCANNER_LLM_API_KEY }}
-          # Dedicated model knob — set to e.g. anthropic/claude-sonnet-4. If unset,
+          SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
+          # Dedicated model knob — set via repo variable. If unset,
           # skill-scanner falls back to its built-in default (claude-3-5-sonnet-...).
           SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
           # Optional consensus voting — N>1 multiplies LLM cost per scan.
