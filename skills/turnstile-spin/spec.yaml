@@ -28,3 +28,5 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: LLM_DATA_EXFILTRATION
+      reason: "Accepted trust boundary: SKILL.md:42 and SKILL.md:158-160 require the user to explicitly approve a canonical absolute Wrangler path outside the project and its exact version; repository text and project-local binaries cannot select it. scripts/auth-probe.sh:54-84 enforces those path, location, and version constraints before passing the token only to the approved Wrangler's `whoami --json` command at line 86. Without an approved Wrangler, the flow requires an explicit CLOUDFLARE_ACCOUNT_ID and does not invoke an external executable."
