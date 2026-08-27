@@ -311,6 +311,11 @@ jobs:
           # Dedicated model knob — set via repo variable. If unset,
           # skill-scanner falls back to its built-in default (claude-3-5-sonnet-...).
           SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
+          # GPT-5.x reasoning models reject any explicit temperature value
+          # (LiteLLM's drop_params doesn't catch this for every routing path,
+          # see #909); "none" omits the parameter entirely, matching the
+          # eval harness's workaround in scripts/skill-scan/eval/bench_models.py.
+          SKILL_SCANNER_LLM_TEMPERATURE: ${{ contains(vars.SKILL_SCANNER_LLM_MODEL, 'gpt-5') && 'none' || vars.SKILL_SCANNER_LLM_TEMPERATURE }}
           # Optional consensus voting — N>1 multiplies LLM cost per scan.
           SKILL_SCANNER_LLM_CONSENSUS_RUNS: ${{ vars.SKILL_SCANNER_LLM_CONSENSUS_RUNS }}
           SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
