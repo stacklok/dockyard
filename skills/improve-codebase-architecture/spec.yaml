@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "84fdeffd12f2ee307994d1eb6feb48173b6e0502"  # main as of 2026-08-06
+  ref: "068b6e0c62393147daf03530149cdce209c93da8"  # main as of 2026-08-06
   path: "skills/engineering/improve-codebase-architecture"
-  version: "0.4.1"
+  version: "0.4.2"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
@@ -27,3 +27,7 @@ security:
     # the official Tailwind and Mermaid CDNs and no user data is transmitted anywhere.
     - rule_id: PG_EXFIL_HTML_TAG
       reason: "FP: scanner matched the Tailwind CDN <script> tag in HTML-REPORT.md's static report scaffold; a script include from the official CDN in a local, self-contained report template, no data exfiltration."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Risk accepted by maintainer (danbarr, 2026-08-25): SKILL.md instructs the agent to read and incorporate CONTEXT.md and ADR files from docs/adr/ into its architectural analysis. These are project-local files the user already trusts and maintains; processing them is the skill's documented purpose (aligning suggestions with existing domain vocabulary and decisions). Same class of accepted risk as skills/hf-mcp and skills/huggingface-tool-builder."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Risk accepted by maintainer (danbarr, 2026-08-25): SKILL.md instructs the agent to run `git log --oneline` to find commit-history hot spots that guide where to focus analysis. Commit messages come from the project's own history, which the user already trusts; using them as a weighting signal is the skill's documented purpose, not processing of arbitrary external input."
