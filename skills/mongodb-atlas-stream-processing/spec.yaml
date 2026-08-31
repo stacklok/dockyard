@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/mongodb/agent-skills"
   ref: "47cc46148f53145eb9b880d2bf1aa89bc9097818"
   path: "skills/mongodb-atlas-stream-processing"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/mongodb/agent-skills"
