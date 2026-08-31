@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"  # main as of 2026-04-17
+  ref: "d1f1575cff97816e5cc08af66cd2506099c681d3"  # main as of 2026-04-17
   path: "plugins/static-analysis/skills/semgrep"
   version: "0.2.1"
 
