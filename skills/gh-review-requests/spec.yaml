@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "6abccd60c704f669423d6a06ff0809fa39513ce8"  # main as of 2026-04-20
+  ref: "c2f99a5b04b4cd992ec3022d7c2c3e23e938d241"  # main as of 2026-04-20
   path: "skills/gh-review-requests"
   version: "0.2.2"
 
