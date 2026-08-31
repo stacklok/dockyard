@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/trailofbits/skills"
   ref: "d1f1575cff97816e5cc08af66cd2506099c681d3"
   path: "plugins/constant-time-analysis/skills/constant-time-analysis"
-  version: "0.3.0"
+  version: "0.3.1"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"

@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/trailofbits/skills"
   ref: "d1f1575cff97816e5cc08af66cd2506099c681d3"  # main as of 2026-04-17
   path: "plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
