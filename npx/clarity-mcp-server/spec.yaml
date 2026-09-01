@@ -1,0 +1,23 @@
+# Microsoft Clarity MCP Server Configuration
+# Official Microsoft Clarity MCP server for website analytics, session
+# recordings, and behavior insights via the Clarity Data Export API
+# Package: https://www.npmjs.com/package/@microsoft/clarity-mcp-server
+# Repository: https://github.com/microsoft/clarity-mcp-server
+# Will build as: ghcr.io/stacklok/dockyard/npx/clarity-mcp-server:2.0.1
+
+metadata:
+  name: clarity-mcp-server
+  description: "MCP Server for Microsoft Clarity based on data export API"
+  protocol: npx
+
+spec:
+  package: "@microsoft/clarity-mcp-server"
+  version: "2.0.1"
+
+provenance:
+  repository_uri: "https://github.com/microsoft/clarity-mcp-server"
+  repository_ref: "refs/heads/main"
+
+security:
+  # Server requires --clarity_api_token to start - cannot be scanned in CI
+  insecure_ignore: true
