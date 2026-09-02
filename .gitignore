@@ -48,3 +48,6 @@ yarn-error.log*
 
 # Task runtime files
 .task/
+
+# Python bytecode caches (scripts/skill-scan tooling)
+__pycache__/
