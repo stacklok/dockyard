@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/atlassian/forge-skills"
-  ref: "a8eb109708de685dbad5b92eb25890d0a20addff"  # main as of 2026-04-19
+  ref: "294b53da6b20f423be2068596425b499ed8cd730"  # main as of 2026-04-19
   path: "skills/forge-debugger"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/atlassian/forge-skills"
