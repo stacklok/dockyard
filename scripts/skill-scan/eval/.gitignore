@@ -1,0 +1,3 @@
+# Raw scan outputs, downloaded CI artifacts, and cloned skill sources —
+# regenerable and large. Summary tables belong in the tracking issue.
+results/
