@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+  ref: "d1f1575cff97816e5cc08af66cd2506099c681d3"
   path: "plugins/semgrep-rule-creator/skills/semgrep-rule-creator"
-  version: "0.2.2"
+  version: "0.2.3"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
