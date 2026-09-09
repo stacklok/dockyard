@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "6abccd60c704f669423d6a06ff0809fa39513ce8"
+  ref: "c2f99a5b04b4cd992ec3022d7c2c3e23e938d241"
   path: "skills/gha-security-review"
-  version: "0.3.1"
+  version: "0.3.2"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
