@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/hashicorp/agent-skills"
-  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  ref: "326846817128fd1d052d25fbfded490ce2c5886e"  # main as of 2026-08-10
   path: "plugins/terraform/skills/terraform-style-guide"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/hashicorp/agent-skills"
