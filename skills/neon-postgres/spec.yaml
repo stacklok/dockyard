@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/neondatabase/agent-skills"
-  ref: "e20e68996aa1dbd5cf4d2c981e5357cdefd8f5bd"  # main as of 2026-04-14
+  ref: "8370e740b4705a79d104b24dd29b3e33c8688378"  # main as of 2026-04-14
   path: "skills/neon-postgres"
-  version: "0.1.8"
+  version: "0.1.9"
 
 provenance:
   repository_uri: "https://github.com/neondatabase/agent-skills"
