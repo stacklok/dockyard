@@ -16,9 +16,9 @@ metadata:
 
 spec:
   repository: "https://github.com/cloudflare/skills"
-  ref: "f96bff754e428838818017f75817f0f9428acd48"  # main as of 2026-08-07
+  ref: "b052c32bab7dd493513260228a36c88294f343f1"  # main as of 2026-08-07
   path: "skills/turnstile-spin"
-  version: "0.1.0"
+  version: "0.1.1"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"
