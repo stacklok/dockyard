@@ -11,7 +11,7 @@ metadata:
 
 spec:
   repository: "https://github.com/pinecone-io/skills"
-  ref: "e353489827928df56f785ccb203bc059773516de"  # main as of 2026-03-11
+  ref: "ade99bae71daf678ce79fe66002852cb0b43cbf1"  # main as of 2026-03-11
   path: "skills/pinecone-mcp"
   version: "0.2.0"
 
