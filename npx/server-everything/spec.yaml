@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@modelcontextprotocol/server-everything"
-  version: "2026.8.18"
+  version: "2026.8.31"
 
 provenance:
   repository_uri: "https://github.com/modelcontextprotocol/servers"
