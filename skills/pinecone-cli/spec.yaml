@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/pinecone-io/skills"
   ref: "ade99bae71daf678ce79fe66002852cb0b43cbf1"  # main as of 2026-03-11
   path: "skills/pinecone-cli"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/pinecone-io/skills"
