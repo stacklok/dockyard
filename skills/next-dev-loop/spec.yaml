@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/vercel/next.js"
   ref: "748cc4a6e8b046f2c61cc3f28378c78c7e7a9492"  # canary as of 2026-08-06
   path: "skills/next-dev-loop"
-  version: "0.2.0"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/vercel/next.js"
