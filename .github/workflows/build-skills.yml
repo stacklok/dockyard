@@ -177,6 +177,7 @@ jobs:
       pr-number: ${{ steps.resolve.outputs.pr-number }}
       run-attempt: ${{ steps.resolve.outputs.run-attempt }}
       run-id: ${{ steps.resolve.outputs.run-id }}
+      fallback: ${{ steps.resolve.outputs.fallback }}
     steps:
       - name: Resolve approved pull-request scan
         id: resolve
@@ -217,54 +218,53 @@ jobs:
             }
 
             const pr = merged[0];
+            core.setOutput('head-sha', pr.head.sha);
+            core.setOutput('pr-number', String(pr.number));
             const identityName = `trusted-scan-identity-pr-${pr.number}-${pr.head.sha}`;
-            const identities = await github.paginate(
-              github.rest.actions.listArtifactsForRepo,
-              {
-                owner: context.repo.owner,
-                repo: context.repo.repo,
-                name: identityName,
-                per_page: 100,
-              },
-            );
-            const available = identities
-              .filter(artifact => !artifact.expired && artifact.workflow_run)
-              .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
-            if (available.length === 0) {
-              core.setFailed(
-                `No unexpired ${identityName} artifact exists; refusing to publish.`
-              );
-              return;
-            }
-            const approvedRunId = available[0].workflow_run.id;
-            const approvedRun = await github.rest.actions.getWorkflowRun({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              run_id: approvedRunId,
-            });
             const expectedTitle = `Trusted skill scan for PR #${pr.number} at ${pr.head.sha}`;
-            const recentRuns = await github.paginate(
-              github.rest.actions.listWorkflowRuns,
-              {
+            const matchingRuns = async () => {
+              const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: 'trusted-skill-scan.yml',
                 event: 'pull_request_target',
-                created: `>=${approvedRun.data.created_at.slice(0, 10)}`,
                 per_page: 100,
-              },
-            );
-            const applicable = recentRuns
-              .filter(run => run.display_title === expectedTitle)
-              .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
-            if (applicable.length === 0 || applicable[0].id !== approvedRunId) {
+              });
+              return runs
+                .filter(run => run.display_title === expectedTitle)
+                .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+            };
+
+            let applicable = await matchingRuns();
+            const appearanceDeadline = Date.now() + 2 * 60 * 1000;
+            while (applicable.length === 0 && Date.now() < appearanceDeadline) {
+              core.info(`No matching trusted scan is visible yet; waiting 15 seconds.`);
+              await new Promise(resolve => setTimeout(resolve, 15_000));
+              applicable = await matchingRuns();
+            }
+            if (applicable.length === 0) {
+              core.warning(`No trusted PR scan exists for PR #${pr.number}; using the current trusted scanner.`);
+              core.setOutput('fallback', 'true');
+              return;
+            }
+
+            let latest = applicable[0];
+            const deadline = Date.now() + 30 * 60 * 1000;
+            while (latest.status !== 'completed' && Date.now() < deadline) {
+              core.info(`Trusted scan run ${latest.id} is ${latest.status}; waiting 30 seconds.`);
+              await new Promise(resolve => setTimeout(resolve, 30_000));
+              const refreshed = await matchingRuns();
+              if (refreshed.length > 0) {
+                applicable = refreshed;
+                latest = applicable[0];
+              }
+            }
+            if (latest.status !== 'completed') {
               core.setFailed(
-                `Run ${approvedRunId} is not the newest trusted scan for PR #${pr.number}; ` +
-                'an older success cannot approve publishing.'
+                `Timed out waiting for trusted scan run ${latest.id} for PR #${pr.number}.`
               );
               return;
             }
-            const latest = approvedRun.data;
             if (
               latest.conclusion !== 'success' ||
               latest.event !== 'pull_request_target' ||
@@ -276,10 +276,24 @@ jobs:
               return;
             }
 
-            core.setOutput('head-sha', pr.head.sha);
-            core.setOutput('pr-number', String(pr.number));
+            const artifacts = await github.paginate(
+              github.rest.actions.listWorkflowRunArtifacts,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: latest.id,
+                per_page: 100,
+              },
+            );
+            if (!artifacts.some(artifact => artifact.name === identityName && !artifact.expired)) {
+              core.warning(`Run ${latest.id} has no current ${identityName}; using the current trusted scanner.`);
+              core.setOutput('fallback', 'true');
+              return;
+            }
+
             core.setOutput('run-attempt', String(latest.run_attempt));
             core.setOutput('run-id', String(latest.id));
+            core.setOutput('fallback', 'false');
             core.info(
               `Using trusted scan from PR #${pr.number}, run ${latest.id}, ` +
               `attempt ${latest.run_attempt}.`
@@ -342,17 +356,59 @@ jobs:
           echo "ref=$ref" >> $GITHUB_OUTPUT
           echo "skill_path=$skill_path" >> $GITHUB_OUTPUT
 
+      - name: Validate skill source identity
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          python3 - <<'PY'
+          import re
+          from pathlib import PurePosixPath
+          from urllib.parse import urlsplit
+          import os
+          import yaml
+
+          with open(os.environ['CONFIG_FILE'], encoding='utf-8') as stream:
+              doc = yaml.safe_load(stream) or {}
+          spec = doc.get('spec') or {}
+          repository = spec.get('repository') or ''
+          ref = spec.get('ref') or ''
+          path = spec.get('path') or ''
+          parsed_repository = urlsplit(repository)
+          if (
+              parsed_repository.scheme != 'https'
+              or not parsed_repository.hostname
+              or parsed_repository.username
+              or parsed_repository.password
+              or any(char.isspace() for char in repository)
+          ):
+              raise SystemExit('spec.repository must be a public HTTPS URL')
+          if not re.fullmatch(r'[0-9a-fA-F]{40}', ref):
+              raise SystemExit('spec.ref must be a full 40-character commit SHA')
+          parsed_path = PurePosixPath(path)
+          if path and (
+              parsed_path.is_absolute()
+              or '..' in parsed_path.parts
+              or not re.fullmatch(r'[A-Za-z0-9._/-]+', path)
+          ):
+              raise SystemExit('spec.path must be a safe repository-relative POSIX path')
+          if (doc.get('security') or {}).get('insecure_ignore') is True:
+              raise SystemExit('security.insecure_ignore cannot approve a trusted scan')
+          PY
+
       - name: Download trusted pull-request scan
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: download-approved-scan
+        if: needs.resolve-pr-scan.outputs.fallback != 'true'
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
           name: trusted-skill-scan-${{ steps.meta.outputs.skill_name }}
           path: /tmp/approved-skill-scan
           run-id: ${{ needs.resolve-pr-scan.outputs.run-id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true
 
       - name: Verify trusted pull-request scan
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        id: verify-approved-scan
+        if: needs.resolve-pr-scan.outputs.fallback != 'true'
         env:
           APPROVED_HEAD_SHA: ${{ needs.resolve-pr-scan.outputs.head-sha }}
           APPROVED_PR_NUMBER: ${{ needs.resolve-pr-scan.outputs.pr-number }}
@@ -377,7 +433,7 @@ jobs:
 
           for required in "$approval" "$approved_scan" "$approved_summary" "$approved_version"; do
             if [ ! -f "$required" ]; then
-              echo "::error title=PR scan approval incomplete::Missing ${required}; refusing to rescan on main."
+              echo "::error title=PR scan approval incomplete::Missing ${required}; falling back to the current trusted scanner."
               exit 1
             fi
           done
@@ -457,6 +513,81 @@ jobs:
           cp "$approved_version" scanner-version.txt
           cp "$approval" scan-approval.json
           echo "Reusing the verified scan approved by PR #${APPROVED_PR_NUMBER} (run ${APPROVED_RUN_ID}, attempt ${APPROVED_RUN_ATTEMPT})."
+        continue-on-error: true
+
+      - name: Set up uv for fallback scan
+        if: needs.resolve-pr-scan.outputs.fallback == 'true' || steps.verify-approved-scan.outcome != 'success'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install fallback scanner
+        if: needs.resolve-pr-scan.outputs.fallback == 'true' || steps.verify-approved-scan.outcome != 'success'
+        env:
+          EXPECTED_SCANNER_VERSION: ${{ steps.install-deps.outputs.scanner_version }}
+        run: |
+          set -euo pipefail
+          uv pip install --system -r scripts/skill-scan/requirements.txt
+          installed=$(uv pip show cisco-ai-skill-scanner | awk '/^Version:/ {print $2}')
+          test "$installed" = "$EXPECTED_SCANNER_VERSION"
+          skill-scanner --version
+
+      - name: Check out source for fallback scan
+        id: fallback-source
+        if: needs.resolve-pr-scan.outputs.fallback == 'true' || steps.verify-approved-scan.outcome != 'success'
+        env:
+          SKILL_REPO: ${{ steps.meta.outputs.repository }}
+          SKILL_REF: ${{ steps.meta.outputs.ref }}
+          SKILL_PATH: ${{ steps.meta.outputs.skill_path }}
+          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
+        run: |
+          set -euo pipefail
+          workdir="/tmp/skill-scan-${SKILL_NAME}"
+          git clone --filter=tree:0 --no-checkout --quiet -- "$SKILL_REPO" "$workdir/repo"
+          git -C "$workdir/repo" checkout --detach --quiet "$SKILL_REF"
+          test "$(git -C "$workdir/repo" rev-parse HEAD)" = "${SKILL_REF,,}"
+          if [ -n "$SKILL_PATH" ]; then
+            source_dir="$workdir/repo/$SKILL_PATH"
+            tree=$(git -C "$workdir/repo" rev-parse "$SKILL_REF:$SKILL_PATH")
+          else
+            source_dir="$workdir/repo"
+            tree=$(git -C "$workdir/repo" rev-parse "$SKILL_REF^{tree}")
+          fi
+          test -d "$source_dir"
+          test "$(git -C "$workdir/repo" cat-file -t "$tree")" = tree
+          if find "$source_dir" -type l -print -quit | grep -q .; then
+            echo "::error title=Unsafe upstream skill::Symlinks are not allowed in scanned skill content."
+            exit 1
+          fi
+          echo "source_dir=$source_dir" >> "$GITHUB_OUTPUT"
+
+      - name: Run current trusted scanner
+        if: needs.resolve-pr-scan.outputs.fallback == 'true' || steps.verify-approved-scan.outcome != 'success'
+        env:
+          SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
+          SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
+          SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
+          SKILL_SCANNER_LLM_TEMPERATURE: ${{ contains(vars.SKILL_SCANNER_LLM_MODEL, 'gpt-5') && 'none' || vars.SKILL_SCANNER_LLM_TEMPERATURE }}
+          SKILL_SCANNER_LLM_CONSENSUS_RUNS: '3'
+          SOURCE_DIR: ${{ steps.fallback-source.outputs.source_dir }}
+          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
+          SCANNER_VERSION: ${{ steps.install-deps.outputs.scanner_version }}
+          USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
+        run: |
+          set -euo pipefail
+          scan_output="skill-scan-${SKILL_NAME}.json"
+          python3 scripts/skill-scan/run_scan.py \
+            --source "$SOURCE_DIR" \
+            --output "$scan_output" \
+            2> "${scan_output%.json}.stderr"
+          if [ -s "${scan_output%.json}.stderr" ]; then
+            cat "${scan_output%.json}.stderr"
+          fi
+          if [ "$USE_LLM" = true ]; then
+            jq -e '.analyzers_used | index("llm_analyzer") and index("meta_analyzer")' "$scan_output" >/dev/null
+          fi
+          printf '%s\n' "$SCANNER_VERSION" > scanner-version.txt
+          echo "Used a fresh trusted scan because no current PR approval was available."
 
       # Always re-evaluate the raw result against the spec on main.
       - name: Evaluate scan results against allowlist
