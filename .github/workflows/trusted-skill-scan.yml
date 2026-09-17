@@ -1,0 +1,482 @@
+name: Trusted Skill Scan
+run-name: Trusted skill scan for PR #${{ github.event.pull_request.number }} at ${{ github.event.pull_request.head.sha }}
+
+on:
+  pull_request_target:  # zizmor: ignore[dangerous-triggers]
+    branches: [main]
+    types: [opened, synchronize, reopened, ready_for_review]
+    paths:
+      - 'skills/**/*.yaml'
+
+# This workflow has access to the LLM credential. It must only execute code
+# checked out from the trusted base commit; pull-request files are fetched as
+# data through the contents API and are never sourced or executed.
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: read
+    outputs:
+      scan-configs: ${{ steps.discover.outputs.scan-configs }}
+    steps:
+      - name: Select changed skill specifications
+        id: discover
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const pr = context.payload.pull_request;
+            const files = await github.paginate(github.rest.pulls.listFiles, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: pr.number,
+              per_page: 100,
+            });
+            const names = files.map(file => file.filename);
+            const configs = names
+              .filter((name, index) =>
+                files[index].status !== 'removed' &&
+                /^skills\/[a-z0-9][a-z0-9._-]*\/spec\.yaml$/.test(name)
+              )
+              .sort();
+            const scanSystemChanged = names.some(name =>
+              name.startsWith('scripts/skill-scan/') ||
+              name === '.github/workflows/trusted-skill-scan.yml' ||
+              name === '.github/workflows/build-skills.yml'
+            );
+
+            if (configs.length > 0 && scanSystemChanged) {
+              core.setFailed(
+                'Skill specifications and the trusted scan system must change in separate PRs.'
+              );
+              return;
+            }
+            const isFork = pr.head.repo.full_name !== `${context.repo.owner}/${context.repo.repo}`;
+            const scanLimit = isFork ? 10 : 50;
+            if (configs.length > scanLimit) {
+              core.setFailed(
+                `Refusing to run ${configs.length} three-vote LLM scans in one PR ` +
+                `(maximum ${scanLimit} for ${isFork ? 'fork' : 'same-repository'} PRs).`
+              );
+              return;
+            }
+            core.setOutput('scan-configs', JSON.stringify(configs));
+            core.info(`Skill configurations to scan: ${JSON.stringify(configs)}`);
+
+      - name: Record report context
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          jq -n --arg pr_number "$PR_NUMBER" --arg head_sha "$HEAD_SHA" \
+            '{pr_number: $pr_number, head_sha: $head_sha}' > trusted-scan-context.json
+
+      - name: Upload report context
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: trusted-scan-context-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          path: trusted-scan-context.json
+          retention-days: 30
+
+  scan:
+    needs: discover
+    if: needs.discover.outputs.scan-configs != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        config: ${{ fromJson(needs.discover.outputs.scan-configs) }}
+      max-parallel: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout trusted scan implementation
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.pull_request.base.sha }}
+          persist-credentials: false
+
+      - name: Fetch proposed specification as data
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          HEAD_OWNER: ${{ github.event.pull_request.head.repo.owner.login }}
+          HEAD_REPO: ${{ github.event.pull_request.head.repo.name }}
+        with:
+          script: |
+            const fs = require('fs');
+            const config = process.env.CONFIG_FILE;
+            if (!/^skills\/[a-z0-9][a-z0-9._-]*\/spec\.yaml$/.test(config)) {
+              core.setFailed(`Unsafe skill configuration path: ${config}`);
+              return;
+            }
+            const response = await github.rest.repos.getContent({
+              owner: process.env.HEAD_OWNER,
+              repo: process.env.HEAD_REPO,
+              path: config,
+              ref: process.env.HEAD_SHA,
+            });
+            if (Array.isArray(response.data) || response.data.type !== 'file') {
+              core.setFailed(`${config} is not a file at the proposed head commit.`);
+              return;
+            }
+            fs.mkdirSync('/tmp/proposed-skill', {recursive: true});
+            fs.writeFileSync(
+              '/tmp/proposed-skill/spec.yaml',
+              Buffer.from(response.data.content, 'base64')
+            );
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Read pinned scanner dependencies
+        id: scanner
+        run: |
+          set -euo pipefail
+          scanner_version=$(sed -nE 's/^cisco-ai-skill-scanner==([^ ]+).*/\1/p' scripts/skill-scan/requirements.txt)
+          pyyaml_version=$(sed -nE 's/^pyyaml==([^ ]+).*/\1/p' scripts/skill-scan/requirements.txt)
+          test -n "$scanner_version" && test -n "$pyyaml_version"
+          python3 -m pip install --disable-pip-version-check "PyYAML==$pyyaml_version"
+          echo "version=$scanner_version" >> "$GITHUB_OUTPUT"
+
+      - name: Validate source identity
+        id: source
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          set -euo pipefail
+          python3 - <<'PY' > /tmp/source.outputs
+          import re
+          from pathlib import PurePosixPath
+          from urllib.parse import urlsplit
+          import yaml
+
+          with open('/tmp/proposed-skill/spec.yaml', encoding='utf-8') as stream:
+              doc = yaml.safe_load(stream) or {}
+          spec = doc.get('spec') or {}
+          repository = spec.get('repository') or ''
+          ref = spec.get('ref') or ''
+          path = spec.get('path') or ''
+          parsed_repository = urlsplit(repository)
+          if (
+              parsed_repository.scheme != 'https'
+              or not parsed_repository.hostname
+              or parsed_repository.username
+              or parsed_repository.password
+              or any(char.isspace() for char in repository)
+          ):
+              raise SystemExit('spec.repository must be a public HTTPS URL')
+          if not re.fullmatch(r'[0-9a-fA-F]{40}', ref):
+              raise SystemExit('spec.ref must be a full 40-character commit SHA')
+          parsed = PurePosixPath(path)
+          if path and (
+              parsed.is_absolute()
+              or '..' in parsed.parts
+              or not re.fullmatch(r'[A-Za-z0-9._/-]+', path)
+          ):
+              raise SystemExit('spec.path must be a safe repository-relative POSIX path')
+          if (doc.get('security') or {}).get('insecure_ignore') is True:
+              raise SystemExit('security.insecure_ignore cannot approve a trusted scan')
+          print(f'repository={repository}')
+          print(f'ref={ref.lower()}')
+          print(f'skill-path={path}')
+          PY
+          skill_name=$(cut -d/ -f2 <<< "$CONFIG_FILE")
+          {
+            cat /tmp/source.outputs
+            echo "skill-name=$skill_name"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Check out exact upstream source
+        id: checkout-source
+        env:
+          REPOSITORY: ${{ steps.source.outputs.repository }}
+          REF: ${{ steps.source.outputs.ref }}
+          SKILL_PATH: ${{ steps.source.outputs.skill-path }}
+          SKILL_NAME: ${{ steps.source.outputs.skill-name }}
+        run: |
+          set -euo pipefail
+          workdir="/tmp/skill-scan-${SKILL_NAME}"
+          git clone --filter=tree:0 --no-checkout --quiet -- "$REPOSITORY" "$workdir/repo"
+          git -C "$workdir/repo" checkout --detach --quiet "$REF"
+          resolved=$(git -C "$workdir/repo" rev-parse HEAD)
+          test "$resolved" = "$REF"
+          if [ -n "$SKILL_PATH" ]; then
+            source_dir="$workdir/repo/$SKILL_PATH"
+            tree=$(git -C "$workdir/repo" rev-parse "$REF:$SKILL_PATH")
+          else
+            source_dir="$workdir/repo"
+            tree=$(git -C "$workdir/repo" rev-parse "$REF^{tree}")
+          fi
+          test -d "$source_dir"
+          test "$(git -C "$workdir/repo" cat-file -t "$tree")" = tree
+          if find "$source_dir" -type l -print -quit | grep -q .; then
+            echo "::error title=Unsafe upstream skill::Symlinks are not allowed in scanned skill content."
+            exit 1
+          fi
+          {
+            echo "source-dir=$source_dir"
+            echo "resolved=$resolved"
+            echo "tree=$tree"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Compute trusted raw-scan cache identity
+        id: scan-key
+        env:
+          REPOSITORY: ${{ steps.source.outputs.repository }}
+          REF: ${{ steps.source.outputs.ref }}
+          SKILL_PATH: ${{ steps.source.outputs.skill-path }}
+          TREE: ${{ steps.checkout-source.outputs.tree }}
+          SKILL_NAME: ${{ steps.source.outputs.skill-name }}
+          SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
+          USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
+          LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
+          LLM_TEMPERATURE: ${{ contains(vars.SKILL_SCANNER_LLM_MODEL, 'gpt-5') && 'none' || vars.SKILL_SCANNER_LLM_TEMPERATURE }}
+        run: |
+          set -euo pipefail
+          WORKFLOW_SHA256=$(sha256sum .github/workflows/trusted-skill-scan.yml | cut -d' ' -f1)
+          REQUIREMENTS_SHA256=$(sha256sum scripts/skill-scan/requirements.txt | cut -d' ' -f1)
+          RUNNER_SHA256=$(sha256sum scripts/skill-scan/run_scan.py | cut -d' ' -f1)
+          export WORKFLOW_SHA256 REQUIREMENTS_SHA256 RUNNER_SHA256
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import hashlib, json, os
+
+          identity = {
+              'skill_name': os.environ['SKILL_NAME'],
+              'repository': os.environ['REPOSITORY'],
+              'ref': os.environ['REF'],
+              'path': os.environ['SKILL_PATH'],
+              'tree': os.environ['TREE'],
+              'scanner_version': os.environ['SCANNER_VERSION'],
+              'profile': {
+                  'use_llm': os.environ['USE_LLM'],
+                  'model': os.environ['LLM_MODEL'],
+                  'temperature': os.environ['LLM_TEMPERATURE'],
+                  'consensus_runs': '3',
+              },
+              'workflow': os.environ['WORKFLOW_SHA256'],
+              'requirements': os.environ['REQUIREMENTS_SHA256'],
+              'runner': os.environ['RUNNER_SHA256'],
+          }
+          canonical = json.dumps(identity, sort_keys=True, separators=(',', ':')).encode()
+          print(f'digest={hashlib.sha256(canonical).hexdigest()}')
+          PY
+
+      # pull_request_target executes trusted default-branch code and stores
+      # this cache in the default-branch scope; untrusted PR workflows cannot
+      # populate that scope. The key is a canonical digest of every raw-scan
+      # input. Allowlist evaluation still runs on every proposed spec.
+      - name: Restore trusted raw scan
+        id: raw-scan-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            skill-scan-${{ steps.source.outputs.skill-name }}.json
+            scanner-version.txt
+          key: trusted-skill-scan-v1-${{ steps.scan-key.outputs.digest }}
+
+      - name: Set up uv
+        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
+        with:
+          enable-cache: true
+
+      - name: Install scanner
+        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+        env:
+          EXPECTED_SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
+        run: |
+          set -euo pipefail
+          uv pip install --system -r scripts/skill-scan/requirements.txt
+          installed=$(uv pip show cisco-ai-skill-scanner | awk '/^Version:/ {print $2}')
+          test "$installed" = "$EXPECTED_SCANNER_VERSION"
+          skill-scanner --version
+
+      - name: Run trusted skill security scan
+        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+        env:
+          SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
+          SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
+          SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
+          SKILL_SCANNER_LLM_TEMPERATURE: ${{ contains(vars.SKILL_SCANNER_LLM_MODEL, 'gpt-5') && 'none' || vars.SKILL_SCANNER_LLM_TEMPERATURE }}
+          SKILL_SCANNER_LLM_CONSENSUS_RUNS: '3'
+          SOURCE_DIR: ${{ steps.checkout-source.outputs.source-dir }}
+          SKILL_NAME: ${{ steps.source.outputs.skill-name }}
+          SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
+        run: |
+          set -euo pipefail
+          scan_output="skill-scan-${SKILL_NAME}.json"
+          python3 scripts/skill-scan/run_scan.py \
+            --source "$SOURCE_DIR" \
+            --output "$scan_output" \
+            2> "${scan_output%.json}.stderr"
+          if [ -s "${scan_output%.json}.stderr" ]; then
+            cat "${scan_output%.json}.stderr"
+          fi
+          printf '%s\n' "$SCANNER_VERSION" > scanner-version.txt
+
+      - name: Validate raw scan before caching
+        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+        env:
+          SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
+          SKILL_NAME: ${{ steps.source.outputs.skill-name }}
+          USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
+        run: |
+          set -euo pipefail
+          test "$(tr -d '[:space:]' < scanner-version.txt)" = "$SCANNER_VERSION"
+          python3 - <<'PY'
+          import json, os
+
+          with open(f"skill-scan-{os.environ['SKILL_NAME']}.json", encoding='utf-8') as stream:
+              scan = json.load(stream)
+          if not isinstance(scan, dict) or not isinstance(scan.get('findings', []), list):
+              raise SystemExit('scanner output does not have the expected JSON structure')
+          analyzers = scan.get('analyzers_used') or []
+          if os.environ['USE_LLM'] == 'true' and not {'llm_analyzer', 'meta_analyzer'} <= set(analyzers):
+              raise SystemExit('scanner output is missing required LLM analyzers')
+          PY
+
+      - name: Save trusted raw scan
+        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: |
+            skill-scan-${{ steps.source.outputs.skill-name }}.json
+            scanner-version.txt
+          key: trusted-skill-scan-v1-${{ steps.scan-key.outputs.digest }}
+
+      - name: Evaluate proposed allowlist
+        env:
+          SKILL_SCANNER_BLOCK_SEVERITY: HIGH
+          SKILL_NAME: ${{ steps.source.outputs.skill-name }}
+        run: |
+          python3 scripts/skill-scan/process_scan_results.py \
+            "skill-scan-${SKILL_NAME}.json" \
+            "$SKILL_NAME" \
+            /tmp/proposed-skill/spec.yaml \
+            > scan-summary.json
+
+      - name: Record scan approval
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          REPOSITORY: ${{ steps.source.outputs.repository }}
+          REF: ${{ steps.source.outputs.ref }}
+          SKILL_PATH: ${{ steps.source.outputs.skill-path }}
+          RESOLVED: ${{ steps.checkout-source.outputs.resolved }}
+          TREE: ${{ steps.checkout-source.outputs.tree }}
+          SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
+          SKILL_NAME: ${{ steps.source.outputs.skill-name }}
+          USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
+          LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
+          LLM_TEMPERATURE: ${{ contains(vars.SKILL_SCANNER_LLM_MODEL, 'gpt-5') && 'none' || vars.SKILL_SCANNER_LLM_TEMPERATURE }}
+        run: |
+          set -euo pipefail
+          if [ "$USE_LLM" = true ]; then
+            jq -e '.analyzers_used | index("llm_analyzer") and index("meta_analyzer")' \
+              "skill-scan-${SKILL_NAME}.json" >/dev/null
+          fi
+          test "$(tr -d '[:space:]' < scanner-version.txt)" = "$SCANNER_VERSION"
+          CONFIG_SHA256=$(sha256sum /tmp/proposed-skill/spec.yaml | cut -d' ' -f1)
+          SCAN_SHA256=$(sha256sum "skill-scan-${SKILL_NAME}.json" | cut -d' ' -f1)
+          SUMMARY_SHA256=$(sha256sum scan-summary.json | cut -d' ' -f1)
+          WORKFLOW_SHA256=$(sha256sum .github/workflows/trusted-skill-scan.yml | cut -d' ' -f1)
+          REQUIREMENTS_SHA256=$(sha256sum scripts/skill-scan/requirements.txt | cut -d' ' -f1)
+          RUNNER_SHA256=$(sha256sum scripts/skill-scan/run_scan.py | cut -d' ' -f1)
+          EVALUATOR_SHA256=$(sha256sum scripts/skill-scan/process_scan_results.py | cut -d' ' -f1)
+          ALLOWLIST_SHA256=$(sha256sum scripts/skill-scan/global_allowed_issues.yaml | cut -d' ' -f1)
+          export CONFIG_SHA256 SCAN_SHA256 SUMMARY_SHA256 WORKFLOW_SHA256
+          export REQUIREMENTS_SHA256 RUNNER_SHA256 EVALUATOR_SHA256 ALLOWLIST_SHA256
+          python3 - <<'PY'
+          import hashlib, json, os
+
+          identity = {
+              'config_file': os.environ['CONFIG_FILE'],
+              'config_sha256': os.environ['CONFIG_SHA256'],
+              'repository': os.environ['REPOSITORY'],
+              'ref': os.environ['REF'],
+              'resolved_commit': os.environ['RESOLVED'],
+              'path': os.environ['SKILL_PATH'],
+              'tree': os.environ['TREE'],
+              'scanner_version': os.environ['SCANNER_VERSION'],
+              'scan_profile': {
+                  'use_llm': os.environ['USE_LLM'],
+                  'model': os.environ['LLM_MODEL'],
+                  'temperature': os.environ['LLM_TEMPERATURE'],
+                  'consensus_runs': '3',
+              },
+              'trusted_inputs': {
+                  'workflow': os.environ['WORKFLOW_SHA256'],
+                  'requirements': os.environ['REQUIREMENTS_SHA256'],
+                  'runner': os.environ['RUNNER_SHA256'],
+                  'evaluator': os.environ['EVALUATOR_SHA256'],
+                  'global_allowlist': os.environ['ALLOWLIST_SHA256'],
+              },
+          }
+          canonical = json.dumps(identity, sort_keys=True, separators=(',', ':')).encode()
+          approval = {
+              'schema_version': 2,
+              'event': 'pull_request_target',
+              'pr_number': os.environ['PR_NUMBER'],
+              'head_sha': os.environ['HEAD_SHA'],
+              'run_id': os.environ['GITHUB_RUN_ID'],
+              'run_attempt': os.environ['GITHUB_RUN_ATTEMPT'],
+              'identity': identity,
+              'identity_sha256': hashlib.sha256(canonical).hexdigest(),
+              'scan_sha256': os.environ['SCAN_SHA256'],
+              'summary_sha256': os.environ['SUMMARY_SHA256'],
+          }
+          with open('scan-approval.json', 'w', encoding='utf-8') as stream:
+              json.dump(approval, stream, indent=2, sort_keys=True)
+              stream.write('\n')
+          PY
+
+      - name: Upload scan approval
+        if: always()
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: trusted-skill-scan-${{ steps.source.outputs.skill-name }}
+          if-no-files-found: warn
+          path: |
+            skill-scan-${{ steps.source.outputs.skill-name }}.json
+            scan-summary.json
+            scanner-version.txt
+            scan-approval.json
+          retention-days: 30
+
+  approve:
+    needs: [discover, scan]
+    if: needs.discover.outputs.scan-configs != '[]' && needs.scan.result == 'success'
+    runs-on: ubuntu-latest
+    permissions: {}
+    steps:
+      - name: Record successful run identity
+        env:
+          HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          jq -n \
+            --arg pr_number "$PR_NUMBER" \
+            --arg head_sha "$HEAD_SHA" \
+            --arg run_id "$GITHUB_RUN_ID" \
+            --arg run_attempt "$GITHUB_RUN_ATTEMPT" \
+            '{schema_version: 1, pr_number: $pr_number, head_sha: $head_sha, run_id: $run_id, run_attempt: $run_attempt}' \
+            > trusted-scan-identity.json
+
+      - name: Upload successful run identity
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: trusted-scan-identity-pr-${{ github.event.pull_request.number }}-${{ github.event.pull_request.head.sha }}
+          path: trusted-scan-identity.json
+          retention-days: 30

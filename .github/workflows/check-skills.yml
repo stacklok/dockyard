@@ -1,0 +1,177 @@
+name: Check Skill Artifacts
+
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'skills/**/*.yaml'
+      - 'cmd/dockhand/**'
+      - 'internal/skills/**'
+      - 'scripts/skill-scan/**'
+      - '.github/workflows/build-skills.yml'
+      - '.github/workflows/check-skills.yml'
+      - '.github/workflows/trusted-skill-scan.yml'
+      - '.github/workflows/skill-scan-report.yml'
+      - 'go.mod'
+      - 'go.sum'
+
+# This workflow executes pull-request code. Keep it permanently secretless and
+# read-only; publishing and LLM-backed scanning run only from trusted workflows.
+permissions: {}
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  discover-skill-configs:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    outputs:
+      changed-configs: ${{ steps.find-configs.outputs.changed-configs }}
+      scanner-smoke: ${{ steps.find-configs.outputs.scanner-smoke }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          fetch-depth: 0
+          persist-credentials: false
+
+      - name: Find skill configurations to check
+        id: find-configs
+        env:
+          BASE_REF: ${{ github.base_ref }}
+        run: |
+          set -euo pipefail
+          all_configs=$(find skills -name "spec.yaml" -type f 2>/dev/null | sort)
+          diff_range="origin/${BASE_REF}...HEAD"
+          changed_files=$(git diff --name-only "$diff_range")
+          configs_to_build=""
+
+          for config in $all_configs; do
+            config_dir=$(dirname "$config")
+            if grep -qx "$config" <<<"$changed_files" || grep -q "^${config_dir}/" <<<"$changed_files"; then
+              configs_to_build="${configs_to_build}${config}"$'\n'
+            fi
+          done
+
+          if grep -qE '^(cmd/dockhand/|internal/skills/)' <<<"$changed_files"; then
+            configs_to_build="$all_configs"
+          elif grep -qE '^go\.(mod|sum)$' <<<"$changed_files" \
+            && git diff "$diff_range" -- go.mod go.sum | grep -qE '^[+-].*stacklok/toolhive'; then
+            configs_to_build="$all_configs"
+          fi
+
+          if [ -z "$configs_to_build" ] \
+            && grep -qE '(^\.github/workflows/(build-skills|check-skills|trusted-skill-scan|skill-scan-report)\.yml$|^scripts/skill-scan/)' <<<"$changed_files"; then
+            configs_to_build=$(find skills -name "spec.yaml" -type f | sort | head -1)
+          fi
+
+          scanner_smoke=false
+          if grep -qE '(^\.github/workflows/(build-skills|check-skills|trusted-skill-scan|skill-scan-report)\.yml$|^scripts/skill-scan/)' <<<"$changed_files"; then
+            scanner_smoke=true
+          fi
+
+          configs_json=$(grep -v '^$' <<<"$configs_to_build" | jq -R -s -c 'split("\n")[:-1]')
+          echo "changed-configs=$configs_json" >> "$GITHUB_OUTPUT"
+          echo "scanner-smoke=$scanner_smoke" >> "$GITHUB_OUTPUT"
+          echo "Skill configurations to check: $configs_json"
+
+  validate-skills:
+    needs: discover-skill-configs
+    runs-on: ubuntu-latest
+    if: needs.discover-skill-configs.outputs.changed-configs != '[]'
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}
+      fail-fast: false
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Validate skill
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          go build -o /tmp/dockhand ./cmd/dockhand
+          /tmp/dockhand validate-skill --config "$CONFIG_FILE"
+
+  build-skill-artifacts:
+    needs: [discover-skill-configs, validate-skills]
+    runs-on: ubuntu-latest
+    if: needs.validate-skills.result == 'success'
+    strategy:
+      matrix:
+        config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}
+      fail-fast: false
+      max-parallel: 20
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Build skill artifact without publishing
+        env:
+          CONFIG_FILE: ${{ matrix.config }}
+        run: |
+          go build -o /tmp/dockhand ./cmd/dockhand
+          /tmp/dockhand build-skill --config "$CONFIG_FILE"
+
+  scanner-smoke:
+    needs: discover-skill-configs
+    runs-on: ubuntu-latest
+    if: needs.discover-skill-configs.outputs.scanner-smoke == 'true'
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Set up Go
+        uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: 'go.mod'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@20cfd1bf945f4377ade1205e4dbc17946fc9a30d # v10.0.1
+
+      - name: Check scanner installation and scripts
+        run: |
+          uv pip install --system -r scripts/skill-scan/requirements.txt
+          skill-scanner --version
+          python3 -m py_compile scripts/skill-scan/*.py
+
+      - name: Validate skill workflows
+        run: |
+          go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 \
+            -ignore 'unexpected key "queue"' \
+            -ignore 'shellcheck reported issue' \
+            .github/workflows/build-skills.yml \
+            .github/workflows/check-skills.yml \
+            .github/workflows/trusted-skill-scan.yml \
+            .github/workflows/skill-scan-report.yml
