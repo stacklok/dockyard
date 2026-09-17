@@ -9,25 +9,14 @@ on:
       - 'internal/skills/**'
       - 'scripts/skill-scan/**'
       - '.github/workflows/build-skills.yml'
+      - '.github/workflows/trusted-skill-scan.yml'
       - '.github/workflows/skill-scan-report.yml'
       - 'go.mod'
       - 'go.sum'
-  pull_request:
-    branches: [ main ]
-    paths:
-      - 'skills/**/*.yaml'
-      - 'cmd/dockhand/**'
-      - 'internal/skills/**'
-      - 'scripts/skill-scan/**'
-      - '.github/workflows/build-skills.yml'
-      - '.github/workflows/skill-scan-report.yml'
-      - 'go.mod'
-      - 'go.sum'
-  workflow_dispatch:
 
 permissions: {}
 
-# Never cancel a run outright — each push or PR update publishes/signs/
+# Never cancel a run outright — each push publishes/signs/
 # attests artifacts for that specific commit, and cancelling one would
 # silently skip its release. queue: max keeps every queued run pending
 # instead of just the latest, since the default queue depth of 1 would
@@ -61,8 +50,7 @@ jobs:
       - name: Find skill configurations to build
         id: find-configs
         env:
-          EVENT_NAME: ${{ github.event_name }}
-          BASE_REF: ${{ github.base_ref }}
+          BEFORE_SHA: ${{ github.event.before }}
         run: |
           # Find all skill spec.yaml files
           all_configs=$(find skills -name "spec.yaml" -type f 2>/dev/null | sort)
@@ -101,48 +89,26 @@ jobs:
           # or the scan scripts. See the block after the event dispatch below.
           smoke=false
 
-          if [ "$EVENT_NAME" == "workflow_dispatch" ]; then
-            configs_to_build="$all_configs"
-            configs_to_scan="$all_configs"
-            echo "Manual trigger - building all skill configurations"
-          elif [ "$EVENT_NAME" == "pull_request" ]; then
-            diff_range="origin/${BASE_REF}...HEAD"
-            changed_files=$(git diff --name-only "$diff_range")
-            configs_to_build=""
-            configs_to_scan=""
-
-            # Scan only specs that actually changed; build the superset below.
-            for config in $all_configs; do
-              config_dir=$(dirname "$config")
-              if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
-                configs_to_build="$configs_to_build$config"$'\n'
-                configs_to_scan="$configs_to_scan$config"$'\n'
-              fi
-            done
-
-            # If core build inputs changed, rebuild all skills — but only scan specs that truly changed.
-            if core_rebuild_needed "$diff_range" "$changed_files"; then
-              echo "Core build inputs changed - rebuilding all skill configurations (scan only changed specs)"
-              configs_to_build="$all_configs"
-            fi
+          if [ -n "$BEFORE_SHA" ] && [ "$BEFORE_SHA" != "0000000000000000000000000000000000000000" ]; then
+            diff_range="${BEFORE_SHA}..HEAD"
           else
-            diff_range="HEAD~1..HEAD"
-            changed_files=$(git diff --name-only "$diff_range")
-            configs_to_build=""
-            configs_to_scan=""
+            diff_range="$(git rev-list --max-parents=0 HEAD | tail -1)..HEAD"
+          fi
+          changed_files=$(git diff --name-only "$diff_range")
+          configs_to_build=""
+          configs_to_scan=""
 
-            for config in $all_configs; do
-              config_dir=$(dirname "$config")
-              if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
-                configs_to_build="$configs_to_build$config"$'\n'
-                configs_to_scan="$configs_to_scan$config"$'\n'
-              fi
-            done
-
-            if core_rebuild_needed "$diff_range" "$changed_files"; then
-              echo "Core build inputs changed - rebuilding all skill configurations (scan only changed specs)"
-              configs_to_build="$all_configs"
+          for config in $all_configs; do
+            config_dir=$(dirname "$config")
+            if echo "$changed_files" | grep -q "^$config$" || echo "$changed_files" | grep -q "^$config_dir/"; then
+              configs_to_build="$configs_to_build$config"$'\n'
+              configs_to_scan="$configs_to_scan$config"$'\n'
             fi
+          done
+
+          if core_rebuild_needed "$diff_range" "$changed_files"; then
+            echo "Core build inputs changed - rebuilding all skill configurations (scan only changed specs)"
+            configs_to_build="$all_configs"
           fi
 
           # If the only relevant change was to this workflow or the scan
@@ -152,15 +118,9 @@ jobs:
           # toolchain (e.g. a Python or scanner bump) without rebuilding or
           # republishing every skill. build-skill-artifacts is skipped for
           # smoke runs via the `smoke` output.
-          if [ "$EVENT_NAME" != "workflow_dispatch" ] \
-             && [ -z "$configs_to_build" ] \
-             && echo "$changed_files" | grep -qE "(^\.github/workflows/build-skills\.yml$|^\.github/workflows/skill-scan-report\.yml$|^scripts/skill-scan/)"; then
-            echo "Only workflow/scan-script changed - smoke testing a representative skill (no build/push)"
-            sample=$(find skills -name "spec.yaml" -type f 2>/dev/null | sort | head -1)
-            configs_to_build="$sample"
-            configs_to_scan="$sample"
-            smoke=true
-          fi
+          # Pull-request smoke coverage lives in the secretless Check Skill
+          # Artifacts workflow. A main-only scan-system change must not
+          # republish an unrelated representative skill.
 
           configs_json=$(echo "$configs_to_build" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
           scan_configs_json=$(echo "$configs_to_scan" | grep -v '^$' | jq -R -s -c 'split("\n")[:-1]')
@@ -201,16 +161,141 @@ jobs:
           echo "Validating skill: $CONFIG_FILE"
           /tmp/dockhand validate-skill --config "$CONFIG_FILE"
 
-  skill-security-scan:
+  # A successful trusted scan is the release decision for the exact skill
+  # content reviewed on the merged PR. Main reuses that decision instead of
+  # asking the nondeterministic LLM analyzers to decide again (#940).
+  resolve-pr-scan:
     needs: discover-skill-configs
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.discover-skill-configs.outputs.scan-configs != '[]'
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      pull-requests: read
+    outputs:
+      head-sha: ${{ steps.resolve.outputs.head-sha }}
+      pr-number: ${{ steps.resolve.outputs.pr-number }}
+      run-attempt: ${{ steps.resolve.outputs.run-attempt }}
+      run-id: ${{ steps.resolve.outputs.run-id }}
+    steps:
+      - name: Resolve approved pull-request scan
+        id: resolve
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SCAN_CONFIGS: ${{ needs.discover-skill-configs.outputs.scan-configs }}
+        with:
+          script: |
+            if (context.eventName !== 'push' || context.ref !== 'refs/heads/main') {
+              core.info('PR approval lookup is only needed for pushes to main.');
+              return;
+            }
+            if (process.env.SCAN_CONFIGS === '[]') {
+              core.info('No skill scans are required for this push.');
+              return;
+            }
+
+            const pulls = await github.paginate(
+              github.rest.repos.listPullRequestsAssociatedWithCommit,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                commit_sha: context.sha,
+                per_page: 100,
+              },
+            );
+            const merged = pulls.filter(pr =>
+              pr.merged_at &&
+              pr.base.ref === 'main' &&
+              pr.merge_commit_sha === context.sha
+            );
+            if (merged.length !== 1) {
+              core.setFailed(
+                `Expected exactly one merged PR for ${context.sha}, found ${merged.length}; ` +
+                'refusing to replace the approved scan with a fresh LLM decision.'
+              );
+              return;
+            }
+
+            const pr = merged[0];
+            const identityName = `trusted-scan-identity-pr-${pr.number}-${pr.head.sha}`;
+            const identities = await github.paginate(
+              github.rest.actions.listArtifactsForRepo,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                name: identityName,
+                per_page: 100,
+              },
+            );
+            const available = identities
+              .filter(artifact => !artifact.expired && artifact.workflow_run)
+              .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+            if (available.length === 0) {
+              core.setFailed(
+                `No unexpired ${identityName} artifact exists; refusing to publish.`
+              );
+              return;
+            }
+            const approvedRunId = available[0].workflow_run.id;
+            const approvedRun = await github.rest.actions.getWorkflowRun({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              run_id: approvedRunId,
+            });
+            const expectedTitle = `Trusted skill scan for PR #${pr.number} at ${pr.head.sha}`;
+            const recentRuns = await github.paginate(
+              github.rest.actions.listWorkflowRuns,
+              {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'trusted-skill-scan.yml',
+                event: 'pull_request_target',
+                created: `>=${approvedRun.data.created_at.slice(0, 10)}`,
+                per_page: 100,
+              },
+            );
+            const applicable = recentRuns
+              .filter(run => run.display_title === expectedTitle)
+              .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+            if (applicable.length === 0 || applicable[0].id !== approvedRunId) {
+              core.setFailed(
+                `Run ${approvedRunId} is not the newest trusted scan for PR #${pr.number}; ` +
+                'an older success cannot approve publishing.'
+              );
+              return;
+            }
+            const latest = approvedRun.data;
+            if (
+              latest.conclusion !== 'success' ||
+              latest.event !== 'pull_request_target' ||
+              latest.path !== '.github/workflows/trusted-skill-scan.yml'
+            ) {
+              core.setFailed(
+                `Trusted run ${latest.id} has invalid workflow identity or conclusion ${latest.conclusion}.`
+              );
+              return;
+            }
+
+            core.setOutput('head-sha', pr.head.sha);
+            core.setOutput('pr-number', String(pr.number));
+            core.setOutput('run-attempt', String(latest.run_attempt));
+            core.setOutput('run-id', String(latest.id));
+            core.info(
+              `Using trusted scan from PR #${pr.number}, run ${latest.id}, ` +
+              `attempt ${latest.run_attempt}.`
+            );
+
+  skill-security-scan:
+    needs: [discover-skill-configs, resolve-pr-scan]
     runs-on: ubuntu-latest
     timeout-minutes: 35
-    if: ${{ needs.discover-skill-configs.outputs.scan-configs != '[]' }}
+    if: ${{ always() && github.ref == 'refs/heads/main' && needs.discover-skill-configs.outputs.scan-configs != '[]' && needs.resolve-pr-scan.result == 'success' }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-skill-configs.outputs.scan-configs) }}
       fail-fast: false
     permissions:
+      actions: read
       contents: read
     steps:
       - name: Checkout repository
@@ -226,19 +311,16 @@ jobs:
         with:
           python-version: '3.13'
 
-      - name: Set up uv
-        uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
-        with:
-          enable-cache: true
-
       - name: Install dependencies
         id: install-deps
         run: |
-          uv pip install --system -r scripts/skill-scan/requirements.txt
-          skill-scanner --version || true
-          SCANNER_VERSION=$(uv pip show cisco-ai-skill-scanner | grep "^Version:" | cut -d' ' -f2)
-          echo "scanner_version=$SCANNER_VERSION" >> $GITHUB_OUTPUT
-          echo "Installed skill-scanner version: $SCANNER_VERSION"
+          set -euo pipefail
+          pyyaml_version=$(sed -nE 's/^pyyaml==([^ ]+).*/\1/p' scripts/skill-scan/requirements.txt)
+          test -n "$pyyaml_version"
+          python3 -m pip install --disable-pip-version-check "PyYAML==$pyyaml_version"
+          scanner_version=$(sed -nE 's/^cisco-ai-skill-scanner==([^ ]+).*/\1/p' scripts/skill-scan/requirements.txt)
+          test -n "$scanner_version"
+          echo "scanner_version=$scanner_version" >> "$GITHUB_OUTPUT"
 
       - name: Extract metadata from config
         id: meta
@@ -252,95 +334,131 @@ jobs:
           repository=$(yq '.spec.repository' "$CONFIG_FILE")
           ref=$(yq '.spec.ref' "$CONFIG_FILE")
           skill_path=$(yq '.spec.path // ""' "$CONFIG_FILE")
+          if ! grep -Eq '^[0-9a-fA-F]{40}$' <<< "$ref"; then
+            echo "::error title=Unpinned skill source::spec.ref must be a full 40-character commit SHA"
+            exit 1
+          fi
           echo "repository=$repository" >> $GITHUB_OUTPUT
           echo "ref=$ref" >> $GITHUB_OUTPUT
           echo "skill_path=$skill_path" >> $GITHUB_OUTPUT
 
-      # Keyed on what the scanner actually reads (repository/ref/path), not on
-      # spec.yaml itself. This lets a spec.version-only follow-up commit (e.g.
-      # the skill-version-autofix job in skill-version-check.yml pushing to a
-      # Renovate PR) reuse the prior scan instead of paying for a second
-      # LLM-based scan of identical source. Deliberately excludes
-      # scan-summary.json: the allowlist evaluation (security.allowed_issues
-      # in spec.yaml) is cheap and must always re-run against the current
-      # spec.yaml, so a PR that only adds/edits an allowlist entry still gets
-      # an up-to-date blocking decision even on a cache hit.
-      - name: Restore cached scan result
-        id: scan-cache
-        uses: actions/cache@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - name: Download trusted pull-request scan
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          path: |
-            skill-scan-${{ steps.meta.outputs.skill_name }}.json
-            scanner-version.txt
-          key: skill-scan-v1-${{ steps.meta.outputs.skill_name }}-${{ steps.meta.outputs.repository }}-${{ steps.meta.outputs.ref }}-${{ steps.meta.outputs.skill_path }}-${{ hashFiles('scripts/skill-scan/requirements.txt') }}
+          name: trusted-skill-scan-${{ steps.meta.outputs.skill_name }}
+          path: /tmp/approved-skill-scan
+          run-id: ${{ needs.resolve-pr-scan.outputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Check out skill source
-        id: skill-src
-        if: steps.scan-cache.outputs.cache-hit != 'true'
+      - name: Verify trusted pull-request scan
+        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
         env:
-          SKILL_REPO: ${{ steps.meta.outputs.repository }}
-          SKILL_REF: ${{ steps.meta.outputs.ref }}
-          SKILL_PATH: ${{ steps.meta.outputs.skill_path }}
-          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
-        run: |
-          workdir="/tmp/skill-scan-${SKILL_NAME}"
-          rm -rf "$workdir"
-          mkdir -p "$workdir"
-          git clone --filter=tree:0 --no-checkout --quiet "$SKILL_REPO" "$workdir/repo"
-          git -C "$workdir/repo" checkout --quiet "$SKILL_REF"
-          if [ -n "$SKILL_PATH" ]; then
-            src_dir="$workdir/repo/$SKILL_PATH"
-          else
-            src_dir="$workdir/repo"
-          fi
-          if [ ! -d "$src_dir" ]; then
-            echo "Error: skill source directory not found at $src_dir" >&2
-            exit 1
-          fi
-          echo "source_dir=$src_dir" >> $GITHUB_OUTPUT
-
-      - name: Run skill security scan
-        id: scan
-        if: steps.scan-cache.outputs.cache-hit != 'true'
-        env:
-          # LLM analyzer (LiteLLM-driven). Uses its own provider key, separate
-          # from the MCP scanner's.
-          # Toggle via repo variable SKILL_SCANNER_USE_LLM=false to disable in a pinch.
-          SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
-          SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
-          # Dedicated model knob — set via repo variable. If unset,
-          # skill-scanner falls back to its built-in default (claude-3-5-sonnet-...).
-          SKILL_SCANNER_LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
-          # GPT-5.x reasoning models reject any explicit temperature value
-          # (LiteLLM's drop_params doesn't catch this for every routing path,
-          # see #909); "none" omits the parameter entirely, matching the
-          # eval harness's workaround in scripts/skill-scan/eval/bench_models.py.
-          SKILL_SCANNER_LLM_TEMPERATURE: ${{ contains(vars.SKILL_SCANNER_LLM_MODEL, 'gpt-5') && 'none' || vars.SKILL_SCANNER_LLM_TEMPERATURE }}
-          # Optional consensus voting — N>1 multiplies LLM cost per scan.
-          SKILL_SCANNER_LLM_CONSENSUS_RUNS: ${{ vars.SKILL_SCANNER_LLM_CONSENSUS_RUNS }}
-          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
-          SOURCE_DIR: ${{ steps.skill-src.outputs.source_dir }}
+          APPROVED_HEAD_SHA: ${{ needs.resolve-pr-scan.outputs.head-sha }}
+          APPROVED_PR_NUMBER: ${{ needs.resolve-pr-scan.outputs.pr-number }}
+          APPROVED_RUN_ATTEMPT: ${{ needs.resolve-pr-scan.outputs.run-attempt }}
+          APPROVED_RUN_ID: ${{ needs.resolve-pr-scan.outputs.run-id }}
+          CONFIG_FILE: ${{ matrix.config }}
+          LLM_CONSENSUS_RUNS: '3'
+          LLM_MODEL: ${{ vars.SKILL_SCANNER_LLM_MODEL }}
+          LLM_TEMPERATURE: ${{ contains(vars.SKILL_SCANNER_LLM_MODEL, 'gpt-5') && 'none' || vars.SKILL_SCANNER_LLM_TEMPERATURE }}
           SCANNER_VERSION: ${{ steps.install-deps.outputs.scanner_version }}
+          SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
+          USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
+          REPOSITORY: ${{ steps.meta.outputs.repository }}
+          REF: ${{ steps.meta.outputs.ref }}
+          SKILL_PATH: ${{ steps.meta.outputs.skill_path }}
         run: |
-          scan_output="skill-scan-${SKILL_NAME}.json"
-          scan_stderr="skill-scan-${SKILL_NAME}.stderr"
+          set -euo pipefail
+          approval=/tmp/approved-skill-scan/scan-approval.json
+          approved_scan=/tmp/approved-skill-scan/skill-scan-${SKILL_NAME}.json
+          approved_summary=/tmp/approved-skill-scan/scan-summary.json
+          approved_version=/tmp/approved-skill-scan/scanner-version.txt
 
-          python3 scripts/skill-scan/run_scan.py \
-            --source "$SOURCE_DIR" \
-            --output "$scan_output" \
-            2> "$scan_stderr" || true
+          for required in "$approval" "$approved_scan" "$approved_summary" "$approved_version"; do
+            if [ ! -f "$required" ]; then
+              echo "::error title=PR scan approval incomplete::Missing ${required}; refusing to rescan on main."
+              exit 1
+            fi
+          done
 
-          if [ -s "$scan_stderr" ]; then
-            echo "Scanner stderr output:"
-            cat "$scan_stderr"
-          fi
+          export APPROVAL="$approval" APPROVED_SCAN="$approved_scan" APPROVED_SUMMARY="$approved_summary"
+          export APPROVED_VERSION="$approved_version"
+          WORKFLOW_SHA256=$(sha256sum .github/workflows/trusted-skill-scan.yml | cut -d' ' -f1)
+          REQUIREMENTS_SHA256=$(sha256sum scripts/skill-scan/requirements.txt | cut -d' ' -f1)
+          RUNNER_SHA256=$(sha256sum scripts/skill-scan/run_scan.py | cut -d' ' -f1)
+          EVALUATOR_SHA256=$(sha256sum scripts/skill-scan/process_scan_results.py | cut -d' ' -f1)
+          ALLOWLIST_SHA256=$(sha256sum scripts/skill-scan/global_allowed_issues.yaml | cut -d' ' -f1)
+          CONFIG_SHA256=$(sha256sum "$CONFIG_FILE" | cut -d' ' -f1)
+          export WORKFLOW_SHA256 REQUIREMENTS_SHA256 RUNNER_SHA256
+          export EVALUATOR_SHA256 ALLOWLIST_SHA256 CONFIG_SHA256
+          python3 - <<'PY'
+          import hashlib, json, os
 
-          echo "$SCANNER_VERSION" > scanner-version.txt
+          with open(os.environ['APPROVAL'], encoding='utf-8') as stream:
+              approval = json.load(stream)
+          identity = approval.get('identity') or {}
+          canonical = json.dumps(identity, sort_keys=True, separators=(',', ':')).encode()
+          expected = {
+              'event': 'pull_request_target',
+              'pr_number': os.environ['APPROVED_PR_NUMBER'],
+              'head_sha': os.environ['APPROVED_HEAD_SHA'],
+              'run_id': os.environ['APPROVED_RUN_ID'],
+              'run_attempt': os.environ['APPROVED_RUN_ATTEMPT'],
+          }
+          for field, value in expected.items():
+              if str(approval.get(field)) != value:
+                  raise SystemExit(f'approval {field} mismatch')
+          checks = {
+              'config_file': os.environ['CONFIG_FILE'],
+              'config_sha256': os.environ['CONFIG_SHA256'],
+              'repository': os.environ['REPOSITORY'],
+              'ref': os.environ['REF'].lower(),
+              'path': os.environ['SKILL_PATH'],
+              'scanner_version': os.environ['SCANNER_VERSION'],
+          }
+          for field, value in checks.items():
+              if str(identity.get(field)) != value:
+                  raise SystemExit(f'approval identity {field} mismatch')
+          if identity.get('resolved_commit') != os.environ['REF'].lower():
+              raise SystemExit('approved resolved commit does not match pinned ref')
+          profile = identity.get('scan_profile') or {}
+          profile_checks = {
+              'use_llm': os.environ['USE_LLM'],
+              'model': os.environ['LLM_MODEL'],
+              'temperature': os.environ['LLM_TEMPERATURE'],
+              'consensus_runs': os.environ['LLM_CONSENSUS_RUNS'],
+          }
+          trusted_checks = {
+              'workflow': os.environ['WORKFLOW_SHA256'],
+              'requirements': os.environ['REQUIREMENTS_SHA256'],
+              'runner': os.environ['RUNNER_SHA256'],
+              'evaluator': os.environ['EVALUATOR_SHA256'],
+              'global_allowlist': os.environ['ALLOWLIST_SHA256'],
+          }
+          if profile != profile_checks:
+              raise SystemExit('approved scan profile mismatch')
+          if identity.get('trusted_inputs') != trusted_checks:
+              raise SystemExit('trusted scan implementation changed after approval')
+          if hashlib.sha256(canonical).hexdigest() != approval.get('identity_sha256'):
+              raise SystemExit('approval identity digest mismatch')
+          for path_key, digest_key in (
+              ('APPROVED_SCAN', 'scan_sha256'), ('APPROVED_SUMMARY', 'summary_sha256')
+          ):
+              with open(os.environ[path_key], 'rb') as stream:
+                  actual = hashlib.sha256(stream.read()).hexdigest()
+              if actual != approval.get(digest_key):
+                  raise SystemExit(f'{path_key} digest mismatch')
+          if open(os.environ['APPROVED_VERSION'], encoding='utf-8').read().strip() != os.environ['SCANNER_VERSION']:
+              raise SystemExit('approved scanner version mismatch')
+          PY
 
-      # Always runs, cache hit or not: evaluates the (possibly cached) raw
-      # scan output against the current spec.yaml, so a PR that edits
-      # security.allowed_issues gets an up-to-date blocking decision without
-      # re-running the LLM scan.
+          cp "$approved_scan" "skill-scan-${SKILL_NAME}.json"
+          cp "$approved_version" scanner-version.txt
+          cp "$approval" scan-approval.json
+          echo "Reusing the verified scan approved by PR #${APPROVED_PR_NUMBER} (run ${APPROVED_RUN_ID}, attempt ${APPROVED_RUN_ATTEMPT})."
+
+      # Always re-evaluate the raw result against the spec on main.
       - name: Evaluate scan results against allowlist
         id: evaluate
         env:
@@ -369,6 +487,7 @@ jobs:
             skill-scan-${{ steps.meta.outputs.skill_name }}.json
             scan-summary.json
             scanner-version.txt
+            scan-approval.json
           retention-days: 30
 
   build-skill-artifacts:
@@ -380,14 +499,7 @@ jobs:
     # `Pre-flight scan gate` step below preserves the security gate at the
     # individual skill level by reading scan-summary.json from the artifact
     # produced by skill-security-scan (uploaded with `if: always()`).
-    #
-    # On smoke runs (workflow/scan-script-only changes) this builds the
-    # representative skill on PRs to exercise the build path (dockhand
-    # build-skill) but never pushes — the push/sign/SBOM/attest steps are
-    # already gated on `github.event_name != 'pull_request'`. On pushes to
-    # main, smoke skips the build entirely so a workflow edit does not
-    # republish, sign, or attest a sample artifact.
-    if: ${{ !cancelled() && needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' && (needs.discover-skill-configs.outputs.smoke != 'true' || github.event_name == 'pull_request') }}
+    if: ${{ !cancelled() && github.ref == 'refs/heads/main' && needs.discover-skill-configs.outputs.changed-configs != '[]' && needs.validate-skills.result == 'success' }}
     strategy:
       matrix:
         config: ${{ fromJson(needs.discover-skill-configs.outputs.changed-configs) }}
@@ -417,14 +529,12 @@ jobs:
           go-version-file: 'go.mod'
 
       - name: Install Cosign
-        if: github.event_name != 'pull_request'
         uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6 # v4.1.2
 
       - name: Install yq
         uses: mikefarah/yq@c14f446382944492701b16c1ddb48bb9dbe683e3 # v4.53.6
 
       - name: Log in to Container Registry
-        if: github.event_name != 'pull_request'
         uses: docker/login-action@dbcb813823bdd20940b903addbd779551569679f # v4.6.0
         with:
           registry: ${{ env.REGISTRY }}
@@ -445,6 +555,10 @@ jobs:
           echo "version=$version" >> $GITHUB_OUTPUT
 
           ref=$(yq '.spec.ref' "$CONFIG_FILE" 2>/dev/null || echo "")
+          if ! grep -Eq '^[0-9a-fA-F]{40}$' <<< "$ref"; then
+            echo "::error title=Unpinned skill source::spec.ref must be a full 40-character commit SHA"
+            exit 1
+          fi
           echo "ref=$ref" >> $GITHUB_OUTPUT
 
           repository=$(yq '.spec.repository' "$CONFIG_FILE" 2>/dev/null || echo "")
@@ -518,7 +632,7 @@ jobs:
         env:
           CONFIG_FILE: ${{ steps.meta.outputs.config_file }}
           IMAGE_REF: ${{ steps.meta.outputs.image_name }}:${{ steps.meta.outputs.version }}
-          PUSH: ${{ github.event_name != 'pull_request' }}
+          PUSH: 'true'
         run: |
           # pipefail so a dockhand failure propagates through `tee` and fails
           # the step. Without it, `set -e` alone would not fail on a non-zero
@@ -564,7 +678,6 @@ jobs:
           rm -f "$log_file"
 
       - name: Sign skill artifact with Cosign
-        if: github.event_name != 'pull_request'
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
           IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
@@ -602,7 +715,7 @@ jobs:
           echo "Signed: ${IMAGE_NAME}@${DIGEST} and ${IMAGE_NAME}:${VERSION}" >> $GITHUB_STEP_SUMMARY
 
       - name: Check out skill source for SBOM
-        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        if: steps.build.outputs.digest != ''
         id: skill-src
         env:
           SKILL_REPO: ${{ steps.meta.outputs.repository }}
@@ -621,7 +734,7 @@ jobs:
           echo "source_dir=$src_dir" >> $GITHUB_OUTPUT
 
       - name: Generate SBOM from skill source
-        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        if: steps.build.outputs.digest != ''
         uses: anchore/sbom-action@3ad7283483fc7af8ff2b4ea19663c2d5ca935e26 # v0.24.2
         with:
           path: ${{ steps.skill-src.outputs.source_dir }}
@@ -631,7 +744,7 @@ jobs:
           upload-release-assets: false
 
       - name: Attest SBOM for skill artifact
-        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        if: steps.build.outputs.digest != ''
         uses: actions/attest-sbom@c604332985a26aa8cf1bdc465b92731239ec6b9e # v4.1.0
         with:
           subject-name: ${{ steps.meta.outputs.image_name }}
@@ -640,7 +753,7 @@ jobs:
           push-to-registry: true
 
       - name: Attest build provenance for skill artifact
-        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        if: steps.build.outputs.digest != ''
         uses: actions/attest-build-provenance@4d101475d8b20a2381f78447822ac1eab6504dd8 # v4.2.2
         with:
           subject-name: ${{ steps.meta.outputs.image_name }}
@@ -648,7 +761,7 @@ jobs:
           push-to-registry: true
 
       - name: Create security scan attestation (SCAI format)
-        if: github.event_name != 'pull_request' && steps.build.outputs.digest != ''
+        if: steps.build.outputs.digest != ''
         env:
           DIGEST: ${{ steps.build.outputs.digest }}
           IMAGE_NAME: ${{ steps.meta.outputs.image_name }}
@@ -737,28 +850,11 @@ jobs:
           if [ -n "$DIGEST" ]; then
             echo "| Digest | \`${DIGEST}\` |" >> $GITHUB_STEP_SUMMARY
           fi
-          echo "| Status | ${{ github.event_name != 'pull_request' && 'Published' || 'Built (dry run)' }} |" >> $GITHUB_STEP_SUMMARY
-          if [ "${{ github.event_name }}" != "pull_request" ] && [ -n "$DIGEST" ]; then
+          echo "| Status | Published |" >> $GITHUB_STEP_SUMMARY
+          if [ -n "$DIGEST" ]; then
             echo "| SBOM | Attested (SPDX) |" >> $GITHUB_STEP_SUMMARY
             echo "| Provenance | Attested (SLSA) |" >> $GITHUB_STEP_SUMMARY
           fi
-
-  save-pr-number:
-    runs-on: ubuntu-latest
-    permissions: {}
-    if: github.event_name == 'pull_request'
-    steps:
-      - name: Save PR number
-        env:
-          PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: echo "$PR_NUMBER" > pr-number.txt
-
-      - name: Upload PR number
-        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
-        with:
-          name: skill-pr-number
-          path: pr-number.txt
-          retention-days: 5
 
   summary:
     needs: [discover-skill-configs, validate-skills, skill-security-scan, build-skill-artifacts]

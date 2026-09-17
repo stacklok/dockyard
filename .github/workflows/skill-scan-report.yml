@@ -1,18 +1,14 @@
 # Runs in the base repository context so it can comment on PRs from forks.
-# Triggered after Build Skill Artifacts completes; downloads scan artifacts
+# Triggered after Trusted Skill Scan completes; downloads scan artifacts
 # and upserts a single "Skill Security Scan Results" PR comment.
 #
-# `workflow_run` is required for that base-repo write access; the trade-off it
-# flags is a privileged workflow trusting event data from an untrusted run.
-# This workflow never checks out or executes the triggering run's code, and
-# the only value it takes from it (the PR number, read from an artifact) is
-# used solely to target the comment, so a bad value means a comment lands on
-# the wrong PR, not privilege escalation.
+# `workflow_run` supplies base-repository write access after the trusted scan.
+# This workflow never checks out or executes pull-request code.
 name: Skill Scan Report
 
 on:
   workflow_run:   # zizmor: ignore[dangerous-triggers]
-    workflows: ["Build Skill Artifacts"]
+    workflows: ["Trusted Skill Scan"]
     types: [completed]
 
 permissions: {}
@@ -20,7 +16,7 @@ permissions: {}
 jobs:
   skill-scan-report:
     runs-on: ubuntu-latest
-    if: github.event.workflow_run.event == 'pull_request'
+    if: github.event.workflow_run.event == 'pull_request_target'
     steps:
       - name: Generate GitHub App token
         id: app-token
@@ -31,30 +27,23 @@ jobs:
           permission-actions: read
           permission-pull-requests: write
 
-      - name: Download PR number artifact
-        id: pr-number
-        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
-        with:
-          name: skill-pr-number
-          run-id: ${{ github.event.workflow_run.id }}
-          github-token: ${{ steps.app-token.outputs.token }}
-
-      - name: Read PR number
-        id: read-pr
-        run: |
-          PR_NUMBER=$(cat pr-number.txt)
-          echo "pr_number=$PR_NUMBER" >> $GITHUB_OUTPUT
-          echo "PR number: $PR_NUMBER"
-
       - name: Download scan results
         id: scan-results
         uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          pattern: skill-scan-*
+          pattern: trusted-skill-scan-*
           run-id: ${{ github.event.workflow_run.id }}
           github-token: ${{ steps.app-token.outputs.token }}
           path: scan-artifacts
         continue-on-error: true
+
+      - name: Download trusted run identity
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          pattern: trusted-scan-context-pr-*
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ steps.app-token.outputs.token }}
+          path: scan-identity
 
       - name: Comment PR with scan results
         uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
@@ -64,7 +53,18 @@ jobs:
             const fs = require('fs');
             const path = require('path');
 
-            const prNumber = parseInt('${{ steps.read-pr.outputs.pr_number }}');
+            const identityFiles = [];
+            for (const item of fs.readdirSync('scan-identity')) {
+              const candidate = path.join('scan-identity', item, 'trusted-scan-context.json');
+              if (fs.existsSync(candidate)) identityFiles.push(candidate);
+            }
+            if (identityFiles.length !== 1) {
+              core.setFailed(`Expected one trusted run identity, found ${identityFiles.length}.`);
+              return;
+            }
+            const identity = JSON.parse(fs.readFileSync(identityFiles[0], 'utf8'));
+            const prNumber = Number.parseInt(identity.pr_number, 10);
+            if (!Number.isInteger(prNumber)) return core.setFailed('Invalid PR number in trusted identity.');
             console.log('Commenting on PR:', prNumber);
 
             let comment = '## 🛡️ Skill Security Scan Results\n\n';
