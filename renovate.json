@@ -37,6 +37,12 @@
       "matchManagers": ["github-actions"],
       "matchDepTypes": ["uses-with"],
       "groupName": "CI runtime versions"
+    },
+    {
+      "description": "Temporarily skip skill-scanner 2.1.0 because its response schema is rejected by the configured OpenAI model.",
+      "matchManagers": ["pip_requirements"],
+      "matchPackageNames": ["cisco-ai-skill-scanner"],
+      "allowedVersions": "!=2.1.0"
     }
   ],
   "customManagers": [

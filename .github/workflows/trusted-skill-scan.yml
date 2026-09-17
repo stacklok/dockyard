@@ -1,5 +1,5 @@
 name: Trusted Skill Scan
-run-name: Trusted skill scan for PR #${{ github.event.pull_request.number }} at ${{ github.event.pull_request.head.sha }}
+run-name: "Trusted skill scan for PR #${{ github.event.pull_request.number }} at ${{ github.event.pull_request.head.sha }}"
 
 on:
   pull_request_target:  # zizmor: ignore[dangerous-triggers]
@@ -13,9 +13,12 @@ on:
 # data through the contents API and are never sourced or executed.
 permissions: {}
 
+# The version autofix adds a second commit to Renovate skill bumps. Keep both
+# runs in order so the first can publish a reusable raw-scan artifact.
 concurrency:
   group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-  cancel-in-progress: true
+  cancel-in-progress: false
+  queue: max
 
 jobs:
   discover:
@@ -73,9 +76,12 @@ jobs:
         env:
           HEAD_SHA: ${{ github.event.pull_request.head.sha }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
+          SCAN_CONFIGS: ${{ steps.discover.outputs.scan-configs }}
         run: |
           jq -n --arg pr_number "$PR_NUMBER" --arg head_sha "$HEAD_SHA" \
-            '{pr_number: $pr_number, head_sha: $head_sha}' > trusted-scan-context.json
+            --argjson scan_configs "$SCAN_CONFIGS" \
+            '{pr_number: $pr_number, head_sha: $head_sha, scan_configs: $scan_configs}' \
+            > trusted-scan-context.json
 
       - name: Upload report context
         uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
@@ -95,6 +101,7 @@ jobs:
         config: ${{ fromJson(needs.discover.outputs.scan-configs) }}
       max-parallel: 10
     permissions:
+      actions: read
       contents: read
     steps:
       - name: Checkout trusted scan implementation
@@ -230,7 +237,7 @@ jobs:
             echo "tree=$tree"
           } >> "$GITHUB_OUTPUT"
 
-      - name: Compute trusted raw-scan cache identity
+      - name: Compute trusted raw-scan identity
         id: scan-key
         env:
           REPOSITORY: ${{ steps.source.outputs.repository }}
@@ -248,7 +255,7 @@ jobs:
           REQUIREMENTS_SHA256=$(sha256sum scripts/skill-scan/requirements.txt | cut -d' ' -f1)
           RUNNER_SHA256=$(sha256sum scripts/skill-scan/run_scan.py | cut -d' ' -f1)
           export WORKFLOW_SHA256 REQUIREMENTS_SHA256 RUNNER_SHA256
-          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          python3 - <<'PY'
           import hashlib, json, os
 
           identity = {
@@ -269,30 +276,106 @@ jobs:
               'runner': os.environ['RUNNER_SHA256'],
           }
           canonical = json.dumps(identity, sort_keys=True, separators=(',', ':')).encode()
-          print(f'digest={hashlib.sha256(canonical).hexdigest()}')
+          digest = hashlib.sha256(canonical).hexdigest()
+          with open('/tmp/expected-raw-scan-identity.json', 'w', encoding='utf-8') as stream:
+              json.dump({'schema_version': 1, 'identity': identity, 'identity_sha256': digest}, stream,
+                        indent=2, sort_keys=True)
+              stream.write('\n')
+          with open(os.environ['GITHUB_OUTPUT'], 'a', encoding='utf-8') as stream:
+              stream.write(f'digest={digest}\n')
           PY
 
-      # pull_request_target executes trusted default-branch code and stores
-      # this cache in the default-branch scope; untrusted PR workflows cannot
-      # populate that scope. The key is a canonical digest of every raw-scan
-      # input. Allowlist evaluation still runs on every proposed spec.
-      - name: Restore trusted raw scan
-        id: raw-scan-cache
-        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      # Renovate skill bumps receive a second commit from skill-version-check.
+      # Runs are queued so the first can finish, then the second reuses this
+      # content-addressed artifact while re-evaluating its proposed spec.
+      - name: Find trusted raw scan
+        id: raw-scan
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          ARTIFACT_NAME: trusted-raw-skill-scan-v1-${{ steps.scan-key.outputs.digest }}
         with:
-          path: |
-            skill-scan-${{ steps.source.outputs.skill-name }}.json
-            scanner-version.txt
-          key: trusted-skill-scan-v1-${{ steps.scan-key.outputs.digest }}
+          script: |
+            const artifacts = await github.paginate(github.rest.actions.listArtifactsForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              name: process.env.ARTIFACT_NAME,
+              per_page: 100,
+            });
+            const candidates = artifacts
+              .filter(artifact => !artifact.expired && artifact.workflow_run)
+              .sort((a, b) => Date.parse(b.created_at) - Date.parse(a.created_at));
+            for (const artifact of candidates) {
+              const response = await github.rest.actions.getWorkflowRun({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                run_id: artifact.workflow_run.id,
+              });
+              const run = response.data;
+              if (
+                run.status === 'completed' &&
+                run.event === 'pull_request_target' &&
+                run.path === '.github/workflows/trusted-skill-scan.yml'
+              ) {
+                core.setOutput('hit', 'true');
+                core.setOutput('run-id', String(run.id));
+                core.info(`Reusing ${process.env.ARTIFACT_NAME} from trusted run ${run.id}.`);
+                return;
+              }
+            }
+            core.setOutput('hit', 'false');
+            core.info(`No reusable ${process.env.ARTIFACT_NAME} artifact exists.`);
+
+      - name: Download trusted raw scan
+        if: steps.raw-scan.outputs.hit == 'true'
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: trusted-raw-skill-scan-v1-${{ steps.scan-key.outputs.digest }}
+          path: /tmp/trusted-raw-scan
+          run-id: ${{ steps.raw-scan.outputs.run-id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Restore trusted raw scan
+        if: steps.raw-scan.outputs.hit == 'true'
+        env:
+          SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
+          SKILL_NAME: ${{ steps.source.outputs.skill-name }}
+        run: |
+          set -euo pipefail
+          export EXPECTED_IDENTITY=/tmp/expected-raw-scan-identity.json
+          export MANIFEST=/tmp/trusted-raw-scan/raw-scan-manifest.json
+          export RAW_SCAN=/tmp/trusted-raw-scan/skill-scan-${SKILL_NAME}.json
+          export VERSION_FILE=/tmp/trusted-raw-scan/scanner-version.txt
+          python3 - <<'PY'
+          import hashlib, json, os
+
+          with open(os.environ['EXPECTED_IDENTITY'], encoding='utf-8') as stream:
+              expected = json.load(stream)
+          with open(os.environ['MANIFEST'], encoding='utf-8') as stream:
+              manifest = json.load(stream)
+          if manifest.get('schema_version') != 1:
+              raise SystemExit('unsupported raw scan manifest schema')
+          if manifest.get('identity') != expected:
+              raise SystemExit('raw scan artifact identity mismatch')
+          with open(os.environ['RAW_SCAN'], 'rb') as stream:
+              scan_sha256 = hashlib.sha256(stream.read()).hexdigest()
+          if manifest.get('scan_sha256') != scan_sha256:
+              raise SystemExit('raw scan artifact checksum mismatch')
+          if manifest.get('scanner_version') != os.environ['SCANNER_VERSION']:
+              raise SystemExit('raw scan artifact scanner version mismatch')
+          if open(os.environ['VERSION_FILE'], encoding='utf-8').read().strip() != os.environ['SCANNER_VERSION']:
+              raise SystemExit('raw scan artifact version file mismatch')
+          PY
+          cp "$RAW_SCAN" "skill-scan-${SKILL_NAME}.json"
+          cp "$VERSION_FILE" scanner-version.txt
 
       - name: Set up uv
-        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+        if: steps.raw-scan.outputs.hit != 'true'
         uses: astral-sh/setup-uv@bec219d24cd3e171d82865faccec33120bb574f4 # v10.1.0
         with:
           enable-cache: true
 
       - name: Install scanner
-        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+        if: steps.raw-scan.outputs.hit != 'true'
         env:
           EXPECTED_SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
         run: |
@@ -303,7 +386,7 @@ jobs:
           skill-scanner --version
 
       - name: Run trusted skill security scan
-        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+        if: steps.raw-scan.outputs.hit != 'true'
         env:
           SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
           SKILL_SCANNER_LLM_API_KEY: ${{ secrets.SKILL_SCANNER_LLM_API_KEY }}
@@ -325,8 +408,7 @@ jobs:
           fi
           printf '%s\n' "$SCANNER_VERSION" > scanner-version.txt
 
-      - name: Validate raw scan before caching
-        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
+      - name: Validate trusted raw scan
         env:
           SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
           SKILL_NAME: ${{ steps.source.outputs.skill-name }}
@@ -344,16 +426,49 @@ jobs:
           analyzers = scan.get('analyzers_used') or []
           if os.environ['USE_LLM'] == 'true' and not {'llm_analyzer', 'meta_analyzer'} <= set(analyzers):
               raise SystemExit('scanner output is missing required LLM analyzers')
+          if os.environ['USE_LLM'] == 'true' and any(
+              finding.get('rule_id') == 'LLM_ANALYSIS_FAILED' for finding in scan['findings']
+          ):
+              raise SystemExit('scanner output reports failed LLM analysis')
           PY
 
-      - name: Save trusted raw scan
-        if: steps.raw-scan-cache.outputs.cache-hit != 'true'
-        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+      - name: Record trusted raw scan manifest
+        if: steps.raw-scan.outputs.hit != 'true'
+        env:
+          SCANNER_VERSION: ${{ steps.scanner.outputs.version }}
+          SKILL_NAME: ${{ steps.source.outputs.skill-name }}
+        run: |
+          set -euo pipefail
+          export EXPECTED_IDENTITY=/tmp/expected-raw-scan-identity.json
+          export RAW_SCAN=skill-scan-${SKILL_NAME}.json
+          SCAN_SHA256=$(sha256sum "$RAW_SCAN" | cut -d' ' -f1)
+          export SCAN_SHA256
+          python3 - <<'PY'
+          import json, os
+
+          with open(os.environ['EXPECTED_IDENTITY'], encoding='utf-8') as stream:
+              identity = json.load(stream)
+          manifest = {
+              'schema_version': 1,
+              'identity': identity,
+              'scan_sha256': os.environ['SCAN_SHA256'],
+              'scanner_version': os.environ['SCANNER_VERSION'],
+          }
+          with open('raw-scan-manifest.json', 'w', encoding='utf-8') as stream:
+              json.dump(manifest, stream, indent=2, sort_keys=True)
+              stream.write('\n')
+          PY
+
+      - name: Upload trusted raw scan
+        if: steps.raw-scan.outputs.hit != 'true'
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
         with:
+          name: trusted-raw-skill-scan-v1-${{ steps.scan-key.outputs.digest }}
           path: |
             skill-scan-${{ steps.source.outputs.skill-name }}.json
             scanner-version.txt
-          key: trusted-skill-scan-v1-${{ steps.scan-key.outputs.digest }}
+            raw-scan-manifest.json
+          retention-days: 30
 
       - name: Evaluate proposed allowlist
         env:
