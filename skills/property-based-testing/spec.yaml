@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"  # main as of 2026-04-17
+  ref: "123037ec8aed26f0d86327cc39137ee5043e5deb"  # main as of 2026-04-17
   path: "plugins/property-based-testing/skills/property-based-testing"
   version: "0.2.1"
 
