@@ -49,9 +49,12 @@ workflow validates specifications and confirms that the proposed skill can be
 packaged, but it does not run the LLM-backed scanner or publish artifacts.
 
 `trusted-skill-scan.yml` has access to the scanner credential. It checks out
-the workflow and scanner implementation from the trusted base commit. It
-fetches each proposed `spec.yaml` through the GitHub contents API and treats
-the file as data. Pull request code is never executed in this workflow.
+the workflow and scanner implementation from `github.workflow_sha`, the exact
+trusted commit from which GitHub loaded the `pull_request_target` workflow.
+This avoids using `pull_request.base.sha`, which can remain at an older merge
+base after `main` advances. The workflow fetches each proposed `spec.yaml`
+through the GitHub contents API and treats the file as data. Pull request code
+is never executed in this workflow.
 
 The trusted workflow also enforces the following boundaries:
 

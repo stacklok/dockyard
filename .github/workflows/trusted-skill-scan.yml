@@ -9,8 +9,9 @@ on:
       - 'skills/**/*.yaml'
 
 # This workflow has access to the LLM credential. It must only execute code
-# checked out from the trusted base commit; pull-request files are fetched as
-# data through the contents API and are never sourced or executed.
+# checked out from the commit that supplied this workflow; pull-request files
+# are fetched as data through the contents API and are never sourced or
+# executed.
 permissions: {}
 
 jobs:
@@ -155,7 +156,10 @@ jobs:
       - name: Checkout trusted scan implementation
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          ref: ${{ github.event.pull_request.base.sha }}
+          # pull_request.base.sha can remain at an older merge base after main
+          # advances. workflow_sha is the exact trusted revision from which
+          # GitHub loaded this pull_request_target workflow.
+          ref: ${{ github.workflow_sha }}
           persist-credentials: false
 
       - name: Fetch proposed specification as data
