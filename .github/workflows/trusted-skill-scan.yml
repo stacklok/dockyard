@@ -91,7 +91,7 @@ jobs:
     needs: discover
     if: needs.discover.outputs.scan-configs != '[]'
     runs-on: ubuntu-latest
-    timeout-minutes: 40
+    timeout-minutes: 80
     permissions:
       actions: read
     steps:
@@ -103,42 +103,36 @@ jobs:
           script: |
             const currentRunId = Number(context.runId);
             const titlePrefix = `Trusted skill scan for PR #${process.env.PR_NUMBER} at `;
-            const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              workflow_id: 'trusted-skill-scan.yml',
-              event: 'pull_request_target',
-              per_page: 100,
-            });
-            const earlierActive = runs
-              .filter(run =>
-                run.id < currentRunId &&
-                run.display_title.startsWith(titlePrefix) &&
-                run.status !== 'completed'
-              )
-              .sort((a, b) => a.id - b.id);
-            if (earlierActive.length === 0) {
-              core.info('No earlier trusted scan is still running for this pull request.');
-              return;
-            }
-
-            let prior = earlierActive[0];
-            const deadline = Date.now() + 35 * 60 * 1000;
-            while (prior.status !== 'completed' && Date.now() < deadline) {
-              core.info(`Waiting for trusted scan run ${prior.id} (${prior.status}).`);
-              await new Promise(resolve => setTimeout(resolve, 30_000));
-              const response = await github.rest.actions.getWorkflowRun({
+            const deadline = Date.now() + 75 * 60 * 1000;
+            while (true) {
+              const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                run_id: prior.id,
+                workflow_id: 'trusted-skill-scan.yml',
+                event: 'pull_request_target',
+                per_page: 100,
               });
-              prior = response.data;
+              const earlierActive = runs
+                .filter(run =>
+                  run.id < currentRunId &&
+                  run.display_title.startsWith(titlePrefix) &&
+                  run.status !== 'completed'
+                )
+                .sort((a, b) => b.id - a.id);
+              if (earlierActive.length === 0) {
+                core.info('No earlier trusted scan is still running for this pull request.');
+                return;
+              }
+
+              const prior = earlierActive[0];
+              if (Date.now() >= deadline) {
+                core.setFailed('Timed out waiting for earlier trusted scans on this pull request.');
+                return;
+              }
+              core.info(`Waiting for newest earlier trusted scan run ${prior.id} (${prior.status}).`);
+              const delay = Math.min(30_000, deadline - Date.now());
+              await new Promise(resolve => setTimeout(resolve, delay));
             }
-            if (prior.status !== 'completed') {
-              core.setFailed(`Timed out waiting for trusted scan run ${prior.id}.`);
-              return;
-            }
-            core.info(`Trusted scan run ${prior.id} completed with ${prior.conclusion}.`);
 
   scan:
     needs: [discover, wait-for-prior-scan]
