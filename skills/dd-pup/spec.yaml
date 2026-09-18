@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "bcbdc2ba1157ce67a420ade1321cea12c7c2cc01"
+  ref: "7f8b08f4fa57211ac1b2b42d9771c9e0c4d79124"
   path: "dd-pup"
-  version: "0.4.2"
+  version: "0.5.0"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
@@ -30,3 +30,5 @@ security:
         subcommands a user explicitly runs against their own Datadog tenant,
         not autonomous high-risk tool calls. Verified at digest
         98343f304cbd4439b3d7640cfe64f78070e44d68.
+    - rule_id: ATR_2026_00002
+      reason: "FP: matched the Markdown link text `[setup instructions]` in SKILL.md:42, which points to the upstream pup installation documentation; it is ordinary documentation, not an instruction-injection pattern. datadog-labs/agent-skills @7f8b08f4fa57211ac1b2b42d9771c9e0c4d79124."
