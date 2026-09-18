@@ -29,5 +29,7 @@ provenance:
 
 security:
   allowed_issues:
+    - rule_id: ATR_2026_00063
+      reason: "FP: `references/claimable-neon.md:41` documents `neon claim create` writing its provisioned variables to `.env` or `.env.local`, with safeguards for existing Neon-managed keys and gitignore. It neither reads a host secret nor transmits data to an external sink, so it is not a multi-skill exfiltration chain."
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "neondatabase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."

@@ -26,5 +26,7 @@ provenance:
 
 security:
   allowed_issues:
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Accepted risk: when its bundled `neon` parent is absent, `SKILL.md:19-22` fetches that parent from the official Neon domain or installs it through Neon CLI. This is a documented same-publisher dependency path, not an untrusted third-party source; the mutable remote content is intentionally not pinned to this artifact."
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "neondatabase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
