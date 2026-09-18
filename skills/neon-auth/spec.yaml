@@ -29,3 +29,5 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "neondatabase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Accepted first-party dependency handoff: SKILL.md:18-24 fetches the parent neon skill only from Neon's HTTPS documentation domain or through the Neon CLI when it is not installed. Dockyard packages that parent from the same reviewed commit, and the hosted SKILL.md matched the pinned source byte-for-byte during review."
