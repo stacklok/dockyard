@@ -31,3 +31,5 @@ security:
       reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:28, SKILL.md:70) — standard HCL/CI syntax, not injected secrets."
     - rule_id: ATR_2026_00091
       reason: "FP: matched \"constructor\"/\"Constructor\" in Go code documentation describing struct initialization (e.g. SKILL.md:147), not an obfuscation pattern."
+    - rule_id: LLM_HARMFUL_CONTENT
+      reason: "Accepted risk: documented insecure/Basic WinRM bootstrap (SKILL.md:42-57) is required for Packer Windows builders; operator accepts it for temporary build targets with restricted network exposure."

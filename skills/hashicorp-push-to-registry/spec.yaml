@@ -27,3 +27,5 @@ security:
       reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:38, SKILL.md:130) — standard HCL/CI syntax, not injected secrets."
     - rule_id: ATR_2026_00114
       reason: "FP: matched placeholder credential values like `CLIENT_SECRET=\"your-client-secret\"` in documented example commands (e.g. SKILL.md:73) — literal placeholders, not real secrets."
+    - rule_id: LLM_SUPPLY_CHAIN_ATTACK
+      reason: "Accepted risk: documented `hashicorp/setup-packer@main` CI example (SKILL.md:125); operator accepts the mutable ref based on trust in the HashiCorp publisher."
