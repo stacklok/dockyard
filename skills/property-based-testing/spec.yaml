@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/trailofbits/skills"
   ref: "123037ec8aed26f0d86327cc39137ee5043e5deb"  # main as of 2026-04-17
   path: "plugins/property-based-testing/skills/property-based-testing"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"

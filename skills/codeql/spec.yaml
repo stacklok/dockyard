@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/trailofbits/skills"
   ref: "123037ec8aed26f0d86327cc39137ee5043e5deb"
   path: "plugins/static-analysis/skills/codeql"
-  version: "0.2.2"
+  version: "0.2.3"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
