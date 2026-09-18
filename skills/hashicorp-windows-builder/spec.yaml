@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/hashicorp/agent-skills"
   ref: "c2d65dfe492f74d360d35b859b88932222470bd8"  # main as of 2026-08-10
   path: "plugins/packer/skills/windows-builder"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/hashicorp/agent-skills"
