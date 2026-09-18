@@ -10,7 +10,7 @@ metadata:
 spec:
   repository: "https://github.com/ClickHouse/agent-skills"
   # Last commit that still contains this skill; 6e5458d merged it into infra-clickhouse.
-  ref: "65ce71fce803014afb69279535c82c72dc55d9ba"
+  ref: "2f6ec4b17a81a435dd116f9ac19d7b45d44dbd61"
   path: "skills/clickhousectl-cloud-deploy"
   version: "0.2.6"
 
