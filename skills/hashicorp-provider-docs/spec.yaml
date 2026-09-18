@@ -12,7 +12,7 @@ metadata:
 
 spec:
   repository: "https://github.com/hashicorp/agent-skills"
-  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  ref: "c2d65dfe492f74d360d35b859b88932222470bd8"  # main as of 2026-08-10
   path: "plugins/terraform/skills/provider-docs"
   version: "0.2.0"
 
