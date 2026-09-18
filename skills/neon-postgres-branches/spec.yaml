@@ -16,7 +16,7 @@ metadata:
 
 spec:
   repository: "https://github.com/neondatabase/agent-skills"
-  ref: "b5beae8767c18ee7b9dc1ae1eb6c93c7cb1a96c4"  # main as of 2026-09-18
+  ref: "e8be8ff34267b559c90106a5e0bafd3071e76d46"  # main as of 2026-09-18
   path: "skills/neon-postgres-branches"
   version: "0.1.0"
 
