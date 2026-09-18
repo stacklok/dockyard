@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/pulumi/agent-skills"
   ref: "9b794aec9c4169f137285c2763c06064d247dd47"
   path: "pulumi/skills/pulumi-best-practices"
-  version: "0.1.8"
+  version: "0.1.9"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
