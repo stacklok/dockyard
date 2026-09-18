@@ -21,3 +21,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "google-gemini/gemini-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    - rule_id: LLM_PROMPT_INJECTION
+      reason: "Accepted risk: SKILL.md:6 says the current Gemini API rules override stale training data. This pre-existing instruction is scoped to model and SDK freshness in Google's Apache-2.0 Gemini skill; it does not request bypassing system policies, accessing secrets, or taking unrelated actions."
+    - rule_id: ATR_2026_00001
+      reason: "Accepted risk: the exact `override your training data` text at SKILL.md:6 prioritizes current Gemini model and SDK guidance over stale model knowledge. It was already present at the previous pinned commit and is published by the Google Gemini organization, not injected third-party content."
+    - rule_id: ATR_2026_00050
+      reason: "FP: `while (true)` at SKILL.md:163 is a documented TypeScript polling loop for a background research request. It sleeps for 10 seconds between checks and exits on completed, failed, or cancelled status; it is not malicious persistence."
