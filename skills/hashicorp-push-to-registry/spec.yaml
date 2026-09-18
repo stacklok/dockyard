@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/hashicorp/agent-skills"
-  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  ref: "c2d65dfe492f74d360d35b859b88932222470bd8"  # main as of 2026-08-10
   path: "plugins/packer/skills/push-to-registry"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/hashicorp/agent-skills"
@@ -27,3 +27,5 @@ security:
       reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:38, SKILL.md:130) — standard HCL/CI syntax, not injected secrets."
     - rule_id: ATR_2026_00114
       reason: "FP: matched placeholder credential values like `CLIENT_SECRET=\"your-client-secret\"` in documented example commands (e.g. SKILL.md:73) — literal placeholders, not real secrets."
+    - rule_id: LLM_SUPPLY_CHAIN_ATTACK
+      reason: "Accepted risk: documented `hashicorp/setup-packer@main` CI example (SKILL.md:125); operator accepts the mutable ref based on trust in the HashiCorp publisher."

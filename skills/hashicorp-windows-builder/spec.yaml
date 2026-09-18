@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/hashicorp/agent-skills"
-  ref: "6333093c37a318cb800d57a6de7d0877a9e048a4"  # main as of 2026-08-10
+  ref: "c2d65dfe492f74d360d35b859b88932222470bd8"  # main as of 2026-08-10
   path: "plugins/packer/skills/windows-builder"
-  version: "0.2.0"
+  version: "0.2.1"
 
 provenance:
   repository_uri: "https://github.com/hashicorp/agent-skills"
@@ -22,7 +22,7 @@ security:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "hashicorp/agent-skills is licensed MPL-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: ATR_2026_00010
-      reason: "FP: matched the documented Chocolatey bootstrap command `iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))` (SKILL.md:101) — the official Chocolatey install script run inside a Packer PowerShell provisioner to build a Windows image, not a hidden payload."
+      reason: "Risk accepted by maintainer (danbarr, 2026-09-18): matched the documented Chocolatey bootstrap command `iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))` (SKILL.md:108). This is Chocolatey's official HTTPS bootstrap script run inside a Packer PowerShell provisioner to build a Windows image; the mutable remote-script execution risk is explicit and accepted."
     - rule_id: ATR_2026_00063
       reason: "FP: matched words like \"exfil\"/\"upload\"/\"encrypt\" in documentation prose — either warning against exfiltration (design-principles guidance) or describing legitimate upload/encryption features (HCP Packer registry push, state upload, disk encryption) (e.g. SKILL.md:47), not exfiltration code."
     - rule_id: ATR_2026_00064
@@ -31,3 +31,7 @@ security:
       reason: "FP: matched Terraform HCL string-interpolation syntax (`${...}`) or GitHub Actions `secrets.*` references in documented configuration/CI examples (e.g. SKILL.md:28, SKILL.md:70) — standard HCL/CI syntax, not injected secrets."
     - rule_id: ATR_2026_00091
       reason: "FP: matched \"constructor\"/\"Constructor\" in Go code documentation describing struct initialization (e.g. SKILL.md:147), not an obfuscation pattern."
+    - rule_id: LLM_HARMFUL_CONTENT
+      reason: "Accepted risk: documented insecure/Basic WinRM bootstrap (SKILL.md:42-57) is required for Packer Windows builders; operator accepts it for temporary build targets with restricted network exposure."
+    - rule_id: LLM_SUPPLY_CHAIN_ATTACK
+      reason: "Risk accepted by maintainer (danbarr, 2026-09-18): the example uses Chocolatey's official HTTPS bootstrap script inside a Packer-built Windows image without pinning the script content or verifying a checksum. The supply-chain risk of executing that mutable vendor installer is explicit and accepted for this documented bootstrap workflow."
