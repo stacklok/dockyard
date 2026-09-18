@@ -15,7 +15,7 @@ Four workflows participate in a normal skill change:
 
 | Workflow | Trigger | Responsibility |
 | --- | --- | --- |
-| `check-skills.yml` | `pull_request` | Validates and builds proposed skills without credentials or publishing access. |
+| `check-skills.yml` | `pull_request` | Validates and builds proposed skills without scanner or publishing credentials. |
 | `trusted-skill-scan.yml` | `pull_request_target` | Runs the trusted scanner, evaluates the proposed allowlist, and records approval artifacts for the exact pull request head. |
 | `skill-scan-report.yml` | `workflow_run` | Reports results on the pull request if the scanned head is still current. |
 | `build-skills.yml` | Push to `main` | Verifies the pull request approval, publishes each passing skill, and creates its security attestation. |
@@ -43,9 +43,10 @@ flowchart TD
 ## Trust boundary
 
 `check-skills.yml` checks out pull request code, so it has read-only
-permissions and no credentials. It validates specifications and confirms that
-the proposed skill can be packaged, but it does not run the LLM-backed scanner
-or publish artifacts.
+permissions and no scanner or publishing credentials. GitHub still supplies a
+read-only `GITHUB_TOKEN`, including through the `github.token` context. The
+workflow validates specifications and confirms that the proposed skill can be
+packaged, but it does not run the LLM-backed scanner or publish artifacts.
 
 `trusted-skill-scan.yml` has access to the scanner credential. It checks out
 the workflow and scanner implementation from the trusted base commit. It
@@ -169,7 +170,7 @@ resolver logs before treating the run as an expected reuse.
 
 Open `Trusted skill scan coordination`. A log naming an earlier run means the
 current head is waiting for that run to finish and publish reusable raw scans.
-The job rechecks all earlier runs every 30 seconds.
+The job rechecks recent runs for the pull request branch every 60 seconds.
 
 ### A completed scan did not update the pull request comment
 

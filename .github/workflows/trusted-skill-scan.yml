@@ -103,16 +103,20 @@ jobs:
           script: |
             const currentRunId = Number(context.runId);
             const titlePrefix = `Trusted skill scan for PR #${process.env.PR_NUMBER} at `;
+            const headBranch = context.payload.pull_request.head.ref;
+            const createdAfter = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
             const deadline = Date.now() + 75 * 60 * 1000;
             while (true) {
-              const runs = await github.paginate(github.rest.actions.listWorkflowRuns, {
+              const response = await github.rest.actions.listWorkflowRuns({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 workflow_id: 'trusted-skill-scan.yml',
+                branch: headBranch,
+                created: `>=${createdAfter}`,
                 event: 'pull_request_target',
                 per_page: 100,
               });
-              const earlierActive = runs
+              const earlierActive = response.data.workflow_runs
                 .filter(run =>
                   run.id < currentRunId &&
                   run.display_title.startsWith(titlePrefix) &&
@@ -130,7 +134,7 @@ jobs:
                 return;
               }
               core.info(`Waiting for newest earlier trusted scan run ${prior.id} (${prior.status}).`);
-              const delay = Math.min(30_000, deadline - Date.now());
+              const delay = Math.min(60_000, deadline - Date.now());
               await new Promise(resolve => setTimeout(resolve, delay));
             }
 
