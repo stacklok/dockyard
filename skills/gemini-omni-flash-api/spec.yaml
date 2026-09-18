@@ -1,0 +1,30 @@
+# Gemini Omni Flash API Skill
+# Generate and edit video with Gemini Omni 1.1 Flash.
+# Source: https://github.com/google-gemini/gemini-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/gemini-omni-flash-api:0.1.0
+
+metadata:
+  name: gemini-omni-flash-api
+  description: >-
+    Use this skill for generative video editing, text-to-video,
+    image-referenced video generation, first-frame-to-video, first-and-last-frame
+    transitions, and video extensions using Gemini Omni 1.1 Flash
+    (gemini-omni-1.1-flash) via the official google-genai SDK. Includes workflows
+    for pre-processing/optimizing high-resolution or long source videos with
+    ffmpeg, stripping audio for full sound regeneration, and handling
+    turn-by-turn video editing and parallel execution.
+
+spec:
+  repository: "https://github.com/google-gemini/gemini-skills"
+  ref: "eaa2325426fd1f362ac35fc492676bc2c6a95fe1"  # main as of 2026-09-18
+  path: "skills/gemini-omni-flash-api"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/google-gemini/gemini-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "google-gemini/gemini-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
