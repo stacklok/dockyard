@@ -1,0 +1,36 @@
+# Neon Functions Skill
+# Source: https://github.com/neondatabase/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/neon-functions:0.1.0
+
+metadata:
+  name: neon-functions
+  description: >-
+    Long-running, serverless Node.js HTTP functions deployed onto your Neon
+    branch, with DATABASE_URL injected automatically and compute that runs next
+    to your data. Use when a user wants to host an API, an AI agent with long
+    streaming responses, a WebSocket or server-sent-events (SSE) server, a
+    webhook handler, a Discord bot, an MCP server, or any request/response
+    workload that risks timing out on short, lambda-style serverless functions —
+    and wants it to branch with their database. Also use for Function Triggers:
+    a cron or an object-storage event that POSTs to a function. Triggers include
+    "serverless function", "deploy an API", "long-running function",
+    "streaming agent", "SSE server", "WebSocket server", "webhook handler",
+    "MCP server", "cron", "function trigger", "scheduled function", "cron job",
+    "object storage trigger", "on upload", "run code next to my database",
+    "function that won't time out", "function logs", "Neon Functions", and
+    "Neon Compute".
+
+spec:
+  repository: "https://github.com/neondatabase/agent-skills"
+  ref: "b5beae8767c18ee7b9dc1ae1eb6c93c7cb1a96c4"  # main as of 2026-09-18
+  path: "skills/neon-functions"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/neondatabase/agent-skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: MANIFEST_MISSING_LICENSE
+      reason: "neondatabase/agent-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
