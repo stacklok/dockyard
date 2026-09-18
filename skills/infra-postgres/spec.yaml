@@ -1,0 +1,23 @@
+# ClickHouse Postgres Infrastructure Skill
+# Source: https://github.com/ClickHouse/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/infra-postgres:0.1.0
+
+metadata:
+  name: infra-postgres
+  description: >-
+    Sets up and manages Postgres using the clickhousectl CLI — runs a local Docker-backed
+    Postgres for development, and creates and operates managed ClickHouse Cloud Postgres
+    services (connections, TLS, runtime config, read replicas, failover, point-in-time restore).
+    Use when the user wants a Postgres or PostgreSQL database for their application, a local
+    Postgres dev environment, psql access, or a managed/production Postgres in ClickHouse Cloud,
+    or mentions moving a local Postgres to production.
+
+spec:
+  repository: "https://github.com/ClickHouse/agent-skills"
+  ref: "2f6ec4b17a81a435dd116f9ac19d7b45d44dbd61"  # main as of 2026-09-18
+  path: "skills/infra-postgres"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/ClickHouse/agent-skills"
+  repository_ref: "refs/heads/main"
