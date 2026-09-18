@@ -585,6 +585,10 @@ jobs:
           fi
           if [ "$USE_LLM" = true ]; then
             jq -e '.analyzers_used | index("llm_analyzer") and index("meta_analyzer")' "$scan_output" >/dev/null
+            if jq -e '.findings[]? | select(.rule_id == "LLM_ANALYSIS_FAILED")' "$scan_output" >/dev/null; then
+              echo "::error title=LLM analysis unavailable::The trusted fallback scan did not complete semantic analysis."
+              exit 1
+            fi
           fi
           printf '%s\n' "$SCANNER_VERSION" > scanner-version.txt
           echo "Used a fresh trusted scan because no current PR approval was available."
