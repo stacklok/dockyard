@@ -13,13 +13,6 @@ on:
 # data through the contents API and are never sourced or executed.
 permissions: {}
 
-# The version autofix adds a second commit to Renovate skill bumps. Keep both
-# runs in order so the first can publish a reusable raw-scan artifact.
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number }}
-  cancel-in-progress: false
-  queue: max
-
 jobs:
   discover:
     runs-on: ubuntu-latest
@@ -90,8 +83,63 @@ jobs:
           path: trusted-scan-context.json
           retention-days: 30
 
-  scan:
+  # The version autofix adds a second commit to Renovate skill bumps. Start a
+  # current-head check immediately, but wait for the earlier run to publish
+  # its content-addressed raw-scan artifacts before starting this scan matrix.
+  wait-for-prior-scan:
+    name: Trusted skill scan coordination
     needs: discover
+    if: needs.discover.outputs.scan-configs != '[]'
+    runs-on: ubuntu-latest
+    timeout-minutes: 80
+    permissions:
+      actions: read
+    steps:
+      - name: Wait for an earlier scan on this pull request
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        with:
+          script: |
+            const currentRunId = Number(context.runId);
+            const titlePrefix = `Trusted skill scan for PR #${process.env.PR_NUMBER} at `;
+            const headBranch = context.payload.pull_request.head.ref;
+            const createdAfter = new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString();
+            const deadline = Date.now() + 75 * 60 * 1000;
+            while (true) {
+              const response = await github.rest.actions.listWorkflowRuns({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                workflow_id: 'trusted-skill-scan.yml',
+                branch: headBranch,
+                created: `>=${createdAfter}`,
+                event: 'pull_request_target',
+                per_page: 100,
+              });
+              const earlierActive = response.data.workflow_runs
+                .filter(run =>
+                  run.id < currentRunId &&
+                  run.display_title.startsWith(titlePrefix) &&
+                  run.status !== 'completed'
+                )
+                .sort((a, b) => b.id - a.id);
+              if (earlierActive.length === 0) {
+                core.info('No earlier trusted scan is still running for this pull request.');
+                return;
+              }
+
+              const prior = earlierActive[0];
+              if (Date.now() >= deadline) {
+                core.setFailed('Timed out waiting for earlier trusted scans on this pull request.');
+                return;
+              }
+              core.info(`Waiting for newest earlier trusted scan run ${prior.id} (${prior.status}).`);
+              const delay = Math.min(60_000, deadline - Date.now());
+              await new Promise(resolve => setTimeout(resolve, delay));
+            }
+
+  scan:
+    needs: [discover, wait-for-prior-scan]
     if: needs.discover.outputs.scan-configs != '[]'
     runs-on: ubuntu-latest
     timeout-minutes: 35
