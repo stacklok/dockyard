@@ -28,6 +28,8 @@ You want to vendor an agent skill (your own, or a third-party one) as a Dockyard
 You're evaluating Dockyard for security compliance or want to verify container integrity.
 
 - [Security Overview](security.md) - Security scanning, guarantees, and verification
+- [Trusted skill scan workflow](trusted-skill-scan-workflow.md) - Internal
+  architecture and operations for skill scan approvals
 - [Container Attestations](attestations.md) - SCAI attestation schema and policy enforcement
 - [Package Provenance](provenance.md) - Supply chain verification for npm/PyPI packages
 
@@ -39,6 +41,7 @@ You're evaluating Dockyard for security compliance or want to verify container i
 | [Adding MCP Servers](adding-servers.md) | Contributing your MCP server |
 | [Adding Skills](adding-skills.md) | Contributing an agent skill |
 | [Security Overview](security.md) | Security model and scanning |
+| [Trusted skill scan workflow](trusted-skill-scan-workflow.md) | Internal architecture and operations for skill scan approvals |
 | [Attestations](attestations.md) | Container attestation details |
 | [Provenance](provenance.md) | Package provenance verification |
 | [Skill Versioning](skill-versioning.md) | Semver policy and auto-bump tooling for skills |
