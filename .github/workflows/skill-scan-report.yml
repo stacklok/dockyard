@@ -74,6 +74,15 @@ jobs:
             const identity = JSON.parse(fs.readFileSync(identityFiles[0], 'utf8'));
             const prNumber = Number.parseInt(identity.pr_number, 10);
             if (!Number.isInteger(prNumber)) return core.setFailed('Invalid PR number in trusted identity.');
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: prNumber,
+            });
+            if (pr.data.head.sha !== identity.head_sha) {
+              core.info(`Skipping stale scan report for ${identity.head_sha}; current head is ${pr.data.head.sha}.`);
+              return;
+            }
             const expectedSkills = Array.isArray(identity.scan_configs)
               ? identity.scan_configs.map(config => config.split('/')[1])
               : [];
