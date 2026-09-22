@@ -10,9 +10,9 @@ metadata:
 
 spec:
   repository: "https://github.com/vercel/next.js"
-  ref: "748cc4a6e8b046f2c61cc3f28378c78c7e7a9492"  # canary as of 2026-08-06
+  ref: "34433fd12ee8074ea3f47af9f36255c7390d0301"  # canary as of 2026-08-06
   path: "skills/next-cache-components-optimizer"
-  version: "0.3.0"
+  version: "0.3.1"
 
 provenance:
   repository_uri: "https://github.com/vercel/next.js"
