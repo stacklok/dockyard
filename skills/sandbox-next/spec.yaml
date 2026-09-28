@@ -14,9 +14,9 @@ metadata:
 
 spec:
   repository: "https://github.com/cloudflare/skills"
-  ref: "b052c32bab7dd493513260228a36c88294f343f1"  # main as of 2026-08-07
+  ref: "626547c06881a20b3322bdc2ed6e6451b33a4fb6"  # main as of 2026-08-07
   path: "skills/sandbox-next"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"
