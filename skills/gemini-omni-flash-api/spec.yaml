@@ -16,7 +16,7 @@ metadata:
 
 spec:
   repository: "https://github.com/google-gemini/gemini-skills"
-  ref: "eaa2325426fd1f362ac35fc492676bc2c6a95fe1"  # main as of 2026-09-18
+  ref: "6fee1bec62d6a0ca92c1d0e34d62ff11f70c498a"  # main as of 2026-09-18
   path: "skills/gemini-omni-flash-api"
   version: "0.1.0"
 
