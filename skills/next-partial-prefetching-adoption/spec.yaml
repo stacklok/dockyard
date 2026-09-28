@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/vercel/next.js"
   ref: "50199e6bce6275e231571bbbb9294b46bf9311f1"  # canary as of 2026-08-06
   path: "skills/next-partial-prefetching-adoption"
-  version: "0.3.1"
+  version: "0.4.0"
 
 provenance:
   repository_uri: "https://github.com/vercel/next.js"
