@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "ec0108293521ef698e451ec044e8b4feba6b732b"  # main as of 2026-04-16
+  ref: "abc20ae526d8b4c0e4dff89f904adce28a4a0eb6"  # main as of 2026-04-16
   path: "skills/hf-cli"
-  version: "0.3.0"
+  version: "0.4.0"
 
 provenance:
   repository_uri: "https://github.com/huggingface/skills"
