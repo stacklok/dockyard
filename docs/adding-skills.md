@@ -176,10 +176,10 @@ When `task scan-skill` reports an unallowlisted finding:
    ```yaml
    security:
      allowed_issues:
-       - rule_id: ATR_2026_00066
-         reason: "FP: matched shell variable expansion (`${TOKEN}`) in a
-           documented setup command (SKILL.md:45) — standard shell syntax,
-           not injected secrets."
+       - rule_id: PG_PII_CREDENTIAL_HARVESTING
+         reason: "FP: matched advice to store credentials in a dedicated
+           `~/.mcp-env` file (SKILL.md:213). The skill tells users where to keep
+           their own credentials; it never asks the user for them."
    ```
 
 4. Re-run `task scan-skill -- skills/{skill-name}` until it passes.

@@ -43,9 +43,15 @@ def main() -> None:
         "--format", "json",
         "--output-json", args.output,
         # Always-on analyzers — free, in-tree, no network, no LLM key.
-        # ATR pack (314 rules) targets agent/MCP-style attacks; PromptGuard
-        # adds Anthropic/OpenAI key detection and markdown exfiltration rules.
-        "--rule-packs", "atr", "promptguard",
+        # PromptGuard adds Anthropic/OpenAI key detection and markdown
+        # exfiltration rules. The ATR pack is deliberately off: its regexes
+        # produced ~98% of HIGH+ hits across the catalog, and upstream ATR
+        # ships every skill-targeted rule as maturity "test", not for gating.
+        "--rule-packs", "promptguard",
+        # Upstream's lowest-FPR gating preset: demotes noisy rules to LOW and
+        # caps low-confidence and contextual-risk LLM findings at LOW, so they
+        # can't cross the HIGH block threshold.
+        "--policy", "quiet",
         # Vague-description / capability-inflation detector (skill discovery abuse).
         "--use-trigger",
         # AST + dataflow analyzer (Python/Bash). No execution, no key.
@@ -55,10 +61,11 @@ def main() -> None:
     if os.environ.get("SKILL_SCANNER_USE_LLM", "").lower() == "true":
         if os.environ.get("SKILL_SCANNER_LLM_API_KEY"):
             scanner_args.extend([
+                # No --enable-meta: the meta-analyzer can drop deterministic
+                # rule findings, which made the blocking decision flip between
+                # runs on identical content. Upstream also measured it costing
+                # 16.4 points of recall and turned it off by default.
                 "--use-llm",
-                # Second-pass LLM correlator + false-positive filter.
-                # Costs one extra LLM call per scan but materially cuts noise.
-                "--enable-meta",
                 # Match the scanner's own default; pin so we can tune from CI.
                 "--llm-max-tokens", "8192",
             ])

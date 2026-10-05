@@ -147,10 +147,10 @@ Add each as a `security.allowed_issues` entry, matching by `rule_id` (exact — 
 ```yaml
 security:
   allowed_issues:
-    - rule_id: ATR_2026_00066
-      reason: "FP: matched shell variable expansion (\`${TOKEN}\`) in a
-        documented setup command (SKILL.md:45) — standard shell syntax,
-        not injected secrets."
+    - rule_id: PG_PII_CREDENTIAL_HARVESTING
+      reason: "FP: matched advice to store credentials in a dedicated
+        \`~/.mcp-env\` file (SKILL.md:213). The skill tells users where to keep
+        their own credentials; it never asks the user for them."
 ```
 
 When packaging many skills from the same repo, findings cluster heavily by `rule_id` — collect all blocking findings across the batch first (group by skill + rule_id), write one templated-but-specific reason per rule_id, then customize per skill using that skill's actual matched text. Don't reuse a reason verbatim across skills without checking the cited location actually matches what's in *that* skill — genuinely different constructs can share a rule_id (e.g. an `iex (...)` PowerShell bootstrap vs. a `sudo apt-get install` line both trip the same "documented install command" rule but need different citations).
