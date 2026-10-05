@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/mongodb/agent-skills"
-  ref: "d1d2d86754ff303ac441624b2ac8e0380465aa9b"
+  ref: "18b014ee53f5e8a824942cc6b0ced37f921e7b3c"
   path: "skills/mongodb-atlas-stream-processing"
-  version: "0.2.1"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/mongodb/agent-skills"
