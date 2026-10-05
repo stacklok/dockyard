@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/vercel/next.js"
-  ref: "50199e6bce6275e231571bbbb9294b46bf9311f1"  # canary as of 2026-08-06
+  ref: "cdf6866a1d9c4a88afff3ffdc127fe7932e184d5"  # canary as of 2026-08-06
   path: "skills/next-cache-components-adoption"
   version: "0.4.0"
 
