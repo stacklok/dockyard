@@ -56,3 +56,7 @@ security:
       reason: "FP: firebase-data-connect-basics is a Firebase SDK documentation skill. All ATR pattern matches are on GraphQL/SQL example syntax, SDK usage documentation, and local emulator configuration — not agent instructions."
     - category: prompt_injection
       reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: PG_PII_CREDENTIAL_HARVESTING
+      reason: "FP: reference/cloud_functions.md:99 documents reading the calling principal's auth context (`event.authType`, `event.authId`) inside a Cloud Function. No user credentials are requested."

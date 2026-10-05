@@ -25,3 +25,7 @@ security:
       reason: "`scripts/list_templates.py` uses `urllib.request.urlopen()` to fetch the official Forge app template index from Atlassian — documented workflow step for scaffolding new apps."
     - rule_id: TOOL_ABUSE_UNDECLARED_NETWORK
       reason: "The skill's bundled `list_templates.py` fetches Atlassian's Forge template catalog; the skill does not declare a dedicated network-access tool but the network call is for a documented, trusted destination."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: COMMAND_INJECTION_SHELL_TRUE
+      reason: "Accepted risk: scripts/deploy_forge_app.py:68 runs `forge` CLI commands with shell=True, interpolating the operator's own --site, --env, and --developer-space-id arguments. Input comes from the person running the script locally, not from untrusted content."

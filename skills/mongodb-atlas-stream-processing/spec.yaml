@@ -27,3 +27,7 @@ security:
       reason: "FP: mongodb-atlas-stream-processing is a MongoDB Atlas Stream Processing documentation skill. All ATR pattern matches are on aggregation pipeline syntax ($$NOW, $source, $emit), Kafka configuration examples, and API parameter documentation — not agent instructions."
     - category: prompt_injection
       reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: PG_PII_CREDENTIAL_HARVESTING
+      reason: "FP: SKILL.md:274 and references/connection-configs.md:114 and :261 tell the agent to keep credentials in connection settings and explicitly not to ask the user for passwords, letting the MCP tool's elicitation form collect them instead."

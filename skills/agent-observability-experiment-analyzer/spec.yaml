@@ -27,3 +27,7 @@ security:
       reason: "FP: agent-observability-experiment-analyzer is a Datadog Agent Observability documentation skill. All ATR pattern matches are on evaluation and tracing documentation, and Datadog API reference material — not agent instructions."
     - category: prompt_injection
       reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: PG_EXFIL_MARKDOWN_LINK
+      reason: "FP: SKILL.md:367 is a report template whose `[View samples]` link points at the user's own Datadog experiment page (app.datadoghq.com/llm/experiments/{experiment_id}) with a segment filter. It links to the user's Datadog tenant and carries no sensitive data."

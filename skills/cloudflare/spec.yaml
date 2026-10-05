@@ -25,3 +25,7 @@ security:
       reason: "This umbrella skill ships one `references/<product>/` subdirectory per Cloudflare product (316 files total). The large file count is by upstream design — the skill functions as a product index that routes to the relevant reference for any Cloudflare task. All files are Cloudflare-authored documentation, not bundled dependencies."
     - rule_id: BEHAVIOR_BASH_TAINT_FLOW
       reason: "FP: matched bash code examples in Flagship API documentation (references/flagship/gotchas.md, patterns.md). These are curl command examples showing API usage — documentation, not agent-executable scripts."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: PG_PII_CREDENTIAL_HARVESTING
+      reason: "FP: SKILL.md:95 and references/secrets-store/README.md:3 explain where to store a Worker's API keys (Workers secrets, Secrets Store) so they stay out of source. Storage guidance; the skill never asks the user for credentials."

@@ -29,3 +29,7 @@ security:
       reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
     - rule_id: PG_EXFIL_MARKDOWN_LINK
       reason: "FP: markdown link templates pointing to the user's own Datadog SaaS tenant (app.datadoghq.com) for citing trace evidence — same pattern as agent-observability-eval-bootstrap. Not exfiltration."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: ACTIVE_DYNAMIC_EXECUTION
+      reason: "FP: SKILL.md:241 matched the text `configured eval(s)`, which refers to Datadog LLM evaluations, not code evaluation."
