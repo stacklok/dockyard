@@ -53,17 +53,24 @@ provider) or with the explicit `openai/` prefix. We use the prefix for
 clarity; the scanner's docs showing bare `gpt-*` names are just LiteLLM's
 default-provider shorthand. Two scanner behaviors the harness compensates
 for: `SKILL_SCANNER_LLM_API_KEY` is the key for *any* provider (there is no
-per-provider key var, hence `--key-file provider=path`), and the scanner
-sends `temperature` unconditionally, which GPT-5.x models reject, so the
+per-provider key var, hence `--key-file provider=path`), and older scanners
+sent `temperature` unconditionally, which GPT-5.x models reject, so the
 harness sets `SKILL_SCANNER_LLM_TEMPERATURE=none` (the scanner's
-omit-the-parameter sentinel) for gpt-5* models.
+omit-the-parameter sentinel) for gpt-5* models. Scanner 2.2.0 omits
+temperature on its own for models that reject it (including Claude
+Sonnet 5.x), but only when `SKILL_SCANNER_LLM_TEMPERATURE` is unset, so the
+harness leaves it unset unless you pass `--temperature`.
+
+For Claude Sonnet 5.x, also export
+`SKILL_SCANNER_LLM_REASONING_EFFORT=disabled`. Sonnet 5 treats a missing
+`thinking` field as adaptive thinking, which makes scans much slower; the
+scanner maps `disabled` to Anthropic's explicit `thinking: disabled`.
 
 The default corpus is the nine skills with the worst churn/latency history
 (claude-api, find-bugs, pulumi-upgrade-provider, provider-upgrade,
 huggingface-paper-publisher, codeql, semgrep, supply-chain-risk-auditor,
 zeroize-audit). Each skill is scanned at the exact `spec.ref` pinned in its
-spec.yaml, with `SKILL_SCANNER_LLM_TEMPERATURE=0.0`, using the same
-`run_scan.py` flags as CI.
+spec.yaml, using the same `run_scan.py` flags as CI.
 
 Metrics per skill x model (see `summary.md` in the results dir):
 
@@ -143,4 +150,4 @@ Orthogonal knobs worth testing in the same harness (both from #904):
 
 - `--consensus-runs 3` (majority vote inside the LLM analyzer; ~3x cost,
   may let a cheap model match sonnet's stability at lower total cost)
-- temperature pinning (already defaulted to 0.0 here)
+- temperature pinning (`--temperature 0.0`, for models that accept it)

@@ -142,7 +142,9 @@ def main() -> None:
     parser.add_argument("--runs", type=int, default=3)
     parser.add_argument("--key-file", nargs="+", default=[])
     parser.add_argument("--env-file", default=str(EVAL_DIR / ".env"))
-    parser.add_argument("--temperature", default="0.0")
+    parser.add_argument("--temperature", default=None,
+                        help="SKILL_SCANNER_LLM_TEMPERATURE to force; default "
+                        "lets the scanner choose per model")
     parser.add_argument("--consensus-runs", type=int, default=None,
                         help="Optional --llm-consensus-runs N passthrough (CI uses 3)")
     parser.add_argument("--runner", type=Path, default=None,

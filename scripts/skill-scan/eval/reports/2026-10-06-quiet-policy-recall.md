@@ -70,12 +70,60 @@ entries from the companion allowlist PR:
 - Across all 196 skills, rules-only, the unallowlisted MEDIUM list is 44
   findings over 16 skills under `quiet` and 50 over 20 under `balanced`.
 
+## Sonnet 5.5 and consensus
+
+Same 27 test skills and `quiet` configuration, three runs each, with
+`anthropic/claude-sonnet-5-5` (thinking off via
+`SKILL_SCANNER_LLM_REASONING_EFFORT=disabled`) and with
+`--llm-consensus-runs 3` as CI uses:
+
+| Model | Consensus | Unsafe blocked | Safe not blocked | Expected findings at HIGH+ | Judge failed |
+|---|---|---:|---:|---:|---:|
+| Terra | off | 48/48 | 29/33 | 49/78 | 0 |
+| Terra | 3 | 48/48 | 27/33 | 48/78 | 0 |
+| Sonnet 5.5 | off | 48/48 | 33/33 | 47/78 | 9 |
+| Sonnet 5.5 | 3 | 48/48 | 31/33 | 50/78 | 8 |
+
+- Recall and expected-finding coverage are equivalent across models. The
+  August finding that Sonnet kept more expected findings at HIGH+ doesn't
+  reproduce on this corpus and scanner version.
+- The false blocks are the same two contextual-risk test skills as above.
+  Consensus turned Terra's 2/3 flips on both into 3/3 blocks: more
+  consistent, but blocked. Sonnet 5.5 didn't block them without consensus
+  and blocked `transitive-trust-abuse` 2/3 with it, so consensus didn't make
+  it more consistent here.
+- **Sonnet 5.5 refuses some content.** All its judge failures were on three
+  test skills (`malware/ransomware-chain`,
+  `harmful-content/explicit-ransomware-request`,
+  `tool-chaining-abuse/attacker-forwarding`). Calling the API directly on
+  those returns `stop_reason: refusal` with no output; the scanner reports
+  it as an empty or unparseable response, which becomes
+  `LLM_ANALYSIS_FAILED`. With the judge-health gate in this change, a
+  refusal fails the scan and can't be allowlisted. On the two malicious
+  cases that's fail-closed; on `attacker-forwarding`, which upstream labels
+  safe, it would block. Sonnet 5.5 did not refuse on any Dockyard skill we
+  tried, including the security-review skills with exploit examples
+  (`gha-security-review`, `security-review`, `skill-scanner`,
+  `agentic-actions-auditor`, plus `claude-api` and `mongodb-mcp-setup`, two
+  scans each).
+- Sonnet 5.5 used about 1.7x the input tokens of Terra for the same content.
+  Wall time was similar, and `claude-api` scanned in about 19 seconds with
+  thinking off.
+
+Switching CI to Sonnet 5.5 would also need `SKILL_SCANNER_LLM_REASONING_EFFORT`
+passed through the workflows, and `SKILL_SCANNER_LLM_TEMPERATURE` kept at
+`none` (an explicit number overrides the scanner's own omission for models
+that reject temperature). Calling the API directly with
+`thinking: {type: disabled}` returns an error asking for
+`{type: between_tools}` on Sonnet 5.5, yet scans through the scanner and
+LiteLLM succeeded with short, fast responses; confirm what LiteLLM actually
+sends before relying on it.
+
 ## Limits
 
 - 27 test skills is a small corpus; upstream's own comparison of presets
   used about 1,400 skills. This rules out a large recall regression, not a
   small one.
-- One model. Sonnet 5.5 was not run.
 - The judge exceeded its context budget on 29 files of `claude-api`
   (including the SKILL.md body). The PR scan comment now lists such files
   for manual review; raising the budget needs a custom policy.
