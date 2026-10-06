@@ -2,7 +2,8 @@
 
 Benchmarks candidate LLM models for the skill-security-scan pipeline
 (context: issue #904, PR #855). The current production model is set via the
-`SKILL_SCANNER_LLM_MODEL` repo variable (`anthropic/claude-sonnet-4-6`).
+`SKILL_SCANNER_LLM_MODEL` repo variable (`openai/gpt-5.6-terra` as of
+October 2026; the Leg 1 model matrix below predates that).
 
 ## Why
 
@@ -82,24 +83,40 @@ scanner's eval framework, which ships curated malicious/safe skills with
 `_expected.json` ground truth:
 
 ```bash
-git clone --branch 2.0.13 --depth 1 \
+git clone --branch 2.2.0 --depth 1 \
   https://github.com/cisco-ai-defense/skill-scanner \
-  scripts/skill-scan/eval/results/recall-source-2.0.13
+  scripts/skill-scan/eval/results/recall-source-2.2.0
 
 python3 scripts/skill-scan/eval/bench_recall.py \
-  --scanner-source scripts/skill-scan/eval/results/recall-source-2.0.13 \
-  --models anthropic/claude-sonnet-4-6 openai/gpt-5.6-terra \
+  --scanner-source scripts/skill-scan/eval/results/recall-source-2.2.0 \
+  --models anthropic/claude-sonnet-5-5 openai/gpt-5.6-terra \
   --runs 3
 ```
 
+Clone the fixtures at the same tag as the scanner pinned in
+`requirements.txt`, and install the scanner from `requirements.txt` first:
+if `skill-scanner` isn't on `PATH`, `run_scan.py` falls back to the latest
+published release.
+
+To compare configurations, `--runner` scores a different copy of
+`run_scan.py` (for example `git show origin/main:scripts/skill-scan/run_scan.py`
+saved under `results/`, as a baseline) and `--policy` sets
+`SKILL_SCANNER_POLICY` (for example `balanced`). `--label` names the results
+directory. `bench_models.py` accepts the same `--runner` and `--policy` flags.
+CI runs with `--llm-consensus-runs 3`; pass `--consensus-runs 3` to match it.
+
 Do not use the scanner's bundled `benchmark_runner.py` for a model
-comparison: in scanner 2.0.13 it constructs `SkillScanner()` with the core
-analyzers only and does not enable the LLM or meta analyzers. `bench_recall.py`
+comparison: in scanner 2.0.13 it constructed `SkillScanner()` with the core
+analyzers only and did not enable the LLM analyzer. `bench_recall.py`
 instead sends every fixture through Dockyard's production `run_scan.py` path.
 
-The recall summary reports fixture-level blocking decisions, safe-fixture
-false positives, expected-category coverage at any severity and at HIGH+,
-wall time, and token usage. A candidate must preserve fixture-level malicious
+The recall summary reports fixture-level blocking (HIGH+) and review
+(MEDIUM+) decisions, safe-fixture false positives, how often the LLM judge
+didn't run, failed, or skipped content for size, and wall time, plus a
+per-fixture table so you can see exactly which cases a configuration misses.
+`runs.json` keeps every record. Ground truth comes from each fixture's
+`expected_verdict` (2.2.0 fixtures) or `expected_safe` (older ones); the
+script stops on a fixture with neither rather than scoring it as safe. A candidate must preserve fixture-level malicious
 and safe decisions; severity/category differences should then be reviewed.
 
 ## Decision criteria
@@ -119,6 +136,8 @@ real execution boundary, or fewer blockers because it misses one.
 
 - [`reports/2026-08-26-sonnet-4.6-vs-terra.md`](reports/2026-08-26-sonnet-4.6-vs-terra.md)
   records the initial Sonnet 4.6 versus GPT-5.6 Terra shootout.
+- [`reports/2026-10-06-quiet-policy-recall.md`](reports/2026-10-06-quiet-policy-recall.md)
+  compares the meta-analyzer + ATR gate with `quiet` and `balanced` (#1047).
 
 Orthogonal knobs worth testing in the same harness (both from #904):
 

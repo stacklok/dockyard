@@ -102,7 +102,10 @@ def checkout_source(skill: str, meta: dict, cache_dir: Path) -> Path:
 
 
 def run_scan(source: Path, output: Path, model: str, api_key: str,
-             temperature: str, consensus_runs: int | None) -> tuple[float, bool]:
+             temperature: str, consensus_runs: int | None,
+             runner: Path | None = None, policy: str | None = None) -> tuple[float, bool]:
+    """Scan via run_scan.py. `runner` swaps in another copy of the wrapper
+    (e.g. main's, as a baseline); `policy` sets SKILL_SCANNER_POLICY."""
     env = os.environ.copy()
     env.update({
         "SKILL_SCANNER_USE_LLM": "true",
@@ -120,10 +123,14 @@ def run_scan(source: Path, output: Path, model: str, api_key: str,
         env["SKILL_SCANNER_LLM_CONSENSUS_RUNS"] = str(consensus_runs)
     else:
         env.pop("SKILL_SCANNER_LLM_CONSENSUS_RUNS", None)
+    if policy:
+        env["SKILL_SCANNER_POLICY"] = policy
+    else:
+        env.pop("SKILL_SCANNER_POLICY", None)
 
     start = time.monotonic()
     proc = subprocess.run(
-        [sys.executable, str(SKILL_SCAN_DIR / "run_scan.py"),
+        [sys.executable, str(runner or SKILL_SCAN_DIR / "run_scan.py"),
          "--source", str(source), "--output", str(output)],
         env=env, capture_output=True, text=True,
     )
@@ -198,6 +205,12 @@ def main() -> None:
     parser.add_argument("--temperature", default="0.0")
     parser.add_argument("--consensus-runs", type=int, default=None,
                         help="Optional --llm-consensus-runs N passthrough")
+    parser.add_argument("--runner", type=Path, default=None,
+                        help="Alternate run_scan.py to invoke (e.g. a copy of "
+                        "main's, as a baseline). Defaults to the checkout's.")
+    parser.add_argument("--policy", default=None,
+                        help="Scan policy preset passed via SKILL_SCANNER_POLICY "
+                        "(e.g. balanced). Ignored by runners that predate it.")
     parser.add_argument("--out", default=str(EVAL_DIR / "results"))
     parser.add_argument("--resume", default=None,
                         help="Existing results dir (a previous run's timestamp "
@@ -267,7 +280,8 @@ def main() -> None:
                 else:
                     print(f"[{skill}] {model} run {i + 1}/{args.runs} ...", flush=True)
                     duration, ok = run_scan(source, scan_file, model, key_for(model),
-                                            args.temperature, args.consensus_runs)
+                                            args.temperature, args.consensus_runs,
+                                            runner=args.runner, policy=args.policy)
                 rec = {"duration": duration, "ok": ok,
                        "blocking": None, "noise_high": None, "llm_keys": []}
                 if ok:
