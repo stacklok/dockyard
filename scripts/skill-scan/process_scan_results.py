@@ -121,6 +121,30 @@ def classify_findings(
     return blocking, warnings, allowed
 
 
+def judge_health(scan: dict) -> dict:
+    """Report whether the LLM judge ran, failed, or skipped content.
+
+    LLM_ANALYSIS_FAILED and LLM_CONTEXT_BUDGET_EXCEEDED are INFO findings, so
+    they never block on severity alone; callers decide how to treat them.
+    """
+    findings = [f for f in scan.get("findings") or [] if isinstance(f, dict)]
+    failed_analyzers = [
+        str(entry.get("analyzer") if isinstance(entry, dict) else entry)
+        for entry in scan.get("analyzers_failed") or []
+    ]
+    budget_files = sorted({
+        f.get("file_path") or "(skill)"
+        for f in findings
+        if f.get("rule_id") == "LLM_CONTEXT_BUDGET_EXCEEDED"
+    })
+    return {
+        "ran": "llm_analyzer" in (scan.get("analyzers_used") or []),
+        "failed": any("llm" in name.lower() for name in failed_analyzers)
+        or any(f.get("rule_id") == "LLM_ANALYSIS_FAILED" for f in findings),
+        "budget_exceeded_files": budget_files,
+    }
+
+
 def _warn_summary(skill_name: str, message: str) -> dict:
     return {
         "skill": skill_name,
@@ -184,6 +208,24 @@ def main() -> None:
         print(json.dumps(summary, indent=2))
         sys.exit(0 if insecure_ignore else 1)
 
+    # The judge's own failure markers are INFO findings, so without this
+    # check a skill whose judge never ran or errored would pass on rules alone.
+    health = judge_health(scan)
+    if os.environ.get("SKILL_SCANNER_USE_LLM", "").lower() == "true" and (
+        not health["ran"] or health["failed"]
+    ):
+        problem = "did not run" if not health["ran"] else "failed"
+        message = f"LLM analysis {problem}; the scan cannot be trusted on rules alone"
+        summary = (
+            _warn_summary(skill_name, message)
+            if insecure_ignore
+            else _error_summary(skill_name, message)
+        )
+        summary["judge"] = health
+        print(f"Skill security scan ERROR for {skill_name}: {message}", file=sys.stderr)
+        print(json.dumps(summary, indent=2))
+        sys.exit(0 if insecure_ignore else 1)
+
     blocking, warnings, allowed = classify_findings(scan, entries)
     analyzers = scan.get("analyzers_used") or []
     findings_count = scan.get("findings_count", len(scan.get("findings") or []))
@@ -234,6 +276,7 @@ def main() -> None:
             "warning_count": len(warnings),
             "allowed_issues": allowed,
             "allowed_count": len(allowed),
+            "judge": health,
         }
         print(f"Skill security scan FAILED for {skill_name}:", file=sys.stderr)
         for issue in blocking:
@@ -252,6 +295,7 @@ def main() -> None:
         "findings_count": findings_count,
         "analyzers": analyzers,
         "message": "No blocking security issues detected",
+        "judge": health,
     }
     if warnings:
         summary["warning_issues"] = warnings

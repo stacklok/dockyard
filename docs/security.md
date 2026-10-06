@@ -70,6 +70,8 @@ All agent skills are scanned using [Cisco AI Defense skill-scanner](https://gith
 
 Skill-scanner runs its core pattern-based (static and YARA) rules plus the PromptGuard rule pack, behavioral (AST/taint) analysis, and LLM-based semantic analysis, under the scanner's `quiet` policy preset. It looks for the same broad categories as mcp-scanner (prompt injection, tool/agent poisoning, credential harvesting, PII exposure) applied to a skill's `SKILL.md` and reference files instead of MCP tool descriptions.
 
+The scan fails if the LLM analysis doesn't run or errors, rather than passing on pattern rules alone. `MEDIUM` findings, and any files too large for the LLM to read in full, are listed in the PR's scan results comment for a reviewer to check, but don't block.
+
 ### Allowing Known Issues
 
 Skill documentation is prose- and example-heavy, so pattern rules produce many false positives (shell variable expansion in documented setup commands, code-fence language tokens, example IP addresses, placeholder credentials). Add them to the allowlist in the skill's `spec.yaml`, matching by `rule_id` (exact) or `category` (broader):

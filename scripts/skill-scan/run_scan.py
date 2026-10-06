@@ -48,10 +48,14 @@ def main() -> None:
         # produced ~98% of HIGH+ hits across the catalog, and upstream ATR
         # ships every skill-targeted rule as maturity "test", not for gating.
         "--rule-packs", "promptguard",
-        # Upstream's lowest-FPR gating preset: demotes noisy rules to LOW and
-        # caps low-confidence and contextual-risk LLM findings at LOW, so they
-        # can't cross the HIGH block threshold.
-        "--policy", "quiet",
+        # Upstream's lowest-FPR preset for vetted third-party skills: demotes
+        # noisy rules to LOW and caps low-confidence and contextual-risk LLM
+        # findings at LOW, so they can't cross the HIGH block threshold. Its
+        # measured recall assumes MEDIUM findings get reviewed; the PR scan
+        # comment lists them.
+        # SKILL_SCANNER_POLICY exists so the eval harness can compare presets;
+        # CI does not set it.
+        "--policy", os.environ.get("SKILL_SCANNER_POLICY", "").strip() or "quiet",
         # Vague-description / capability-inflation detector (skill discovery abuse).
         "--use-trigger",
         # AST + dataflow analyzer (Python/Bash). No execution, no key.
@@ -74,10 +78,14 @@ def main() -> None:
                 # N>1 multiplies LLM cost N× per scan; left off by default.
                 scanner_args.extend(["--llm-consensus-runs", consensus])
         else:
+            # Fail rather than silently fall back to rules only: the quiet
+            # policy assumes the judge, and upstream warns against using it
+            # without one.
             print(
-                "Warning: SKILL_SCANNER_USE_LLM=true but SKILL_SCANNER_LLM_API_KEY not set",
+                "Error: SKILL_SCANNER_USE_LLM=true but SKILL_SCANNER_LLM_API_KEY not set",
                 file=sys.stderr,
             )
+            sys.exit(1)
 
     if is_scanner_installed():
         cmd = ["skill-scanner"] + scanner_args

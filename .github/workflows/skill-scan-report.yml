@@ -88,6 +88,36 @@ jobs:
               : [];
             console.log('Commenting on PR:', prNumber);
 
+            // MEDIUM findings and judge coverage gaps never block, but the
+            // quiet policy's measured recall assumes someone reviews them.
+            const renderReview = summary => {
+              const medium = (summary.warning_issues || []).filter(issue => issue.severity === 'MEDIUM');
+              const skipped = (summary.judge && summary.judge.budget_exceeded_files) || [];
+              if (medium.length === 0 && skipped.length === 0) return '';
+              const parts = [];
+              if (medium.length > 0) parts.push(`${medium.length} MEDIUM finding(s)`);
+              if (skipped.length > 0) parts.push(`${skipped.length} file(s) the LLM judge only partly read`);
+              let out = `\n<details><summary>For review, not blocking: ${parts.join(', ')}</summary>\n\n`;
+              // Keep the comment under GitHub's size limit when many skills report.
+              const maxListed = 20;
+              for (const issue of medium.slice(0, maxListed)) {
+                const loc = issue.file_path
+                  ? ` _(${issue.file_path}${issue.line_number ? ':' + issue.line_number : ''})_`
+                  : '';
+                const message = (issue.message || '').length > 240
+                  ? `${issue.message.slice(0, 240)}…`
+                  : issue.message;
+                out += `- **[${issue.code}]** ${message}${loc}\n`;
+              }
+              if (medium.length > maxListed) {
+                out += `- …and ${medium.length - maxListed} more in the scan job log.\n`;
+              }
+              if (skipped.length > 0) {
+                out += `\nThe LLM judge exceeded its context budget on: ${skipped.map(file => `\`${file}\``).join(', ')}. Review these files manually.\n`;
+              }
+              return out + '\n</details>\n';
+            };
+
             let comment = '## 🛡️ Skill Security Scan Results\n\n';
             let hasAnyIssues = false;
             let hasScanErrors = false;
@@ -118,6 +148,7 @@ jobs:
                       comment += `  - \`${issue.code}\` _(Allowed: ${issue.allowed_reason})_\n`;
                     }
                   }
+                  comment += renderReview(summary);
                   comment += '\n';
                 } else if (summary.status === 'failed') {
                   hasAnyIssues = true;
@@ -141,6 +172,7 @@ jobs:
                       comment += `- \`${issue.code}\` _(Allowed: ${issue.allowed_reason})_\n`;
                     }
                   }
+                  comment += renderReview(summary);
                   comment += '\n';
                 } else if (summary.status === 'warning') {
                   comment += `### ⚠️ ${name}\n`;
