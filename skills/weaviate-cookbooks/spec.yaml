@@ -19,7 +19,5 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "weaviate/agent-skills is licensed BSD-3-Clause at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: PIPELINE_TAINT_FLOW
       reason: "The cookbook references the official `astral.sh/uv` and `ollama.com` installers (`curl | sh`) as documented prerequisites for running the RAG/agent cookbook examples. The scanner itself flags both as 'well-known installer URL' / 'instructional rather than executable'."

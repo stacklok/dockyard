@@ -16,10 +16,3 @@ spec:
 provenance:
   repository_uri: "https://github.com/github/gh-stack"
   repository_ref: "refs/heads/main"
-
-security:
-  allowed_issues:
-    - rule_id: ATR_2026_00001
-      reason: "FP: matched 'hyphens and underscores become spaces' describing gh-stack's branch-name-to-title humanization, not an injection pattern."
-    - rule_id: ATR_2026_00032
-      reason: "FP: matched 'stop that process' in troubleshooting prose about killing a stale lock-holding gh process, not an instruction-override attempt."

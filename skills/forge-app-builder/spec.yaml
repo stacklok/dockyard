@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "atlassian/forge-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: DATA_EXFIL_NETWORK_REQUESTS
       reason: "`scripts/list_templates.py` uses `urllib.request.urlopen()` to fetch the official Forge app template index from Atlassian — documented workflow step for scaffolding new apps."
     - rule_id: TOOL_ABUSE_UNDECLARED_NETWORK

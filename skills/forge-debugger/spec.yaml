@@ -19,10 +19,5 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "atlassian/forge-skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
-    # cisco-ai-skill-scanner false positives surfaced by the digest bump to 2014fae.
-    # These are noisy trigger/behavioral-pack rules that match documentation prose,
-    # not executable threats; suppressed per exact rule_id.
-    - rule_id: ATR_2026_00040
-      reason: "FP: scanner matched documentation prose/code (the substring 'EXEC' in the '## EXECUTION MANDATE' heading in SKILL.md:5); no executable threat. atlassian/forge-skills @2014fae5b1529a22629129b1564ae522593eb46d."
+    - rule_id: LLM_AUTONOMY_ABUSE
+      reason: "Accepted risk: SKILL.md's \"EXECUTION MANDATE\" section tells the agent it may run all diagnostic and fix commands without asking and must not ask \"shall I proceed?\" before a fix. Fixes can include npm installs, forge deploy, and forge install/upgrade against the user's own Forge environments; only interactive commands (forge login, forge tunnel) are handed back to the user. Accepted because this is first-party Atlassian guidance for fixing the user's own app, and a skill's text cannot grant permissions: each command still goes through the agent's tool approval. Note this entry matches any LLM_AUTONOMY_ABUSE finding for this skill."
