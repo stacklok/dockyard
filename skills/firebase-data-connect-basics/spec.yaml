@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "073edf7bb747c27b9c911a9126adaa5bc4648fdc"
+  ref: "eba80a3dc825cdb61cde11f56f7ea7882177b24d"
   path: "skills/firebase-data-connect-basics"
   version: "0.3.1"
 
