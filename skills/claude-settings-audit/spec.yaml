@@ -9,10 +9,17 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "6abccd60c704f669423d6a06ff0809fa39513ce8"  # main as of 2026-04-20
+  ref: "d18b7aa8ba878354e5c348310230e652f7690f9c"  # main as of 2026-04-20
   path: "skills/claude-settings-audit"
-  version: "0.2.2"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: LLM_UNAUTHORIZED_TOOL_USE
+      reason: "Accepted risk, real flaw in upstream guidance: the skill generates Claude Code permissions it describes as read-only commands that cannot modify state (SKILL.md:8, :294), but its baseline includes \"Bash(gh api:*)\" (SKILL.md:92). As SKILL.md:297 notes, :* allows any arguments, so this also permits write calls such as gh api -X DELETE. Not malicious; accepted because users review generated settings before applying them. Note this entry matches any LLM_UNAUTHORIZED_TOOL_USE finding for this skill."
+    - rule_id: LLM_SKILL_DISCOVERY_ABUSE
+      reason: "Accepted risk: the judge raised the same \"Bash(gh api:*)\" read-only mislabeling (SKILL.md:92) under this rule as well; see the LLM_UNAUTHORIZED_TOOL_USE entry. Note this entry matches any LLM_SKILL_DISCOVERY_ABUSE finding for this skill, including unrelated ones."
