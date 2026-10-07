@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "mcp-clickhouse"  # PyPI package name
-  version: "0.6.0"          # Latest version from PyPI
+  version: "0.7.0"          # Latest version from PyPI
 
 provenance:
   # Expected source repository (used for attestation verification)
@@ -27,3 +27,16 @@ provenance:
       kind: "GitHub"
       repository: "ClickHouse/mcp-clickhouse"
       workflow: ".github/workflows/release.yml"
+
+security:
+  allowed_issues:
+    - code: "AITech-1.1"
+      tool: "run_query"
+      reason: |
+        False positive from the YARA coercive_injection rule. Its
+        $execution_overrides pattern (only[^\n]*this tool) matches across the
+        single-line run_query description, from "read-only mode by default" to
+        "Two optional checks also run through this tool". The description is
+        ordinary SQL guidance (parameter binding, write-access env flags,
+        DESCRIBE and EXPLAIN ESTIMATE tips) with no instruction-override
+        language. Reviewed in mcp-clickhouse 0.7.0.
