@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/firebase/agent-skills"
   ref: "eba80a3dc825cdb61cde11f56f7ea7882177b24d"
   path: "skills/firebase-auth-basics"
-  version: "0.2.2"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
