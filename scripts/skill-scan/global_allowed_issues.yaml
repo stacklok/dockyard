@@ -10,4 +10,6 @@
 # These issues are allowed for ALL skills in the registry.
 # For skill-specific exceptions, add them to the skill's spec.yaml file instead.
 
-allowed_issues: []
+allowed_issues:
+  - rule_id: MANIFEST_MISSING_LICENSE
+    reason: "Most upstream skill repositories declare their license at the repository root rather than in each SKILL.md's frontmatter. Packaging a skill already requires a maintainer to verify that the upstream license permits redistribution (see AGENTS.md), so the frontmatter field adds nothing to that check."

@@ -56,10 +56,10 @@ repository content for redistribution. If the license is missing, ambiguous,
 or non-redistributable, stop and surface the issue to the user rather than
 creating specs.
 
-Record the license and where it was found in the PR description. If
-skill-scanner later reports `MANIFEST_MISSING_LICENSE` because the license is
-at the repository root rather than in `SKILL.md`, cite that verified license in
-the allowlist reason.
+Record the license and where it was found in the PR description. skill-scanner
+reports `MANIFEST_MISSING_LICENSE` when the license is at the repository root
+rather than in `SKILL.md`; that rule is allowlisted globally because this
+license check replaces it, so don't add a per-skill entry.
 
 Get the pinned commit SHA once, up front, and reuse it for every skill from that repo:
 
@@ -133,7 +133,7 @@ task scan-skill -- skills/{name}
 
 This is the expensive, judgment-heavy step. Read `scripts/skill-scan/README.md` if you haven't already. What to expect:
 
-- **Warnings** (below the `HIGH` block threshold) don't fail the task — you can leave them, though citing the intentionally-accepted ones (like `MANIFEST_MISSING_LICENSE` when the upstream repo has a root-level `LICENSE` but no per-skill frontmatter field) in the allowlist keeps the scan summary self-documenting.
+- **Warnings** (below the `HIGH` block threshold) don't fail the task. You can leave them; `MEDIUM` ones are listed in the PR scan comment for a reviewer to check.
 - **Blocking findings** (`HIGH`+, unallowlisted) fail the task and must be triaged one by one.
 
 For each blocking finding, look at its `file_path`/`line_number`/`message` and decide: genuine issue, or false positive? Skill docs are prose- and example-heavy, so the overwhelming majority are false positives from pattern/keyword rules matching on things like:

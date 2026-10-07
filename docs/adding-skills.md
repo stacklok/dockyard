@@ -56,9 +56,10 @@ repository content for redistribution. If the license is missing, ambiguous,
 or non-redistributable, stop and resolve that before creating the spec.
 
 Include the license and its location in the PR description. When the repository
-has a root license but the individual `SKILL.md` does not, skill-scanner may
-report `MANIFEST_MISSING_LICENSE`; an allowlist reason should cite the verified
-repository license.
+has a root license but the individual `SKILL.md` does not, skill-scanner
+reports `MANIFEST_MISSING_LICENSE`. That rule is allowlisted globally in
+`scripts/skill-scan/global_allowed_issues.yaml`, because this license check
+replaces it; don't add a per-skill entry.
 
 ## spec.yaml Reference
 
