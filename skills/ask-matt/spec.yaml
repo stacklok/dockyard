@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "f3fc5632f401156837ee3872f14fe33ccf1024ea"  # main as of 2026-08-06
   path: "skills/engineering/ask-matt"
-  version: "0.4.0"
+  version: "0.4.1"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
