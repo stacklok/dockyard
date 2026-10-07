@@ -19,7 +19,5 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "weaviate/agent-skills is licensed BSD-3-Clause at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: TOOL_ABUSE_SYSTEM_PACKAGE_INSTALL
       reason: "The skill's PDF-import helper references an `apt-get install` command for OCR/PDF system dependencies as documentation. The command runs only when the user explicitly performs a PDF import; documented in SKILL.md."

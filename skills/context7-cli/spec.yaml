@@ -17,12 +17,3 @@ spec:
 provenance:
   repository_uri: "https://github.com/upstash/context7"
   repository_ref: "refs/heads/master"
-
-security:
-  allowed_issues:
-    - rule_id: ATR_2026_00088
-      reason: "FP: matched \"output is clean\" in a comment describing the CLI's plain stdout when piped (no spinners/colors) (references/docs.md:99), not a cost-evasion or output-billing pattern."
-    - rule_id: ATR_2026_00001
-      reason: "FP: matched \"Skip prompt\" describing the --mcp/--cli flags that skip the interactive setup-mode prompt (references/setup.md:11-12), not skipping human confirmation for a destructive action."
-    - rule_id: ATR_2026_00032
-      reason: "FP: matched \"instead of the current project\" describing the --global flag installing to the home directory instead of the current project directory (references/skills.md:118), ordinary CLI option documentation."

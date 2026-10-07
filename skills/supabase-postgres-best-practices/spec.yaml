@@ -16,8 +16,3 @@ spec:
 provenance:
   repository_uri: "https://github.com/supabase/agent-skills"
   repository_ref: "refs/heads/main"
-
-security:
-  allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "supabase/agent-skills is licensed MIT at the repository root; the skill does embed `license: MIT` in frontmatter, but the scanner may flag the missing SPDX-to-file-match — this entry is kept for consistency across the vendor."
