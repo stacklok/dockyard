@@ -21,26 +21,5 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
-    - rule_id: ATR_MCP_MALICIOUS_RESPONSE
-      reason: |
-        False positive - matches on the literal word "references" / "reference"
-        in `references/workflow-patterns.md`, which is the skill's own pointer
-        list to its bundled reference docs (the standard skill-writer reference
-        architecture). The pattern is not an MCP tool response; it's static
-        skill instruction text. Verified at digest
-        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
-    - rule_id: ATR_HIGH_RISK_TOOL_GATE
-      reason: |
-        False positive - regex matches on word fragments (`kill`, `Exec`, `exec`,
-        `format`) inside `references/workflow-patterns.md`, where these appear in
-        documentation about workflow patterns ("kill switch", "execution model",
-        "format pattern"). They are not tool invocations. Verified at digest
-        5cfc9e22a91c2d3a230c4d5154ea0f1babce3b28.
     - rule_id: BEHAVIOR_BASH_TAINT_FLOW
       reason: "FP: meta-skill that teaches skill authoring; reference files contain example code patterns for instructional purposes."
-    # Meta-skill — reference files contain skill authoring patterns, evaluation
-    # examples, and registration/validation procedures.
-    - category: policy_violation
-      reason: "FP: skill-writer is a meta-skill that teaches agents how to author and evaluate skills. Its reference files necessarily contain skill patterns, evaluation examples, and registration procedures that trigger pattern-based scanner rules. All matches are instructional documentation, not agent instructions."
-    - category: prompt_injection
-      reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
