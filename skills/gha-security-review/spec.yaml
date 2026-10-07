@@ -93,3 +93,7 @@ security:
       reason: "FP: gha-security-review is a security audit skill whose reference files intentionally describe CI/CD attack patterns (pwn requests, expression injection, credential theft, supply chain poisoning) with PoC examples for detection purposes. All ATR pattern matches are documentation of what to detect, not agent instructions."
     - category: prompt_injection
       reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: YARA_SUSP_Multi_CredentialExfil_Chain_Sep26
+      reason: "FP: references/runner-infrastructure.md:42 is inside a fenced example labeled `Attacker's code in a fork PR running on self-hosted runner`, showing credential theft (cat ~/.npmrc, ~/.docker/config.json, ~/.aws/credentials) that the review skill teaches reviewers to detect."

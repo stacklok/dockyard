@@ -30,3 +30,9 @@ security:
       reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: LLM_DATA_EXFILTRATION
       reason: "Accepted trust boundary: SKILL.md:42 and SKILL.md:158-160 require the user to explicitly approve a canonical absolute Wrangler path outside the project and its exact version; repository text and project-local binaries cannot select it. scripts/auth-probe.sh:54-84 enforces those path, location, and version constraints before passing the token only to the approved Wrangler's `whoami --json` command at line 86. Without an approved Wrangler, the flow requires an explicit CLOUDFLARE_ACCOUNT_ID and does not invoke an external executable."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: PG_EXFIL_HTML_TAG
+      reason: "FP: SKILL.md:293 is the official Turnstile loader tag (`<script src=\"https://challenges.cloudflare.com/turnstile/v0/api.js\">`), a static Cloudflare URL with no dynamic data."
+    - rule_id: BEHAVIOR_BASH_TAINT_FLOW
+      reason: "FP: scripts/auth-probe.sh:175, :180, and :241 URL-encode the user's Cloudflare account ID and call the Cloudflare API (api.cloudflare.com) to probe the user's own token's Turnstile Edit scope. The token is passed through `curl --config -` so it stays off the command line."

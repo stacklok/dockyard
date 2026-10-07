@@ -27,3 +27,11 @@ security:
       reason: "The skill's reference material on prompt-injection patterns cites 'Enter developer mode' as an example jailbreak pattern the skill teaches to detect. Documenting the pattern is the skill's purpose."
     - rule_id: YARA_prompt_injection_unicode_steganography
       reason: "The skill documents invisible Unicode steganography (`\\U000e0001` tag characters) as a prompt-injection vector. Describing the attack class is required for the skill to teach detection of it."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+      reason: "FP: SKILL.md:139 lists 'Scripts that download and execute binaries or code at runtime' as a risk category the skill should flag in other skills. Describing the pattern is the skill's purpose."
+    - rule_id: MDBLOCK_PYTHON_EVAL_EXEC
+      reason: "FP: references/dangerous-code-patterns.md:86, :143, and :149 are example malicious patterns (`eval(user_input)`, base64 and rot13 obfuscated `exec`) that the skill teaches detection of. The skill documents the pattern it hunts; it does not execute it."
+    - rule_id: DATA_EXFIL_SENSITIVE_FILE_GLOB
+      reason: "FP: scripts/scan_skill.py:475 globs `*.png` inside the skill directory under review to parse PNG text chunks for hidden metadata. Local read-only inspection of the scanned skill, with no network transmission."

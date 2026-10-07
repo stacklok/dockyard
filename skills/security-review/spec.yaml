@@ -21,3 +21,9 @@ security:
   allowed_issues:
     - rule_id: MANIFEST_MISSING_LICENSE
       reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: ACTIVE_DYNAMIC_EXECUTION
+      reason: "FP: SKILL.md:190 lists `eval(user_input)` as a vulnerable pattern the security review should flag. It's an example of what to detect, not an instruction to run."
+    - rule_id: MDBLOCK_PYTHON_EVAL_EXEC
+      reason: "FP: languages/python.md:215 and :262 and references/supply-chain.md:234 are vulnerable-code examples (`eval(user_input)`, `eval(data['expression'])`, `exec(base64.b64decode(...))`) that the review skill teaches reviewers to flag."

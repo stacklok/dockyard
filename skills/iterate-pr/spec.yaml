@@ -23,3 +23,7 @@ security:
       reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: RESOURCE_ABUSE_INFINITE_LOOP
       reason: "The `scripts/monitor_pr_checks.py` helper polls PR check status in a `while True:` loop with bounded retries and sleep — legitimate for waiting until CI reaches a terminal state. The script has a timeout and exit conditions."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: COMMAND_INJECTION_OS_SYSTEM
+      reason: "FP: scripts/fetch_pr_feedback.py:167 and scripts/reply_to_thread.py:75 call subprocess.run with argument lists (`gh api graphql -f query=...`), no shell. The f-strings build a single argv element, and reply bodies are JSON-escaped with json.dumps before going into the query."

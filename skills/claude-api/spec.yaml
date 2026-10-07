@@ -89,3 +89,9 @@ security:
       reason: "FP: claude-api is a Claude API documentation skill. All ATR pattern matches are on API documentation prose, SDK code examples, migration guides, and platform configuration references — not agent instructions."
     - category: prompt_injection
       reason: "FP: same as policy_violation above — all pattern matches are on documentation, code examples, or attack pattern descriptions for detection purposes, not agent instructions."
+    # Findings that block under --policy quiet once the meta-analyzer no
+    # longer filters them (see #1047).
+    - rule_id: BEHAVIOR_CROSSFILE_ENV_VAR_EXFILTRATION
+      reason: "FP: shared/preserved-thinking-migration/drop_block_probe.py reads ANTHROPIC_API_KEY or ANTHROPIC_AUTH_TOKEN and sends it only to the Anthropic Messages API (ANTHROPIC_BASE_URL, default https://api.anthropic.com), the SDK-standard way to authenticate. Live requests require an explicit --yes. prefix_diff.py is its local request-diff helper."
+    - rule_id: BEHAVIOR_CROSSFILE_EXFILTRATION_CHAIN
+      reason: "FP: same flow as BEHAVIOR_CROSSFILE_ENV_VAR_EXFILTRATION. drop_block_probe.py and prefix_diff.py in shared/preserved-thinking-migration/ read local request captures and send probe requests to the Anthropic Messages API with the user's own credential."
