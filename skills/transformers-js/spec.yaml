@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/huggingface/skills"
-  ref: "abc20ae526d8b4c0e4dff89f904adce28a4a0eb6"  # main as of 2026-04-16
+  ref: "ca0325bb20b2d0a1b2efa893670c4c72f79e707b"  # main as of 2026-04-16
   path: "skills/transformers-js"
   version: "0.3.1"
 
