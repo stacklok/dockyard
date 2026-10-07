@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/trailofbits/skills"
   ref: "82fe8226252622fa807643bdca1710901198553a"
   path: "plugins/agentic-actions-auditor/skills/agentic-actions-auditor"
-  version: "0.2.2"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
