@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: YARA_code_execution_generic
       reason: "Matches eval() example snippets in SKILL.md that illustrate vulnerability patterns a custom Semgrep rule should detect; these are documentation of target code, not executable paths within the skill."
     - rule_id: MDBLOCK_PYTHON_EVAL_EXEC

@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: PIPELINE_TAINT_FLOW
       reason: "The skill's reference material cites `curl | bash` and similar RCE patterns as instructional examples of supply-chain-style attacks detectable in CI workflows. The scanner itself flags these as 'found in documentation file — may be instructional rather than executable'."
     - rule_id: PG_PII_CREDENTIAL_HARVESTING

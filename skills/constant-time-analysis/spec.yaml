@@ -16,8 +16,3 @@ spec:
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
   repository_ref: "refs/heads/main"
-
-security:
-  allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."

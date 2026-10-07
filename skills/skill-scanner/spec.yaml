@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: OBFUSCATION_BASE64_LARGE
       reason: "This is a meta-skill that teaches detection of malicious patterns. Its reference material cites `exec(base64.b64decode(...))` as an example of obfuscated code the scanner should flag in other skills — the skill documents the pattern it hunts, it does not execute it."
     - rule_id: PROMPT_INJECTION_UNRESTRICTED_MODE

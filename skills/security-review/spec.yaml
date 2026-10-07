@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "getsentry/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     # Findings that block under --policy quiet once the meta-analyzer no
     # longer filters them (see #1047).
     - rule_id: ACTIVE_DYNAMIC_EXECUTION

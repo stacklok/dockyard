@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: PATH_TRAVERSAL_OPEN
       reason: "tools/generate_poc.py writes generated PoC sources to an operator-supplied output directory with filenames derived from internal finding metadata; no externally controlled path input."
     - rule_id: YARA_coercive_injection_generic
@@ -29,3 +27,5 @@ security:
       reason: "tools/scripts/check_rust_asm.py reads a JSON config of Rust symbol names to audit; 'secrets_path' is the skill's internal config file path, not exfiltration of user secrets."
     - rule_id: BEHAVIOR_EVAL_SUBPROCESS
       reason: "FP: matched list-form subprocess.run() calls in tools/generate_poc.py (invokes sys.executable + a local script with fixed flag names) and tools/scripts/check_rust_asm.py (invokes the fixed command 'rustfilt' with a timeout, input piped via stdin). Neither uses shell=True or attacker-controlled arguments. Carried forward from #740, revalidated against this ref."
+    - rule_id: LLM_AUTONOMY_ABUSE
+      reason: "Accepted risk: workflows/phase-5-poc-validation.md Step 5a has an agent compile and run every proof-of-concept program generated in Phase 4, and only asks the user afterward about PoCs that fail verification (Step 5c). Building and running PoCs against the user's own code to prove compiler-removed zeroization is the skill's purpose; the programs are generated from the user's audit findings and run locally, and per-command approval is governed by the agent's tool permissions. Note this entry matches any LLM_AUTONOMY_ABUSE finding for this skill."
