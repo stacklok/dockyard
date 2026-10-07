@@ -19,7 +19,5 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "run-llama/llamaparse-agent-skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: LOW_ANALYZABILITY
       reason: "The skill has only 2 files — SKILL.md and a single TypeScript example (`scripts/example.ts`). The scanner cannot analyze TypeScript source, giving the skill a 50% analyzability score. The `.ts` file is a documented, HF-sourced example snippet, not runtime-executed code."

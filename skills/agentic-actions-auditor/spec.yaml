@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: LLM_PROMPT_INJECTION
       reason: "FP: security audit skill whose reference files contain detailed attack patterns by design. The skill teaches agents to FIND these patterns in user workflows, not to execute them."
     # Findings that block under --policy quiet once the meta-analyzer no

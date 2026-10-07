@@ -19,7 +19,5 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: ALLOWED_TOOLS_WRITE_VIOLATION
       reason: "SKILL.md declares Bash in allowed-tools, which transitively permits filesystem writes (e.g. via redirection); the scanner flags bundled scripts as writing without recognizing Bash as the intended mechanism."

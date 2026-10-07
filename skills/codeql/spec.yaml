@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: LLM_COMMAND_INJECTION
       reason: "Risk accepted by maintainer (danbarr, 2026-08-25): workflows/build-database.md and references/macos-arm64e-workaround.md construct and execute the target codebase's own build commands (make/cmake/gradle/etc., including a make --dry-run compile-command extraction for the macOS arm64e workaround) in order to trace compilation for CodeQL database creation. Building the analyzed codebase — including running whatever build system it uses — is CodeQL's documented, required mechanism for compiled-language analysis; there is no way to trace compilation without executing the project's own build scripts. Same class of inherent domain risk as running any CI/build pipeline against the target codebase, not a new injection primitive introduced by the skill."
     - rule_id: LLM_COMMAND_INJECTION

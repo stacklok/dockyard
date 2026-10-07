@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: PATH_TRAVERSAL_OPEN
       reason: "tools/generate_poc.py writes generated PoC sources to an operator-supplied output directory with filenames derived from internal finding metadata; no externally controlled path input."
     - rule_id: YARA_coercive_injection_generic

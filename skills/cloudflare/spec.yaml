@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "cloudflare/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: EXCESSIVE_FILE_COUNT
       reason: "This umbrella skill ships one `references/<product>/` subdirectory per Cloudflare product (316 files total). The large file count is by upstream design — the skill functions as a product index that routes to the relevant reference for any Cloudflare task. All files are Cloudflare-authored documentation, not bundled dependencies."
     - rule_id: BEHAVIOR_BASH_TAINT_FLOW

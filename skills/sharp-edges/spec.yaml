@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     # Replaces the former category-wide allowlist entries (see #1047).
     - rule_id: MDBLOCK_PYTHON_EVAL_EXEC
       reason: "FP: references/lang-python.md:35 and :202 and references/language-specific.md:483 are code examples labelled `# DANGEROUS:` (`eval(user_input)`, `exec(user_input)`, `eval(f'f\"{user_input}\"')`) that the security-review skill teaches reviewers to flag. Documentation of what to avoid, not code the skill runs."

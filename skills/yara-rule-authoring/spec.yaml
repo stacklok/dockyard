@@ -19,7 +19,5 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "trailofbits/skills is licensed CC-BY-SA-4.0 at the repository root; upstream does not embed a license field in per-skill SKILL.md frontmatter."
     - rule_id: PG_PII_SSN_HARVESTING
       reason: "FP: matched 'Gather samples' in YARA testing documentation — refers to collecting malware samples for testing detection rules, not harvesting PII."
