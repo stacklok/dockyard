@@ -255,6 +255,23 @@ Note that servers with `security.insecure_ignore: true` (typically those needing
 credentials to start) cannot be meaningfully scanned either way, so overrides have no
 observable effect on their scan.
 
+### Downgrade check on PRs
+
+Because npx `overrides` are exact pins, a pin can go stale: if upstream later raises its
+own floor above ours, the pin silently drags that copy back down, and the security scan
+still passes. For PRs that change a spec with `overrides`, the `override-check` job
+resolves the dependency tree without the overrides (`npm install --package-lock-only`)
+and compares. npm keeps multiple copies of a package, and `overrides` apply tree-wide,
+so one pin can raise one copy while lowering another. The PR gets a "Dependency Override
+Check" comment listing which copies each pin raises and lowers, plus an
+`override-downgrade` label when any pin is below the highest version otherwise present.
+
+This is informational and never fails CI. A downgrade can be correct, for example
+pinning the last patched release of an older major, so confirm the override `reason`
+still explains it. Run it locally with
+`python3 scripts/override-check/check_overrides.py npx/{server-name}/spec.yaml`
+(needs `pyyaml`).
+
 ## Step-by-Step Process
 
 ### 1. Find Package Information

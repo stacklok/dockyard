@@ -190,3 +190,104 @@ jobs:
               });
               console.log('Created new comment');
             }
+
+      - name: Download override check results
+        id: override-results
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
+        with:
+          name: override-check-results
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ steps.app-token.outputs.token }}
+          path: override-check-results
+        continue-on-error: true
+
+      # Informational only. Posts a separate sticky comment when a changed spec
+      # carries npx overrides, and keeps the `override-downgrade` label in sync.
+      - name: Comment PR with override check results
+        if: steps.override-results.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ steps.read-pr.outputs.pr_number }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const prNumber = parseInt(process.env.PR_NUMBER, 10);
+            const dir = 'override-check-results';
+            const title = '## Dependency Override Check';
+            const label = 'override-downgrade';
+
+            const summaries = fs.readdirSync(dir)
+              .filter(f => f.endsWith('.json'))
+              .map(f => JSON.parse(fs.readFileSync(path.join(dir, f), 'utf8')));
+            if (summaries.length === 0) {
+              console.log('No override-bearing specs changed; nothing to comment');
+              return;
+            }
+
+            const flagged = summaries.filter(s => s.status === 'downgrade');
+            let body = `${title}\n\n`;
+            body += 'npm `overrides` are exact, tree-global pins. This resolves each changed spec ' +
+              'without its overrides and compares. A pin below the highest version otherwise ' +
+              'present silently downgrades that copy. Informational only; the Grype scan is the hard gate.\n\n';
+
+            for (const s of summaries) {
+              const icon = s.status === 'ok' ? '✅' : '⚠️';
+              body += `### ${icon} ${s.server}\n`;
+              if (s.status === 'error') {
+                body += `Could not resolve the dependency tree:\n\n\`\`\`\n${s.message}\n\`\`\`\n\n`;
+                continue;
+              }
+              for (const o of s.overrides) {
+                const found = o.versions.length ? o.versions.map(v => `\`${v}\``).join(', ') : 'not in tree';
+                let note = '';
+                if (o.downgrade) {
+                  note = ` **Lowers** ${o.lowers.map(v => `\`${v}\``).join(', ')}` +
+                    (o.raises.length ? `; raises ${o.raises.map(v => `\`${v}\``).join(', ')}` : '') + '.';
+                } else if (o.absent) {
+                  note = ' Package is no longer in the tree; the override may be removable.';
+                }
+                body += `- \`${o.package}\` pinned \`${o.pin}\`; without override: ${found}.${note}\n`;
+              }
+              body += '\n';
+            }
+            if (flagged.length) {
+              body += '---\nA downgrade can be intentional (for example, pinning the last patched ' +
+                'release of an older major). If so, make sure the override `reason` says why; ' +
+                'otherwise re-evaluate the pin.\n';
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: prNumber,
+            });
+            const existing = comments.find(c => c.user.type === 'Bot' && c.body.startsWith(title));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body,
+              });
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: prNumber, body,
+              });
+            }
+
+            // Keep the label in sync with the latest result.
+            if (flagged.length) {
+              await github.rest.issues.addLabels({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: prNumber, labels: [label],
+              });
+            } else {
+              try {
+                await github.rest.issues.removeLabel({
+                  owner: context.repo.owner, repo: context.repo.repo,
+                  issue_number: prNumber, name: label,
+                });
+              } catch (e) {
+                if (e.status !== 404) throw e;
+              }
+            }
