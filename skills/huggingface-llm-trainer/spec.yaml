@@ -52,3 +52,5 @@ security:
         calling the public Hugging Face Hub API with HF_TOKEN auth. There is
         no third-party transmission; both source and sink are huggingface.co.
         Verified at digest acd2bf5a7126994e15143bec061fe87a882811f3.
+    - rule_id: LLM_AUTONOMY_ABUSE
+      reason: "Accepted risk: SKILL.md:53 and :99 instruct the agent to create a training script and submit it to Hugging Face Jobs immediately when the user asks to train or fine-tune, and the pre-submit checklist (SKILL.md:390) does not include confirming cost or hardware. Jobs run on paid GPUs (about $0.75-20/hr per the skill's own hardware table). Accepted because submission is the action the user requested, the skill is first-party Hugging Face guidance, and each hf_jobs() call goes through the agent's tool approval. Note this entry matches any LLM_AUTONOMY_ABUSE finding for this skill."
