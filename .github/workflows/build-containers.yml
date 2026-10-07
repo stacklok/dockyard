@@ -9,6 +9,7 @@ on:
       - 'go/**/*.yaml'
       - 'cmd/dockhand/**'
       - 'scripts/mcp-scan/**'
+      - 'scripts/override-check/**'
       - '.github/workflows/build-containers.yml'
       - '.github/workflows/mcp-scan-report.yml'
       - 'go.mod'
@@ -21,6 +22,7 @@ on:
       - 'go/**/*.yaml'
       - 'cmd/dockhand/**'
       - 'scripts/mcp-scan/**'
+      - 'scripts/override-check/**'
       - '.github/workflows/build-containers.yml'
       - '.github/workflows/mcp-scan-report.yml'
       - 'go.mod'
@@ -395,6 +397,48 @@ jobs:
             mcp-scan-${{ steps.meta.outputs.server_name }}.json
             scan-summary.json
             scanner-version.txt
+          retention-days: 30
+
+  # Informational: flags npx `overrides` that would lower a dependency copy
+  # below what the tree resolves without the override. Never fails the run;
+  # Grype remains the only hard gate. Results are commented by mcp-scan-report.
+  override-check:
+    needs: [discover-configs]
+    if: ${{ github.event_name == 'pull_request' && needs.discover-configs.outputs.scan-configs != '[]' }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: '3.13'
+
+      - name: Install dependencies
+        run: python -m pip install pyyaml==6.0.3
+
+      - name: Check overrides on changed specs
+        env:
+          SCAN_CONFIGS: ${{ needs.discover-configs.outputs.scan-configs }}
+        run: |
+          mkdir -p override-check-results
+          for config in $(echo "$SCAN_CONFIGS" | jq -r '.[]'); do
+            name=$(basename "$(dirname "$config")")
+            python scripts/override-check/check_overrides.py "$config" \
+              --output "override-check-results/$name.json"
+          done
+
+      - name: Upload override check results
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: override-check-results
+          path: override-check-results
+          if-no-files-found: ignore
           retention-days: 30
 
   build-containers:
