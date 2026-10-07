@@ -19,8 +19,6 @@ provenance:
 
 security:
   allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "huggingface/skills is licensed Apache-2.0 at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
     - rule_id: DATA_EXFIL_NETWORK_REQUESTS
       reason: "The skill's baseline reference scripts (`references/baseline_hf_api.py`) use `urllib.request.Request/urlopen` against the public Hugging Face Hub API (`api.huggingface.co`). Teaching users to build HF API-consuming tools is the skill's entire purpose."
     - rule_id: TOOL_ABUSE_UNDECLARED_NETWORK
