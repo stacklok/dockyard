@@ -16,8 +16,3 @@ spec:
 provenance:
   repository_uri: "https://github.com/vercel/next.js"
   repository_ref: "refs/heads/canary"
-
-security:
-  allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "vercel/next.js is licensed MIT in license.md at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
