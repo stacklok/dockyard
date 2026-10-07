@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "84fdeffd12f2ee307994d1eb6feb48173b6e0502"  # main as of 2026-08-06
+  ref: "f3fc5632f401156837ee3872f14fe33ccf1024ea"  # main as of 2026-08-06
   path: "skills/engineering/triage"
-  version: "0.4.1"
+  version: "0.5.0"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
