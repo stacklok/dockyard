@@ -202,17 +202,19 @@ jobs:
             if (critical > 0) labels.push('critical');
             if (high > 0) labels.push('high');
 
-            // Check if an issue already exists for this image
-            const { data: issues } = await github.rest.issues.listForRepo({
+            // Check if an issue already exists for this image. Paginate, since
+            // there can be more open scan issues than fit on one page, and
+            // match the exact title so one server's name cannot match another's.
+            const title = `🚨 Security: Critical or high vulnerabilities in ${{ steps.meta.outputs.server_name }} container`;
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
               owner: context.repo.owner,
               repo: context.repo.repo,
               state: 'open',
               labels: 'security,grype',
+              per_page: 100,
             });
 
-            const existingIssue = issues.find(issue =>
-              issue.title.includes('${{ steps.meta.outputs.server_name }}')
-            );
+            const existingIssue = issues.find(issue => issue.title === title);
 
             if (existingIssue) {
               // Update existing issue
@@ -228,11 +230,48 @@ jobs:
               await github.rest.issues.create({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
-                title: `🚨 Security: Critical or high vulnerabilities in ${{ steps.meta.outputs.server_name }} container`,
+                title: title,
                 body: body,
                 labels: labels
               });
               console.log('Created new security issue');
+            }
+
+      # Only reached when the scan steps above succeeded (no always()), so a
+      # missing image or a Grype error is never mistaken for a clean result.
+      - name: Close resolved security issue
+        if: steps.check-critical.outputs.should_create_issue == 'false'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          SERVER_NAME: ${{ steps.meta.outputs.server_name }}
+          IMAGE_REF: ${{ steps.meta.outputs.image_ref }}
+        with:
+          script: |
+            const title = `🚨 Security: Critical or high vulnerabilities in ${process.env.SERVER_NAME} container`;
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              labels: 'security,grype',
+              per_page: 100,
+            });
+
+            const resolved = issues.filter(issue => issue.title === title);
+            for (const issue of resolved) {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: `The periodic scan of \`${process.env.IMAGE_REF}\` found no fixable critical or high vulnerabilities, so this issue is being closed. It will be reopened as a new issue if findings return.`,
+              });
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed',
+              });
+              console.log(`Closed resolved issue #${issue.number}`);
             }
 
       - name: Upload scan results
