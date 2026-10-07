@@ -14,17 +14,17 @@ spec:
   version: "3.0.0"
   overrides:
     - package: "undici"
-      version: "6.28.0"
+      version: "6.29.0"
       reason: |
         undici 5.29.0 arrives via @browserbasehq/stagehand ->
         @ai-sdk/amazon-bedrock -> @ai-sdk/provider-utils, which caps it at
         ^5.29.0. The 5.x line is end of life, so the fixes for
-        GHSA-vrm6-8vpv-qv8q and GHSA-v9p9-hfj2-hcw8 (both 6.24.0) and
-        GHSA-vxpw-j846-p89q (6.27.0) only exist in 6.x. 6.28.0 is the last 6.x
-        release and no high advisory affects >=6.27.0 on that line, so it clears
-        all three without stepping into the 7.x advisories. Cross-major force,
-        but @ai-sdk/provider-utils 5.x upstream has itself moved to undici
-        ^7.28.0, so this consumer tracks well past 6.x.
+        GHSA-vrm6-8vpv-qv8q and GHSA-v9p9-hfj2-hcw8 (both 6.24.0),
+        GHSA-vxpw-j846-p89q (6.27.0) and GHSA-rfgv-xxqx-mfg5 (6.28.1) only exist
+        in 6.x. 6.29.0 is the newest 6.x release and no advisory affects it, so
+        it clears all of them without stepping into the 7.x advisories.
+        Cross-major force, but @ai-sdk/provider-utils 5.x upstream has itself
+        moved to undici ^7.28.0, so this consumer tracks well past 6.x.
 
 provenance:
   repository_uri: "https://github.com/browserbase/mcp-server-browserbase"
