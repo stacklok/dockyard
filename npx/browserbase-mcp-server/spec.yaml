@@ -1,6 +1,6 @@
 # Browserbase MCP Server Configuration
 # Cloud browser automation capabilities using Browserbase and Stagehand
-# Package: https://www.npmjs.com/package/@browserbasehq/mcp-server-browserbase
+# Package: https://www.npmjs.com/package/@browserbasehq/mcp
 # Repository: https://github.com/browserbase/mcp-server-browserbase
 # Will build as: ghcr.io/stacklok/dockyard/npx/browserbase-mcp-server:2.0.0
 
@@ -10,43 +10,42 @@ metadata:
   protocol: npx
 
 spec:
-  package: "@browserbasehq/mcp-server-browserbase"
-  version: "2.4.3"
+  package: "@browserbasehq/mcp"
+  version: "3.0.0"
   overrides:
-    - package: "sharp"
-      version: "0.35.3"
-      reason: |
-        @browserbasehq/mcp-server-browserbase caps sharp at ^0.33.0, resolving
-        0.33.5. GHSA-f88m-g3jw-g9cj (inherited libvips CVE-2026-33327,
-        CVE-2026-33328, CVE-2026-35590, CVE-2026-35591) affects all sharp <0.35.0,
-        so no 0.33.x or 0.34.x release can fix it. 0.35.3 is the newest 0.35.x
-        and is the only sharp advisory in play. sharp 0.x minors are breaking by
-        convention, so this is effectively a cross-major force; verified in the
-        container that sharp loads and round-trips a resize on the pinned version.
     - package: "undici"
-      version: "6.28.0"
+      version: "6.29.0"
       reason: |
         undici 5.29.0 arrives via @browserbasehq/stagehand ->
         @ai-sdk/amazon-bedrock -> @ai-sdk/provider-utils, which caps it at
         ^5.29.0. The 5.x line is end of life, so the fixes for
-        GHSA-vrm6-8vpv-qv8q and GHSA-v9p9-hfj2-hcw8 (both 6.24.0) and
-        GHSA-vxpw-j846-p89q (6.27.0) only exist in 6.x. 6.28.0 is the last 6.x
-        release and no high advisory affects >=6.27.0 on that line, so it clears
-        all three without stepping into the 7.x advisories. Cross-major force,
-        but @ai-sdk/provider-utils 5.x upstream has itself moved to undici
-        ^7.28.0, so this consumer tracks well past 6.x.
+        GHSA-vrm6-8vpv-qv8q and GHSA-v9p9-hfj2-hcw8 (both 6.24.0),
+        GHSA-vxpw-j846-p89q (6.27.0) and GHSA-rfgv-xxqx-mfg5 (6.28.1) only exist
+        in 6.x. 6.29.0 is the newest 6.x release and no advisory affects it, so
+        it clears all of them without stepping into the 7.x advisories.
+        Cross-major force, but @ai-sdk/provider-utils 5.x upstream has itself
+        moved to undici ^7.28.0, so this consumer tracks well past 6.x.
 
 provenance:
   repository_uri: "https://github.com/browserbase/mcp-server-browserbase"
   repository_ref: "refs/heads/main"
 
 security:
-  # Server requires BROWSERBASE_API_KEY, BROWSERBASE_PROJECT_ID, GEMINI_API_KEY to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: BROWSERBASE_API_KEY
+      value: "mock-browserbase-api-key-for-scanning"
+      description: "Browserbase API key - mock value for security scanning"
+    - name: BROWSERBASE_PROJECT_ID
+      value: "mock-browserbase-project-id-for-scanning"
+      description: "Browserbase project ID - mock value for security scanning"
+    - name: GEMINI_API_KEY
+      value: "mock-gemini-api-key-for-scanning"
+      description: "Gemini API key used by Stagehand - mock value for security scanning"
   allowed_issues:
     - code: "AITech-8.2"
       reason: "Data leak risk acceptable - tool designed for web automation workflows where external content interaction is essential. Users should be aware of potential data exposure through cloud browser service."
     - code: "AITech-9.1"
-      reason: "Destructive flow risk acceptable - browserbase_stagehand_act tool is core functionality for web automation. Users should only use with trusted prompts and on non-production systems."
+      reason: "Destructive flow risk acceptable - act tool is core functionality for web automation. Users should only use with trusted prompts and on non-production systems."
     - code: "AITech-1.1"
-      reason: "False positive - YARA flags navigate/observe tools for instructional text in descriptions (e.g., 'Only use this tool with...'), not actual prompt injection. LLM analyzer confirms SAFE. The browserbase_stagehand_agent tool legitimately processes instructions for autonomous web tasks, which is core functionality."
+      reason: "Possible false positive on instructional text in tool descriptions. The act, observe and extract tools legitimately take natural-language instructions for autonomous web tasks, which is core functionality, not prompt injection."
