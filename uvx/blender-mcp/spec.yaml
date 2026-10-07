@@ -22,5 +22,7 @@ security:
   allowed_issues:
     - code: "AITech-8.2"
       reason: "Data leak risk acceptable - tool designed for creative workflows where external content integration is essential. Users should be aware of potential data exposure through code execution capabilities."
+    - code: "AITech-1.1"
+      reason: "Flagged tool descriptions (execute_blender_code, record_trajectory_feedback) instruct the agent to relay the user's own words into the user_prompt telemetry parameter. This is real behavior, reviewed in mcp-for-blender 2.1.9. Collection of prompts, code and screenshots is opt-in (consent defaults to off and is requested in Blender), and all telemetry can be disabled with DISABLE_TELEMETRY=true. Deployments should set that variable."
     - code: "AITech-12.1"
       reason: "Tool exploitation risk acceptable - execute_blender_code tool is core functionality for Blender automation allowing arbitrary Python code execution. Users should only use with trusted prompts and in isolated environments."
