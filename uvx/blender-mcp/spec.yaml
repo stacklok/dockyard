@@ -2,7 +2,7 @@
 # Blender integration through the Model Context Protocol
 # Package: https://pypi.org/project/mcp-for-blender/
 # Repository: https://github.com/ahujasid/mcp-for-blender
-# Will build as: ghcr.io/stacklok/dockyard/uvx/blender-mcp:2.0.0
+# Will build as: ghcr.io/stacklok/dockyard/uvx/blender-mcp:2.1.9
 
 metadata:
   name: blender-mcp
@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "mcp-for-blender"
-  version: "2.0.0"
+  version: "2.1.9"
 
 provenance:
   repository_uri: "https://github.com/ahujasid/mcp-for-blender"
