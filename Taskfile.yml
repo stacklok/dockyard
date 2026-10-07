@@ -7,7 +7,7 @@ tasks:
       Run Cisco AI Defense mcp-scanner on a specific MCP server configuration.
 
       Usage:
-        task scan -- npx/browserbase-mcp-server
+        task scan -- npx/playwright-mcp
         task scan -- uvx/blender-mcp
         task scan -- npx/sentry-mcp-server
 
@@ -136,7 +136,7 @@ tasks:
         echo "  scan-help   - Show this help"
         echo ""
         echo "Examples:"
-        echo "  task scan -- npx/browserbase-mcp-server"
+        echo "  task scan -- npx/playwright-mcp"
         echo "  task scan -- uvx/blender-mcp"
         echo "  task scan-all"
         echo "  task scan-setup"
