@@ -16,8 +16,3 @@ spec:
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
   repository_ref: "refs/heads/main"
-
-security:
-  allowed_issues:
-    - rule_id: MANIFEST_MISSING_LICENSE
-      reason: "mattpocock/skills is licensed MIT at the repository root; upstream does not embed an SPDX license identifier in per-skill SKILL.md frontmatter."
