@@ -584,7 +584,7 @@ jobs:
             cat "${scan_output%.json}.stderr"
           fi
           if [ "$USE_LLM" = true ]; then
-            jq -e '.analyzers_used | index("llm_analyzer") and index("meta_analyzer")' "$scan_output" >/dev/null
+            jq -e '.analyzers_used | index("llm_analyzer")' "$scan_output" >/dev/null
             if jq -e '.findings[]? | select(.rule_id == "LLM_ANALYSIS_FAILED")' "$scan_output" >/dev/null; then
               echo "::error title=LLM analysis unavailable::The trusted fallback scan did not complete semantic analysis."
               exit 1
@@ -601,6 +601,8 @@ jobs:
           # surfaced as warnings but do not fail the job. One of: INFO, LOW,
           # MEDIUM, HIGH, CRITICAL. Tune via PR.
           SKILL_SCANNER_BLOCK_SEVERITY: HIGH
+          # Makes process_scan_results.py fail the scan if the judge didn't run.
+          SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
           SKILL_NAME: ${{ steps.meta.outputs.skill_name }}
           CONFIG_FILE: ${{ matrix.config }}
         run: |

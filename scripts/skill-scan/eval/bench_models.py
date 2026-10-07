@@ -102,28 +102,40 @@ def checkout_source(skill: str, meta: dict, cache_dir: Path) -> Path:
 
 
 def run_scan(source: Path, output: Path, model: str, api_key: str,
-             temperature: str, consensus_runs: int | None) -> tuple[float, bool]:
+             temperature: str | None, consensus_runs: int | None,
+             runner: Path | None = None, policy: str | None = None) -> tuple[float, bool]:
+    """Scan via run_scan.py. `runner` swaps in another copy of the wrapper
+    (e.g. main's, as a baseline); `policy` sets SKILL_SCANNER_POLICY."""
     env = os.environ.copy()
     env.update({
         "SKILL_SCANNER_USE_LLM": "true",
         "SKILL_SCANNER_LLM_API_KEY": api_key,
         "SKILL_SCANNER_LLM_MODEL": model,
-        "SKILL_SCANNER_LLM_TEMPERATURE": temperature,
     })
+    # Leave temperature unset by default: scanner 2.2.0 omits it for models
+    # that reject it (GPT-5.x, Claude Sonnet 5.x) and uses 0.0 otherwise. An
+    # explicit numeric value overrides that check, so a hard-coded default
+    # would break those models.
+    if temperature:
+        env["SKILL_SCANNER_LLM_TEMPERATURE"] = temperature
+    else:
+        env.pop("SKILL_SCANNER_LLM_TEMPERATURE", None)
     # GPT-5.x reasoning models reject non-default temperature; the scanner's
-    # "none" sentinel omits the parameter entirely (llm_request_handler.py,
-    # _TEMPERATURE_OMIT_VALUES). The meta-analyzer falls back to this same
-    # env var, so one setting covers both analyzers.
+    # "none" sentinel omits the parameter entirely.
     if "gpt-5" in model.lower():
         env["SKILL_SCANNER_LLM_TEMPERATURE"] = "none"
     if consensus_runs and consensus_runs > 1:
         env["SKILL_SCANNER_LLM_CONSENSUS_RUNS"] = str(consensus_runs)
     else:
         env.pop("SKILL_SCANNER_LLM_CONSENSUS_RUNS", None)
+    if policy:
+        env["SKILL_SCANNER_POLICY"] = policy
+    else:
+        env.pop("SKILL_SCANNER_POLICY", None)
 
     start = time.monotonic()
     proc = subprocess.run(
-        [sys.executable, str(SKILL_SCAN_DIR / "run_scan.py"),
+        [sys.executable, str(runner or SKILL_SCAN_DIR / "run_scan.py"),
          "--source", str(source), "--output", str(output)],
         env=env, capture_output=True, text=True,
     )
@@ -195,9 +207,17 @@ def main() -> None:
     parser.add_argument("--env-file", default=str(EVAL_DIR / ".env"),
                         help="dotenv file with ANTHROPIC_API_KEY / "
                         "OPENAI_API_KEY (default: .env in this directory)")
-    parser.add_argument("--temperature", default="0.0")
+    parser.add_argument("--temperature", default=None,
+                        help="SKILL_SCANNER_LLM_TEMPERATURE to force; default "
+                        "lets the scanner choose per model")
     parser.add_argument("--consensus-runs", type=int, default=None,
                         help="Optional --llm-consensus-runs N passthrough")
+    parser.add_argument("--runner", type=Path, default=None,
+                        help="Alternate run_scan.py to invoke (e.g. a copy of "
+                        "main's, as a baseline). Defaults to the checkout's.")
+    parser.add_argument("--policy", default=None,
+                        help="Scan policy preset passed via SKILL_SCANNER_POLICY "
+                        "(e.g. balanced). Ignored by runners that predate it.")
     parser.add_argument("--out", default=str(EVAL_DIR / "results"))
     parser.add_argument("--resume", default=None,
                         help="Existing results dir (a previous run's timestamp "
@@ -267,7 +287,8 @@ def main() -> None:
                 else:
                     print(f"[{skill}] {model} run {i + 1}/{args.runs} ...", flush=True)
                     duration, ok = run_scan(source, scan_file, model, key_for(model),
-                                            args.temperature, args.consensus_runs)
+                                            args.temperature, args.consensus_runs,
+                                            runner=args.runner, policy=args.policy)
                 rec = {"duration": duration, "ok": ok,
                        "blocking": None, "noise_high": None, "llm_keys": []}
                 if ok:

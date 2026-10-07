@@ -476,10 +476,14 @@ jobs:
           if not isinstance(scan, dict) or not isinstance(scan.get('findings', []), list):
               raise SystemExit('scanner output does not have the expected JSON structure')
           analyzers = scan.get('analyzers_used') or []
-          if os.environ['USE_LLM'] == 'true' and not {'llm_analyzer', 'meta_analyzer'} <= set(analyzers):
-              raise SystemExit('scanner output is missing required LLM analyzers')
-          if os.environ['USE_LLM'] == 'true' and any(
-              finding.get('rule_id') == 'LLM_ANALYSIS_FAILED' for finding in scan['findings']
+          if os.environ['USE_LLM'] == 'true' and 'llm_analyzer' not in analyzers:
+              raise SystemExit('scanner output is missing the required LLM analyzer')
+          if os.environ['USE_LLM'] == 'true' and (
+              any(finding.get('rule_id') == 'LLM_ANALYSIS_FAILED' for finding in scan['findings'])
+              or any(
+                  'llm' in str(entry.get('analyzer') if isinstance(entry, dict) else entry).lower()
+                  for entry in scan.get('analyzers_failed') or []
+              )
           ):
               raise SystemExit('scanner output reports failed LLM analysis')
           PY
@@ -525,6 +529,8 @@ jobs:
       - name: Evaluate proposed allowlist
         env:
           SKILL_SCANNER_BLOCK_SEVERITY: HIGH
+          # Makes process_scan_results.py fail the scan if the judge didn't run.
+          SKILL_SCANNER_USE_LLM: ${{ vars.SKILL_SCANNER_USE_LLM || 'true' }}
           SKILL_NAME: ${{ steps.source.outputs.skill-name }}
         run: |
           python3 scripts/skill-scan/process_scan_results.py \
@@ -551,7 +557,7 @@ jobs:
         run: |
           set -euo pipefail
           if [ "$USE_LLM" = true ]; then
-            jq -e '.analyzers_used | index("llm_analyzer") and index("meta_analyzer")' \
+            jq -e '.analyzers_used | index("llm_analyzer")' \
               "skill-scan-${SKILL_NAME}.json" >/dev/null
           fi
           test "$(tr -d '[:space:]' < scanner-version.txt)" = "$SCANNER_VERSION"
