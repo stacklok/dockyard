@@ -16,3 +16,8 @@ spec:
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+      reason: "FP: SKILL.md:9 says \"If the user passes a ticket reference, fetch it from the issue tracker and state its title before starting.\" The skill fetches ticket text to use as requirements; it does not download or execute remote code."
