@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "7b9bd5f950f89a9ba71b249b9801c1a95be3928e"
+  ref: "82fe8226252622fa807643bdca1710901198553a"
   path: "plugins/static-analysis/skills/codeql"
-  version: "0.2.2"
+  version: "0.2.3"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
@@ -23,3 +23,10 @@ security:
       reason: "Risk accepted by maintainer (danbarr, 2026-08-25): workflows/build-database.md and references/macos-arm64e-workaround.md construct and execute the target codebase's own build commands (make/cmake/gradle/etc., including a make --dry-run compile-command extraction for the macOS arm64e workaround) in order to trace compilation for CodeQL database creation. Building the analyzed codebase — including running whatever build system it uses — is CodeQL's documented, required mechanism for compiled-language analysis; there is no way to trace compilation without executing the project's own build scripts. Same class of inherent domain risk as running any CI/build pipeline against the target codebase, not a new injection primitive introduced by the skill."
     - rule_id: LLM_COMMAND_INJECTION
       reason: "FP: $CMD/$DB_NAME/$OUTPUT_DIR in workflows/build-database.md's bash templates are the skill's own locally-resolved output paths and constructed CodeQL CLI commands, not attacker-supplied external input. Same reasoning already accepted for skills/semgrep's [TARGET]/[OUTPUT_DIR] finding."
+    # New upstream test files at this digest (see #1047).
+    - rule_id: COMMAND_INJECTION_OS_SYSTEM
+      reason: "FP: scripts/test_build_log.py:17, :67, and :84 are pytest tests that run `bash -c` to source the skill's own build_log.sh inside a pytest tmp_path. Upstream unit tests for the skill's helper script; no external input."
+    - rule_id: COMMAND_INJECTION_EVAL
+      reason: "FP: scripts/test_shell_blocks.py:702 calls `compile(body, \"<embedded>\", \"exec\")` to check that Python embedded in the skill's own docs parses. compile() does not execute the code; this is an upstream syntax test."
+    - rule_id: BEHAVIOR_EVAL_SUBPROCESS
+      reason: "FP: scripts/test_shell_blocks.py is an upstream pytest suite that extracts code blocks from the skill's own markdown and checks they parse (compile() at :702) and run under bash in a temp dir. Tests of the skill's documentation, not runtime behavior."
