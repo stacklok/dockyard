@@ -1,6 +1,6 @@
 # Stripe upgrade-stripe Skill
 # Guide for upgrading Stripe API versions and SDKs.
-# Source: https://github.com/stripe/agent-toolkit
+# Source: https://github.com/stripe/ai
 # Will publish as: ghcr.io/stacklok/dockyard/skills/upgrade-stripe:0.1.0
 
 metadata:
@@ -8,13 +8,13 @@ metadata:
   description: "Upgrade Stripe API versions and SDKs — server-side SDK version management (Ruby, Python, PHP, Node.js, Java, Go, .NET), Stripe.js versioning, mobile SDK migration, API Changelog review, and staged adoption via Stripe-Version header"
 
 spec:
-  repository: "https://github.com/stripe/agent-toolkit"
+  repository: "https://github.com/stripe/ai"
   ref: "08d371a9fbe098ecc943713a70a669ef05cfa6d6"  # main as of 2026-04-16
   path: "skills/upgrade-stripe"
   version: "0.2.1"
 
 provenance:
-  repository_uri: "https://github.com/stripe/agent-toolkit"
+  repository_uri: "https://github.com/stripe/ai"
   repository_ref: "refs/heads/main"
 
 security:

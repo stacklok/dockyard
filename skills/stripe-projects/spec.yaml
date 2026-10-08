@@ -1,6 +1,6 @@
 # Stripe stripe-projects Skill
 # Set up a new app with Stripe Projects CLI for software-stack provisioning.
-# Source: https://github.com/stripe/agent-toolkit
+# Source: https://github.com/stripe/ai
 # Will publish as: ghcr.io/stacklok/dockyard/skills/stripe-projects:0.1.0
 
 metadata:
@@ -8,11 +8,11 @@ metadata:
   description: "Set up a new app or local repo with Stripe Projects — CLI-driven software-stack provisioning (`stripe projects init`) for bootstrapping Stripe integrations from a coding agent"
 
 spec:
-  repository: "https://github.com/stripe/agent-toolkit"
+  repository: "https://github.com/stripe/ai"
   ref: "08d371a9fbe098ecc943713a70a669ef05cfa6d6"  # main as of 2026-04-16
   path: "skills/stripe-projects"
   version: "0.3.1"
 
 provenance:
-  repository_uri: "https://github.com/stripe/agent-toolkit"
+  repository_uri: "https://github.com/stripe/ai"
   repository_ref: "refs/heads/main"
