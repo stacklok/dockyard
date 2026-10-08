@@ -1,0 +1,18 @@
+# Microsoft github-issue-creator Skill
+# GitHub issue drafting guidance.
+# Source: https://github.com/microsoft/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/microsoft-github-issue-creator:0.1.0
+
+metadata:
+  name: microsoft-github-issue-creator
+  description: "Convert raw notes, error logs, voice dictation, or screenshots into crisp GitHub-flavored markdown issue reports. Use when the user pastes bug info, error messages, or informal descriptions and wants a structured GitHub issue. Supports images/GIFs for visual evidence."
+
+spec:
+  repository: "https://github.com/microsoft/skills"
+  ref: "3898ec894e90afdfdae982a925db28b6a7b334e3"  # main as of 2026-10-08
+  path: ".github/skills/github-issue-creator"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/microsoft/skills"
+  repository_ref: "refs/heads/main"
