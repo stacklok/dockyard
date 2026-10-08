@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "9f3a8b065be670e70bb9b66999aae0b786a0bb7d"  # main as of 2026-04-15
+  ref: "5b40c73824ec2a16fd98ab19b6c2ecdb08c1a17e"  # main as of 2026-04-15
   path: "dd-apm"
-  version: "0.6.0"
+  version: "0.6.1"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
