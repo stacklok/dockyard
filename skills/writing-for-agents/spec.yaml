@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "f3fc5632f401156837ee3872f14fe33ccf1024ea"  # main as of 2026-08-06
+  ref: "b0618bc436ad893b3c5e84e55fba86586d34a404"  # main as of 2026-08-06
   path: "skills/productivity/writing-for-agents"
   version: "0.3.1"
 
