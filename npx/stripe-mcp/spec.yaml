@@ -1,7 +1,7 @@
 # Stripe MCP Server Configuration
 # Stripe API tools for managing payments, subscriptions, products, and customers
 # Package: https://www.npmjs.com/package/@stripe/mcp
-# Repository: https://github.com/stripe/agent-toolkit
+# Repository: https://github.com/stripe/ai
 # Will build as: ghcr.io/stacklok/dockyard/npx/stripe-mcp:0.3.3
 
 metadata:
@@ -14,7 +14,7 @@ spec:
   version: "0.3.3"
 
 provenance:
-  repository_uri: "https://github.com/stripe/agent-toolkit"
+  repository_uri: "https://github.com/stripe/ai"
   repository_ref: "refs/heads/main"
 
 security:
