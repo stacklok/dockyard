@@ -2,8 +2,8 @@
 # Octocode MCP Server Configuration
 # MCP server for advanced GitHub repository analysis and code discovery
 # Package: https://www.npmjs.com/package/octocode-mcp
-# Repository: https://github.com/bgauryy/octocode-mcp
-# Will build as: ghcr.io/stacklok/dockyard/npx/octocode-mcp:12.0.0
+# Repository: https://github.com/bgauryy/octocode
+# Will build as: ghcr.io/stacklok/dockyard/npx/octocode-mcp:19.1.0
 
 metadata:
   name: octocode-mcp
@@ -13,24 +13,11 @@ metadata:
 spec:
   package: "octocode-mcp"
   version: "19.1.0"
-  overrides:
-    - package: "minimatch"
-      version: "10.2.6"
-      reason: |
-        octocode-engine pulls bash-language-server -> editorconfig -> minimatch@10.0.1,
-        vulnerable to ReDoS (GHSA-3ppc-4f35-3m26, GHSA-7r86-cg39-jmmj,
-        GHSA-23c5-xmqv-rm74), fixed in 10.2.3+.
-    - package: "protobufjs"
-      version: "8.7.1"
-      reason: |
-        octocode-engine pulls intelephense -> protobufjs@8.3.0, vulnerable to
-        DoS/prototype-pollution issues (GHSA-94rc-8x27-4472, GHSA-wcpc-wj8m-hjx6,
-        GHSA-f38q-mgvj-vph7, GHSA-jfj6-75fj-8934, GHSA-j3f2-48v5-ccww), fixed in 8.6.6+.
 
 provenance:
-  # Monorepo with multiple packages; npm versions don't match git tags
-  repository_uri: "https://github.com/bgauryy/octocode-mcp"
-  repository_ref: "refs/heads/main"
+  # Published octocode-mcp@19.1.0 npm gitHead; monorepo versions do not match git tags
+  repository_uri: "https://github.com/bgauryy/octocode"
+  repository_ref: "24ada10033de01215be62f53cd9293fbf36ca72a"
 
 security:
   allowed_issues:
