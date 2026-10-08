@@ -12,6 +12,13 @@ metadata:
 spec:
   package: "@sentry/mcp-server"
   version: "0.42.0"
+  overrides:
+    - package: "@modelcontextprotocol/sdk"
+      version: "1.31.0"
+      reason: |
+        @sentry/mcp-server 0.42.0 pins @modelcontextprotocol/sdk 1.30.0,
+        which is affected by high-severity GHSA-6qxp-vccf-f47h. Version 1.31.0
+        contains the upstream fix and is a compatible minor update.
 
 provenance:
   repository_uri: "https://github.com/getsentry/toolkit"
