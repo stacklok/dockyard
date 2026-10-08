@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/datadog-labs/agent-skills"
   ref: "5b40c73824ec2a16fd98ab19b6c2ecdb08c1a17e"
   path: "agent-observability/agent-observability-session-classify"
-  version: "0.5.0"
+  version: "0.5.1"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
