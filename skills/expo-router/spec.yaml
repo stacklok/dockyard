@@ -1,0 +1,23 @@
+# Expo expo-router Skill
+# Navigation and routing for Expo applications.
+# Source: https://github.com/expo/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/expo-router:0.1.0
+
+metadata:
+  name: expo-router
+  description: "Navigation and routing for Expo Router. Covers file-based routes, groups and dynamic routes, folder organization, Link with previews and context menus, native Stack, page titles, modals and form sheets, NativeTabs, headers and toolbars, and header search bars."
+
+spec:
+  repository: "https://github.com/expo/skills"
+  ref: "d4f484024fec15196bfd3c272e953e3f983972cf"  # main as of 2026-10-08
+  path: "plugins/expo/skills/expo-router"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/expo/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: PG_EXFIL_URL_ENCODING
+      reason: "FP: matched the ordinary React Native UI instruction 'Add long press context menus to Link components' (SKILL.md:85). It contains no URL construction, encoded data, credentials, or transmission instruction."
