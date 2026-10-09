@@ -29,8 +29,11 @@ provenance:
 
 # Security allowlist for known acceptable issues
 security:
-  # Server requires API_TOKEN to start - cannot be scanned in CI
-  insecure_ignore: true
+  # A rejected token logs a zone-check error but still allows tool enumeration.
+  mock_env:
+    - name: API_TOKEN
+      value: "dockyard-scan-placeholder"
+      description: "Dummy API token for security scanning without real credentials"
   allowed_issues:
     - code: "AITech-12.1"
       reason: |
