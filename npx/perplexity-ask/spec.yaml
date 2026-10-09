@@ -18,5 +18,21 @@ provenance:
   repository_ref: "refs/heads/main"
 
 security:
-  # Server requires PERPLEXITY_API_KEY to start - cannot complete startup in CI
-  insecure_ignore: true
+  # Mock credentials allow tool discovery without a live service.
+  mock_env:
+    - name: PERPLEXITY_API_KEY
+      value: "mock-perplexity-api-key-for-scanning"
+      description: "Perplexity API key - mock value for security scanning"
+  allowed_issues:
+    - code: "AITech-8.2"
+      reason: |
+        Accepted data flow - YARA flags perplexity_ask, perplexity_research,
+        and perplexity_reason for sending conversation messages to an external
+        API. These tools explicitly provide Perplexity-hosted answers, research,
+        and reasoning. performAgentResponse maps caller-supplied message roles
+        and content into the request input and sends it to the authenticated
+        Perplexity Agent API (api.perplexity.ai by default, configurable via
+        PERPLEXITY_BASE_URL). This is the advertised service operation, not
+        hidden collection of local files or credentials. Users must only pass
+        conversation content they intend to share with Perplexity. Verified in
+        v1.3.0 (dist/server.js performAgentResponse and makeApiRequest).

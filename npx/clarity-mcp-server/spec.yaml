@@ -19,5 +19,4 @@ provenance:
   repository_ref: "refs/heads/main"
 
 security:
-  # Server requires --clarity_api_token to start - cannot be scanned in CI
-  insecure_ignore: true
+  allowed_issues: []

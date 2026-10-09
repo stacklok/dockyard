@@ -26,9 +26,22 @@ provenance:
 
 # Security allowlist for known false positives
 security:
-  # Server requires SENTRY_ACCESS_TOKEN to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock credentials allow tool discovery without a live service.
+  mock_env:
+    - name: SENTRY_ACCESS_TOKEN
+      value: "mock-sentry-access-token-for-scanning"
+      description: "Sentry access token - mock value for security scanning"
   allowed_issues:
+    - code: "AITech-1.1"
+      tool: "update_issue"
+      reason: |
+        False positive - YARA flags the update_issue description's instructions
+        to "ignore an issue" and "then ignore it again with the new rule" as
+        prompt injection. These describe Sentry's ignored issue status and
+        ignore-mode transitions, not instructions to disregard agent policies.
+        The handler validates the requested status and ignore options and calls
+        the authenticated Sentry issue-update API. Verified in v0.42.0
+        (dist/index.js update_issue and buildIgnoreUpdate).
     - code: "AITech-9.1"
       reason: |
         YARA flags the search_docs tool with "command injection" (AISubtech-9.1.4) due to
