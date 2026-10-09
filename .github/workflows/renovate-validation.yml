@@ -35,7 +35,7 @@ concurrency:
 jobs:
   validate-config:
     name: Validate Renovate Configuration
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     
     steps:
       - name: Checkout repository
@@ -70,7 +70,7 @@ jobs:
 
   test-dry-run:
     name: Test Renovate Dry Run
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: github.event_name == 'pull_request'
 
     steps:

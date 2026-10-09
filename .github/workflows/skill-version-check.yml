@@ -23,7 +23,7 @@ concurrency:
 jobs:
   skill-version-check:
     name: Check skill spec.version
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     steps:
       - name: Generate GitHub App token
         id: app-token
@@ -69,7 +69,7 @@ jobs:
   #      makes the bot author of the auto-fix commit identifiable.
   skill-version-autofix:
     name: Auto-fix skill spec.version (Renovate only)
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Only apply the auto-fix for the Renovate bot.
     if: >
       github.event.pull_request.user.login == 'renovate[bot]' ||

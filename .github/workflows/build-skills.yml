@@ -33,7 +33,7 @@ env:
 
 jobs:
   discover-skill-configs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     outputs:
@@ -132,7 +132,7 @@ jobs:
 
   validate-skills:
     needs: discover-skill-configs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: ${{ needs.discover-skill-configs.outputs.changed-configs != '[]' }}
     strategy:
       matrix:
@@ -167,7 +167,7 @@ jobs:
   resolve-pr-scan:
     needs: discover-skill-configs
     if: github.event_name == 'push' && github.ref == 'refs/heads/main' && needs.discover-skill-configs.outputs.scan-configs != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       actions: read
       contents: read
@@ -301,7 +301,7 @@ jobs:
 
   skill-security-scan:
     needs: [discover-skill-configs, resolve-pr-scan]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 35
     if: ${{ always() && github.ref == 'refs/heads/main' && needs.discover-skill-configs.outputs.scan-configs != '[]' && needs.resolve-pr-scan.result == 'success' }}
     strategy:
@@ -629,7 +629,7 @@ jobs:
 
   build-skill-artifacts:
     needs: [discover-skill-configs, validate-skills, skill-security-scan]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 30
     # Aggregate scan result is intentionally not gated here. A failure in one
     # skill's scan must not block publishing the rest. The per-cell
@@ -999,7 +999,7 @@ jobs:
 
   summary:
     needs: [discover-skill-configs, validate-skills, skill-security-scan, build-skill-artifacts]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: always()
     permissions:
       contents: read

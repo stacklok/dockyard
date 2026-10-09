@@ -25,7 +25,7 @@ concurrency:
 
 jobs:
   discover-skill-configs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     outputs:
@@ -80,7 +80,7 @@ jobs:
 
   validate-skills:
     needs: discover-skill-configs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: needs.discover-skill-configs.outputs.changed-configs != '[]'
     strategy:
       matrix:
@@ -108,7 +108,7 @@ jobs:
 
   build-skill-artifacts:
     needs: [discover-skill-configs, validate-skills]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: needs.validate-skills.result == 'success'
     strategy:
       matrix:
@@ -137,7 +137,7 @@ jobs:
 
   scanner-smoke:
     needs: discover-skill-configs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: needs.discover-skill-configs.outputs.scanner-smoke == 'true'
     permissions:
       contents: read
@@ -171,6 +171,7 @@ jobs:
           go run github.com/rhysd/actionlint/cmd/actionlint@v1.7.7 \
             -ignore 'unexpected key "queue"' \
             -ignore 'shellcheck reported issue' \
+            -ignore 'label "ubuntu-26\.04" is unknown' \
             .github/workflows/build-skills.yml \
             .github/workflows/check-skills.yml \
             .github/workflows/trusted-skill-scan.yml \

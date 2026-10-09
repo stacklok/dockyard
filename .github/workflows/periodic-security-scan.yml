@@ -13,7 +13,7 @@ env:
 
 jobs:
   discover-published-images:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     outputs:
@@ -36,7 +36,7 @@ jobs:
 
   scan-images:
     needs: discover-published-images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: ${{ needs.discover-published-images.outputs.configs != '[]' }}
     strategy:
       matrix:
@@ -286,7 +286,7 @@ jobs:
 
   summary:
     needs: scan-images
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions: {}
     if: always()
     steps:

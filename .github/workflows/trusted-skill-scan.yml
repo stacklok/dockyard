@@ -16,7 +16,7 @@ permissions: {}
 
 jobs:
   discover:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
       pull-requests: read
@@ -91,7 +91,7 @@ jobs:
     name: Trusted skill scan coordination
     needs: discover
     if: needs.discover.outputs.scan-configs != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 80
     permissions:
       actions: read
@@ -142,7 +142,7 @@ jobs:
   scan:
     needs: [discover, wait-for-prior-scan]
     if: needs.discover.outputs.scan-configs != '[]'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 35
     strategy:
       fail-fast: false
@@ -631,7 +631,7 @@ jobs:
   approve:
     needs: [discover, scan]
     if: needs.discover.outputs.scan-configs != '[]' && needs.scan.result == 'success'
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions: {}
     steps:
       - name: Record successful run identity

@@ -49,7 +49,7 @@ env:
 
 jobs:
   discover-configs:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     outputs:
@@ -190,7 +190,7 @@ jobs:
   # and built from this commit, so it can never be stale.
   build-dockhand:
     needs: discover-configs
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
     permissions:
       contents: read
@@ -218,7 +218,7 @@ jobs:
 
   verify-provenance:
     needs: [discover-configs, build-dockhand]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     # Verify package provenance when we have configs to build
     if: ${{ needs.discover-configs.outputs.changed-configs != '[]' }}
     strategy:
@@ -291,7 +291,7 @@ jobs:
 
   mcp-security-scan:
     needs: [discover-configs, verify-provenance]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     # Only scan configs whose spec.yaml files actually changed
     # (not all configs when only go.mod/dockhand changed, since scans don't use dockhand)
@@ -439,7 +439,7 @@ jobs:
   override-check:
     needs: [discover-configs]
     if: ${{ github.event_name == 'pull_request' && needs.discover-configs.outputs.scan-configs != '[]' }}
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions:
       contents: read
     steps:
@@ -477,7 +477,7 @@ jobs:
 
   build-containers:
     needs: [discover-configs, build-dockhand, verify-provenance, mcp-security-scan]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     timeout-minutes: 60
     # `!cancelled()` disables the implicit success() gate on `needs` so this
     # job still runs when mcp-security-scan was skipped (e.g. a toolhive bump
@@ -859,7 +859,7 @@ jobs:
   # Save PR number as artifact for the mcp-scan-report workflow.
   # This is needed because workflow_run doesn't reliably provide PR info for fork PRs.
   save-pr-number:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions: {}
     if: github.event_name == 'pull_request'
     steps:
@@ -877,7 +877,7 @@ jobs:
 
   summary:
     needs: [discover-configs, verify-provenance, mcp-security-scan, build-containers]
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-26.04
     permissions: {}
     if: always()
     steps:
