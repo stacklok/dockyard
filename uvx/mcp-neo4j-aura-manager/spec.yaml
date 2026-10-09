@@ -19,5 +19,11 @@ provenance:
 
 # Security configuration
 security:
-  # Server requires Neo4j Aura API credentials to start - cannot be scanned in CI
-  insecure_ignore: true
+  # Mock credentials allow tool discovery without a live service.
+  mock_env:
+    - name: NEO4J_AURA_CLIENT_ID
+      value: "mock-aura-client-id-for-scanning"
+      description: "Neo4j Aura client ID - mock value for security scanning"
+    - name: NEO4J_AURA_CLIENT_SECRET
+      value: "mock-aura-client-secret-for-scanning"
+      description: "Neo4j Aura client secret - mock value for security scanning"
