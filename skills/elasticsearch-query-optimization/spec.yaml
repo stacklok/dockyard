@@ -1,0 +1,18 @@
+# Elastic elasticsearch-query-optimization Skill
+# Elasticsearch query performance guidance.
+# Source: https://github.com/elastic/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/elasticsearch-query-optimization:0.1.0
+
+metadata:
+  name: elasticsearch-query-optimization
+  description: "Diagnose slow Elasticsearch Query DSL searches and propose measured fixes using search profiling."
+
+spec:
+  repository: "https://github.com/elastic/agent-skills"
+  ref: "baa511126ba2dc37b52e273b52734f8e4e0d323c"  # main as of 2026-10-08
+  path: "skills/elasticsearch/elasticsearch-query-optimization"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/elastic/agent-skills"
+  repository_ref: "refs/heads/main"

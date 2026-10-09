@@ -1,0 +1,18 @@
+# Microsoft microsoft-mcp-builder Skill
+# MCP server implementation guidance.
+# Source: https://github.com/microsoft/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/microsoft-mcp-builder:0.1.0
+
+metadata:
+  name: microsoft-mcp-builder
+  description: "Guide for creating high-quality MCP servers that enable LLMs to interact with external services through well-designed tools in Python, Node/TypeScript, or C#/.NET."
+
+spec:
+  repository: "https://github.com/microsoft/skills"
+  ref: "3898ec894e90afdfdae982a925db28b6a7b334e3"  # main as of 2026-10-08
+  path: ".github/skills/mcp-builder"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/microsoft/skills"
+  repository_ref: "refs/heads/main"

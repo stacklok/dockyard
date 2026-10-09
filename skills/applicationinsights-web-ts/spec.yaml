@@ -1,0 +1,24 @@
+# Microsoft applicationinsights-web-ts Skill
+# Browser and web Application Insights instrumentation guidance.
+# Source: https://github.com/microsoft/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/applicationinsights-web-ts:0.1.0
+
+metadata:
+  name: applicationinsights-web-ts
+  description: >-
+    Instrument browser/web apps with the Application Insights JavaScript SDK (@microsoft/applicationinsights-web). Use for Real User Monitoring (RUM) — page views, clicks, AJAX/fetch dependencies, exceptions, custom events, and browser-side GenAI agent traces correlated to backend OpenTelemetry traces. Covers SDK Loader Script and npm setup, framework extensions (React, React Native, Angular), Click Analytics, telemetry initializers, and OTel GenAI semantic conventions for agent/tool/model spans emitted from the browser.
+
+spec:
+  repository: "https://github.com/microsoft/skills"
+  ref: "3898ec894e90afdfdae982a925db28b6a7b334e3"  # main as of 2026-10-08
+  path: ".github/skills/applicationinsights-web-ts"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/microsoft/skills"
+  repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: PG_EXFIL_HTML_TAG
+      reason: "FP: matched the static, first-party Microsoft Application Insights SDK loader URL at SKILL.md:89. It contains no dynamic data, credentials, or user content and is the documented SDK installation step."

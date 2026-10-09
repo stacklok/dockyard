@@ -1,0 +1,18 @@
+# Microsoft microsoft-kql Skill
+# Kusto Query Language guidance.
+# Source: https://github.com/microsoft/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/microsoft-kql:0.1.0
+
+metadata:
+  name: microsoft-kql
+  description: "KQL language expertise for writing correct, efficient Kusto Query Language queries, including syntax, joins, dynamic types, datetime, regex, serialization, memory, result sizes, and advanced functions."
+
+spec:
+  repository: "https://github.com/microsoft/skills"
+  ref: "3898ec894e90afdfdae982a925db28b6a7b334e3"  # main as of 2026-10-08
+  path: ".github/skills/kql"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/microsoft/skills"
+  repository_ref: "refs/heads/main"
