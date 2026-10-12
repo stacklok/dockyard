@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/github/gh-stack"
   ref: "29a36d314be664583705f18e41cebdf2b61ad514"  # main as of 2026-08-05
   path: "skills/gh-stack"
-  version: "0.1.4"
+  version: "0.1.5"
 
 provenance:
   repository_uri: "https://github.com/github/gh-stack"
