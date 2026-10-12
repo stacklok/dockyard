@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "82fe8226252622fa807643bdca1710901198553a"  # main as of 2026-04-17
+  ref: "442fc9d6c89b1e937e6f7a477e7071ea75fcbea4"  # main as of 2026-04-17
   path: "plugins/supply-chain-risk-auditor/skills/supply-chain-risk-auditor"
   version: "0.2.2"
 
