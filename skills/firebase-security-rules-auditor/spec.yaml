@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/firebase/agent-skills"
   ref: "b5735e5baa0d874cb97a23e26ebe93e4501797b9"
   path: "skills/firebase-security-rules-auditor"
-  version: "0.2.3"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
