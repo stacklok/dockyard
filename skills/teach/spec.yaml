@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "b0618bc436ad893b3c5e84e55fba86586d34a404"  # main as of 2026-08-06
+  ref: "49dd158d1076134a641b33efb035946536778336"  # main as of 2026-08-06
   path: "skills/productivity/teach"
   version: "0.4.2"
 
