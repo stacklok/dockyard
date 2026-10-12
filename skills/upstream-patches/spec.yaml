@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/pulumi/agent-skills"
   ref: "2517e28e4bc029424e9c9ee48016394296be0f6a"
   path: "package-maintenance/skills/upstream-patches"
-  version: "0.1.10"
+  version: "0.1.11"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
