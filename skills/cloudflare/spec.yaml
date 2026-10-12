@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/cloudflare/skills"
   ref: "c430dd965cea3a8faf0ef035e3b3d73b38518081"
   path: "skills/cloudflare"
-  version: "0.4.0"
+  version: "0.5.0"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"

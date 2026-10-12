@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/cloudflare/skills"
   ref: "c430dd965cea3a8faf0ef035e3b3d73b38518081"  # main as of 2026-04-16
   path: "skills/wrangler"
-  version: "0.3.0"
+  version: "0.3.1"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"
