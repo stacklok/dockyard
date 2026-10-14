@@ -1,0 +1,18 @@
+# Elastic elasticsearch-index-design Skill
+# Elasticsearch index mapping design guidance.
+# Source: https://github.com/elastic/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/elasticsearch-index-design:0.1.0
+
+metadata:
+  name: elasticsearch-index-design
+  description: "Design and review Elasticsearch index mappings for stated access patterns: field types, text and keyword multi-fields, doc_values tuning, mapping-explosion avoidance, and shard settings."
+
+spec:
+  repository: "https://github.com/elastic/agent-skills"
+  ref: "baa511126ba2dc37b52e273b52734f8e4e0d323c"  # main as of 2026-10-08
+  path: "skills/elasticsearch/elasticsearch-index-design"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/elastic/agent-skills"
+  repository_ref: "refs/heads/main"

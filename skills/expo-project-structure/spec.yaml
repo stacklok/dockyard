@@ -1,0 +1,18 @@
+# Expo expo-project-structure Skill
+# Folder structure for new Expo applications.
+# Source: https://github.com/expo/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/expo-project-structure:0.1.0
+
+metadata:
+  name: expo-project-structure
+  description: "Folder structure for a new Expo app. Use when scaffolding or laying out a new Expo project with Expo Router, or deciding where a file should live in one. For new projects only — never restructure an existing app to match."
+
+spec:
+  repository: "https://github.com/expo/skills"
+  ref: "d4f484024fec15196bfd3c272e953e3f983972cf"  # main as of 2026-10-08
+  path: "plugins/expo/skills/expo-project-structure"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/expo/skills"
+  repository_ref: "refs/heads/main"

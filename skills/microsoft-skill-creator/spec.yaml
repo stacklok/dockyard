@@ -1,0 +1,18 @@
+# Microsoft skill-creator Skill
+# Azure SDK and Microsoft Foundry skill authoring guidance.
+# Source: https://github.com/microsoft/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/microsoft-skill-creator:0.1.0
+
+metadata:
+  name: microsoft-skill-creator
+  description: "Guide for creating effective skills for AI coding agents working with Azure SDKs and Microsoft Foundry services. Use when creating new skills or updating existing skills."
+
+spec:
+  repository: "https://github.com/microsoft/skills"
+  ref: "3898ec894e90afdfdae982a925db28b6a7b334e3"  # main as of 2026-10-08
+  path: ".github/skills/skill-creator"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/microsoft/skills"
+  repository_ref: "refs/heads/main"

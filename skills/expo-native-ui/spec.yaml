@@ -1,0 +1,18 @@
+# Expo expo-native-ui Skill
+# Native Expo user interface guidance.
+# Source: https://github.com/expo/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/expo-native-ui:0.1.0
+
+metadata:
+  name: expo-native-ui
+  description: "Build beautiful, native-feeling Expo screens. Covers Apple HIG styling, semantic colors, native controls, SF Symbols, media, visual effects, gradients, storage, and responsive layout. For routing and navigation, use the expo-router skill; for motion and animation, use the expo-animation skill."
+
+spec:
+  repository: "https://github.com/expo/skills"
+  ref: "d4f484024fec15196bfd3c272e953e3f983972cf"  # main as of 2026-10-08
+  path: "plugins/expo/skills/expo-native-ui"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/expo/skills"
+  repository_ref: "refs/heads/main"

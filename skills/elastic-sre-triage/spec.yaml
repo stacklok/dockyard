@@ -1,0 +1,18 @@
+# Elastic elastic-sre-triage Skill
+# Read-only SRE service triage guidance.
+# Source: https://github.com/elastic/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/elastic-sre-triage:0.1.0
+
+metadata:
+  name: elastic-sre-triage
+  description: "Triage a degraded or suspect service using SLO status, alerting, anomalies, golden signals, dependency health, infrastructure saturation, and logs."
+
+spec:
+  repository: "https://github.com/elastic/agent-skills"
+  ref: "baa511126ba2dc37b52e273b52734f8e4e0d323c"  # main as of 2026-10-08
+  path: "skills/observability/sre-triage"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/elastic/agent-skills"
+  repository_ref: "refs/heads/main"

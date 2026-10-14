@@ -1,0 +1,18 @@
+# Elastic elastic-k8s-investigation Skill
+# Kubernetes investigation using Elastic OTel telemetry.
+# Source: https://github.com/elastic/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/elastic-k8s-investigation:0.1.0
+
+metadata:
+  name: elastic-k8s-investigation
+  description: "Investigate Kubernetes workload, node, and control-plane issues using OTel telemetry, including pod failures, node pressure, resource exhaustion, image pulls, admission, autoscaling, and application signals."
+
+spec:
+  repository: "https://github.com/elastic/agent-skills"
+  ref: "baa511126ba2dc37b52e273b52734f8e4e0d323c"  # main as of 2026-10-08
+  path: "skills/observability/k8s-investigation"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/elastic/agent-skills"
+  repository_ref: "refs/heads/main"

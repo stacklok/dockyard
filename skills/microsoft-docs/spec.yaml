@@ -1,0 +1,18 @@
+# Microsoft microsoft-docs Skill
+# Official Microsoft documentation lookup guidance.
+# Source: https://github.com/microsoft/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/microsoft-docs:0.1.0
+
+metadata:
+  name: microsoft-docs
+  description: "Understand Microsoft technologies by querying official documentation for concepts, tutorials, configuration, limits, quotas, and best practices across Azure, .NET, M365, Windows, and Power Platform."
+
+spec:
+  repository: "https://github.com/microsoft/skills"
+  ref: "3898ec894e90afdfdae982a925db28b6a7b334e3"  # main as of 2026-10-08
+  path: ".github/skills/microsoft-docs"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/microsoft/skills"
+  repository_ref: "refs/heads/main"

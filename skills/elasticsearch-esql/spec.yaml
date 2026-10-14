@@ -1,0 +1,18 @@
+# Elastic elasticsearch-esql Skill
+# ES|QL query guidance.
+# Source: https://github.com/elastic/agent-skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/elasticsearch-esql:0.1.0
+
+metadata:
+  name: elasticsearch-esql
+  description: "Execute ES|QL queries to query Elasticsearch data, analyze logs, aggregate metrics, explore data, or create charts and dashboards from results."
+
+spec:
+  repository: "https://github.com/elastic/agent-skills"
+  ref: "baa511126ba2dc37b52e273b52734f8e4e0d323c"  # main as of 2026-10-08
+  path: "skills/elasticsearch/elasticsearch-esql"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/elastic/agent-skills"
+  repository_ref: "refs/heads/main"

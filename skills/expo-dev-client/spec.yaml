@@ -1,0 +1,18 @@
+# Expo expo-dev-client Skill
+# Expo development client guidance.
+# Source: https://github.com/expo/skills
+# Will publish as: ghcr.io/stacklok/dockyard/skills/expo-dev-client:0.1.0
+
+metadata:
+  name: expo-dev-client
+  description: "Build and distribute Expo development clients locally or via TestFlight for internal testing. For production TestFlight releases and store submission, use the eas-app-stores skill."
+
+spec:
+  repository: "https://github.com/expo/skills"
+  ref: "d4f484024fec15196bfd3c272e953e3f983972cf"  # main as of 2026-10-08
+  path: "plugins/expo/skills/expo-dev-client"
+  version: "0.1.0"
+
+provenance:
+  repository_uri: "https://github.com/expo/skills"
+  repository_ref: "refs/heads/main"
