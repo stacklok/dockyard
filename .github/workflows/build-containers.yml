@@ -838,11 +838,19 @@ jobs:
 
       # Keep the JSON available to mcp-scan-report even when the following
       # enforcement step fails this matrix job.
+      - name: Stage detailed Grype results
+        env:
+          GRYPE_JSON_PATH: ${{ steps.grype-scan-json.outputs.json }}
+          SERVER_NAME: ${{ steps.meta.outputs.server_name }}
+        run: |
+          mkdir -p /tmp/grype-results
+          cp "$GRYPE_JSON_PATH" "/tmp/grype-results/${SERVER_NAME}.json"
+
       - name: Upload detailed Grype results
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
         with:
           name: grype-scan-${{ steps.meta.outputs.server_name }}
-          path: ${{ steps.grype-scan-json.outputs.json }}
+          path: /tmp/grype-results/${{ steps.meta.outputs.server_name }}.json
           if-no-files-found: error
           retention-days: 5
 

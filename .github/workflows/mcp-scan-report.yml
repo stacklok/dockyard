@@ -241,7 +241,10 @@ jobs:
 
             const servers = [];
             for (const file of scanFiles) {
-              const server = path.basename(path.dirname(file)).replace(/^grype-scan-/, '');
+              // The upload step assigns the server name to the JSON filename.
+              // This works whether download-artifact extracts one artifact
+              // directly into the destination or many into subdirectories.
+              const server = path.basename(file, '.json');
               try {
                 const results = JSON.parse(fs.readFileSync(file, 'utf8'));
                 const findings = (results.matches || []).filter(match =>
