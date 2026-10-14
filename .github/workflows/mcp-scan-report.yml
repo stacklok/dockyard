@@ -5,9 +5,10 @@
 # `workflow_run` is required for that base-repo write access; the trade-off it
 # flags is a privileged workflow trusting event data from an untrusted run.
 # This workflow never checks out or executes the triggering run's code, and
-# the only value it takes from it (the PR number, read from an artifact) is
-# used solely to target the comment, so a bad value means a comment lands on
-# the wrong PR, not privilege escalation.
+# the values it takes from it are the PR number (used solely to target a
+# comment) and scanner results, which are rendered as escaped literal text.
+# A bad PR number can land a comment on the wrong PR, but cannot escalate
+# privileges or execute pull-request code.
 name: MCP Scan Report
 
 on:
@@ -189,6 +190,118 @@ jobs:
                 body: comment
               });
               console.log('Created new comment');
+            }
+
+      # This artifact is produced before the Grype enforcement step fails a
+      # build matrix cell, so completed failed runs can still report the
+      # packages that need review on the pull request.
+      - name: Download Grype results
+        id: grype-results
+        uses: actions/download-artifact@9000827ccba6bdab643e8b6fd33ac0654aef8333 # v8.0.2
+        with:
+          pattern: grype-scan-*
+          run-id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ steps.app-token.outputs.token }}
+          path: grype-artifacts
+        continue-on-error: true
+
+      - name: Comment PR with Grype results
+        if: steps.grype-results.outcome == 'success'
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        env:
+          PR_NUMBER: ${{ steps.read-pr.outputs.pr_number }}
+        with:
+          github-token: ${{ steps.app-token.outputs.token }}
+          script: |
+            const fs = require('fs');
+            const path = require('path');
+
+            const title = '## 🛡️ Grype Vulnerability Scan Results';
+            const prNumber = parseInt(process.env.PR_NUMBER, 10);
+            const artifactsDir = 'grype-artifacts';
+
+            // Scanner output comes from a pull-request build. Keep every
+            // value literal so it cannot inject Markdown into this comment.
+            const code = value => `<code>${String(value ?? '')
+              .replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/\|/g, '&#124;')
+              .replace(/[\r\n]/g, ' ')}</code>`;
+            const scanFiles = [];
+            const collectJsonFiles = directory => {
+              for (const entry of fs.readdirSync(directory, { withFileTypes: true })) {
+                const entryPath = path.join(directory, entry.name);
+                if (entry.isDirectory()) collectJsonFiles(entryPath);
+                else if (entry.isFile() && entry.name.endsWith('.json')) scanFiles.push(entryPath);
+              }
+            };
+
+            if (fs.existsSync(artifactsDir)) collectJsonFiles(artifactsDir);
+
+            const servers = [];
+            for (const file of scanFiles) {
+              const server = path.basename(path.dirname(file)).replace(/^grype-scan-/, '');
+              try {
+                const results = JSON.parse(fs.readFileSync(file, 'utf8'));
+                const findings = (results.matches || []).filter(match =>
+                  ['Critical', 'High'].includes(match?.vulnerability?.severity) &&
+                  (match.vulnerability.fix?.versions || []).length > 0
+                );
+                servers.push({ server, findings });
+              } catch (error) {
+                console.error(`Could not parse ${file}: ${error.message}`);
+                servers.push({ server, error: 'The Grype result artifact could not be parsed.' });
+              }
+            }
+
+            let body = `${title}\n\n`;
+            if (servers.length === 0) {
+              body += '⚠️ No Grype result artifacts were available for this run.\n';
+            } else {
+              const total = servers.reduce((count, server) => count + (server.findings?.length || 0), 0);
+              if (total === 0) {
+                body += '✅ No fixable High or Critical vulnerabilities found.\n';
+              } else {
+                body += 'Fixable High and Critical findings block publishing. Review these package versions when evaluating an override.\n\n';
+              }
+
+              for (const server of servers.sort((left, right) => left.server.localeCompare(right.server))) {
+                body += `### ${code(server.server)}\n`;
+                if (server.error) {
+                  body += `⚠️ ${server.error}\n\n`;
+                  continue;
+                }
+                if (server.findings.length === 0) {
+                  body += '✅ No blocking findings.\n\n';
+                  continue;
+                }
+                body += '| Severity | Vulnerability | Package | Installed | Available fix |\n';
+                body += '| --- | --- | --- | --- | --- |\n';
+                for (const finding of server.findings) {
+                  const fix = finding.vulnerability.fix.versions.join(', ');
+                  body += `| ${finding.vulnerability.severity} | ${code(finding.vulnerability.id)} | ${code(finding.artifact.name)} | ${code(finding.artifact.version)} | ${code(fix)} |\n`;
+                }
+                body += '\n';
+              }
+            }
+
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner, repo: context.repo.repo, issue_number: prNumber,
+            });
+            const existing = comments.find(comment => comment.user.type === 'Bot' && comment.body.startsWith(title));
+            if (existing) {
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                comment_id: existing.id, body,
+              });
+              console.log(`Updated Grype result comment #${existing.id}`);
+            } else {
+              await github.rest.issues.createComment({
+                owner: context.repo.owner, repo: context.repo.repo,
+                issue_number: prNumber, body,
+              });
+              console.log('Created Grype result comment');
             }
 
       - name: Download override check results

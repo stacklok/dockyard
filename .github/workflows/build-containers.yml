@@ -806,13 +806,17 @@ jobs:
           # Clean up
           rm -f /tmp/security-attestation.json
 
-      - name: Run Grype vulnerability scanner
+      # Generate SARIF without failing immediately so the following report
+      # step can print the package, installed version, and available fix for
+      # every finding that would otherwise make this matrix job fail.
+      - name: Generate Grype SARIF results
         id: grype-scan
         uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
         with:
           image: "local-scan:${{ steps.meta.outputs.server_name }}-${{ steps.meta.outputs.version }}"
           severity-cutoff: "high"
           only-fixed: "true"
+          fail-build: "false"
           output-format: "sarif"
 
       - name: Upload Grype results to GitHub Security
@@ -821,6 +825,67 @@ jobs:
         with:
           sarif_file: ${{ steps.grype-scan.outputs.sarif }}
           category: 'grype-${{ steps.meta.outputs.server_name }}'
+
+      - name: Generate detailed Grype results
+        id: grype-scan-json
+        uses: anchore/scan-action@27805bf3b4e84b4a5c980df22ed233c00390a439 # v7.4.2
+        with:
+          image: "local-scan:${{ steps.meta.outputs.server_name }}-${{ steps.meta.outputs.version }}"
+          severity-cutoff: "high"
+          only-fixed: "true"
+          fail-build: "false"
+          output-format: "json"
+
+      # Keep the JSON available to mcp-scan-report even when the following
+      # enforcement step fails this matrix job.
+      - name: Upload detailed Grype results
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: grype-scan-${{ steps.meta.outputs.server_name }}
+          path: ${{ steps.grype-scan-json.outputs.json }}
+          if-no-files-found: error
+          retention-days: 5
+
+      - name: Report blocking Grype vulnerabilities
+        env:
+          GRYPE_JSON_PATH: ${{ steps.grype-scan-json.outputs.json }}
+        run: |
+          jq -r '
+            .matches[]?
+            | select(.vulnerability.severity == "Critical" or .vulnerability.severity == "High")
+            | select((.vulnerability.fix.versions // []) | length > 0)
+            | [
+                .vulnerability.severity,
+                .vulnerability.id,
+                .artifact.name,
+                .artifact.version,
+                (.vulnerability.fix.versions | join(", ")),
+                ((.vulnerability.urls // []) | first // "")
+              ]
+            | @tsv
+          ' "$GRYPE_JSON_PATH" > /tmp/grype-blocking-findings.tsv
+
+          if [ ! -s /tmp/grype-blocking-findings.tsv ]; then
+            echo "No fixable high or critical Grype vulnerabilities found."
+            exit 0
+          fi
+
+          while IFS=$'\t' read -r severity vulnerability package installed fix url; do
+            echo "::error title=Fixable ${severity} vulnerability::${vulnerability} in ${package}@${installed}; upgrade to ${fix}"
+          done < /tmp/grype-blocking-findings.tsv
+
+          {
+            echo "## Blocking Grype vulnerabilities"
+            echo ""
+            echo "| Severity | Vulnerability | Package | Installed | Available fix |"
+            echo "| --- | --- | --- | --- | --- |"
+            while IFS=$'\t' read -r severity vulnerability package installed fix url; do
+              echo "| ${severity} | [${vulnerability}](${url}) | \`${package}\` | \`${installed}\` | \`${fix}\` |"
+            done < /tmp/grype-blocking-findings.tsv
+            echo ""
+            echo "Fixable high and critical findings block publishing. See the entries above when evaluating a package override."
+          } >> "$GITHUB_STEP_SUMMARY"
+          exit 1
 
       - name: Generate image summary
         env:
