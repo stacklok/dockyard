@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mongodb/agent-skills"
-  ref: "c370a63b27075008a92134686b24af3817edeb00"
+  ref: "68be65bfb25a68712d7a961bd75bc068c5e02ac4"
   path: "skills/mongodb-schema-design"
   version: "0.4.1"
 
