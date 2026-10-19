@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "442fc9d6c89b1e937e6f7a477e7071ea75fcbea4"  # main as of 2026-04-17
+  ref: "5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0"  # main as of 2026-04-17
   path: "plugins/fp-check/skills/fp-check"
   version: "0.2.3"
 

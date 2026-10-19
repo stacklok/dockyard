@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "442fc9d6c89b1e937e6f7a477e7071ea75fcbea4"
+  ref: "5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0"
   path: "plugins/agentic-actions-auditor/skills/agentic-actions-auditor"
   version: "0.3.1"
 
