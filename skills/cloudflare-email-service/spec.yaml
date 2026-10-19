@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/cloudflare/skills"
   ref: "86505e44f87d801aa1864a3c4109e9a8ae5c409f"  # main as of 2026-04-16
   path: "skills/cloudflare-email-service"
-  version: "0.4.1"
+  version: "0.4.2"
 
 provenance:
   repository_uri: "https://github.com/cloudflare/skills"
