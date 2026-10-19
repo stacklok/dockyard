@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/trailofbits/skills"
   ref: "5c99c03fb8a9ea568432ecbcba5d86e9f4ac2bf0"
   path: "plugins/yara-authoring/skills/yara-rule-authoring"
-  version: "0.2.4"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/trailofbits/skills"
