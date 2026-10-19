@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/expo/skills"
-  ref: "d4f484024fec15196bfd3c272e953e3f983972cf"  # main as of 2026-10-08
+  ref: "7ddc1f5796996e5c7efe2fc3fa9168eb24e8dac1"  # main as of 2026-10-08
   path: "plugins/expo/skills/expo-project-structure"
   version: "0.1.0"
 
