@@ -18,7 +18,7 @@ spec:
   repository: "https://github.com/google-gemini/gemini-skills"
   ref: "ee9da52195752ca83c2fca701d96bcb5a9c08d2d"  # main as of 2026-09-18
   path: "skills/gemini-omni-flash-api"
-  version: "0.2.0"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/google-gemini/gemini-skills"

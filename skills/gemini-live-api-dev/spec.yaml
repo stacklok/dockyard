@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/google-gemini/gemini-skills"
   ref: "ee9da52195752ca83c2fca701d96bcb5a9c08d2d"  # main as of 2026-03-27
   path: "skills/gemini-live-api-dev"
-  version: "0.3.0"
+  version: "0.4.0"
 
 provenance:
   repository_uri: "https://github.com/google-gemini/gemini-skills"
