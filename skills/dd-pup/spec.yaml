@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/datadog-labs/agent-skills"
   ref: "8925faba5765d1a53a5a5a33a3135105bd130fb9"
   path: "dd-pup"
-  version: "0.6.2"
+  version: "0.6.3"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
