@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "mcp-for-blender"
-  version: "2.1.9"
+  version: "2.2.0"
 
 provenance:
   repository_uri: "https://github.com/ahujasid/mcp-for-blender"
