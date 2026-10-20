@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "d18b7aa8ba878354e5c348310230e652f7690f9c"  # main as of 2026-04-20
+  ref: "f57ada2d0b640406ea7e25b11d636c530e77c58b"  # main as of 2026-04-20
   path: "skills/find-bugs"
-  version: "0.3.0"
+  version: "0.4.0"
 
 provenance:
   repository_uri: "https://github.com/getsentry/skills"
