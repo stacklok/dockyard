@@ -1,0 +1,33 @@
+# Nora MCP Server Configuration
+# Package: https://www.npmjs.com/package/@noraai/mcp-server
+# Repository: https://github.com/solomon2773/nora
+# Will build as: ghcr.io/stacklok/dockyard/npx/nora:0.1.3
+
+metadata:
+  name: nora
+  description: "Operate self-hosted Nora agent fleets across Docker and Kubernetes"
+  protocol: npx
+
+spec:
+  package: "@noraai/mcp-server"
+  version: "0.1.3"
+
+provenance:
+  repository_uri: "https://github.com/solomon2773/nora"
+  repository_ref: "refs/heads/master"
+  attestations:
+    available: true
+    verified: true
+    publisher:
+      kind: "GitHub"
+      repository: "solomon2773/nora"
+      workflow: "release-npm.yml"
+
+security:
+  mock_env:
+    - name: NORA_API_URL
+      value: "https://mock-nora.example.com"
+      description: "Mock Nora URL for tool discovery"
+    - name: NORA_API_KEY
+      value: "nora_mock_catalog_scan_00000000"
+      description: "Mock Nora API key for tool discovery"
