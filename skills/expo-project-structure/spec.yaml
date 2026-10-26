@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/expo/skills"
   ref: "d5caf7fdf8b4854351f05841a7e315ac87ad7d24"  # main as of 2026-10-08
   path: "plugins/expo/skills/expo-project-structure"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/expo/skills"
