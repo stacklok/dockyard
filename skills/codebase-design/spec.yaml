@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "49dd158d1076134a641b33efb035946536778336"  # main as of 2026-08-06
+  ref: "5beb35b040e3de97e54fa9e386d7e42d15c295c2"  # main as of 2026-08-06
   path: "skills/engineering/codebase-design"
   version: "0.4.3"
 
