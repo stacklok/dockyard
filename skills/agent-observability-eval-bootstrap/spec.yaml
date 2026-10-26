@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/datadog-labs/agent-skills"
   ref: "ef022309cc6b6296e7574589ac332699b1c9a092"
   path: "agent-observability/agent-observability-eval-bootstrap"
-  version: "0.5.3"
+  version: "0.5.4"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
