@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/vercel/next.js"
-  ref: "bb63c72077ad7b81b2319f74a7ef3b00c1751483"  # canary as of 2026-08-06
+  ref: "cbf49db30a655ac17c92c2951885c4256db14b9e"  # canary as of 2026-08-06
   path: "skills/next-dev-loop"
   version: "0.4.5"
 
