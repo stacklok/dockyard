@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/weaviate/agent-skills"
   ref: "b19751cb6aab9365fcd643974cfc1ae895fe92a8"  # main as of 2026-04-01
   path: "skills/weaviate-cookbooks"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/weaviate/agent-skills"
