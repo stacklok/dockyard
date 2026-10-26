@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/firebase/agent-skills"
   ref: "92eed24c0976a79a66d5b8038e9eda8b441ef92d"
   path: "skills/firebase-data-connect-basics"
-  version: "0.6.0"
+  version: "0.6.1"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
