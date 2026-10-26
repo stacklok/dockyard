@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/vercel/next.js"
   ref: "cbf49db30a655ac17c92c2951885c4256db14b9e"  # canary as of 2026-08-06
   path: "skills/next-cache-components-adoption"
-  version: "0.4.5"
+  version: "0.4.6"
 
 provenance:
   repository_uri: "https://github.com/vercel/next.js"
