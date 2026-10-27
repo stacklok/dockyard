@@ -27,3 +27,5 @@ security:
     # longer filters them (see #1047).
     - rule_id: COMMAND_INJECTION_SHELL_TRUE
       reason: "Accepted risk: scripts/deploy_forge_app.py:68 runs `forge` CLI commands with shell=True, interpolating the operator's own --site, --env, and --developer-space-id arguments. Input comes from the person running the script locally, not from untrusted content."
+    - rule_id: LLM_COMMAND_INJECTION
+      reason: "Accepted risk: LLM-analyzer duplicate of COMMAND_INJECTION_SHELL_TRUE above. scripts/deploy_forge_app.py:68 runs `forge` CLI commands with shell=True, interpolating the operator's own --site, --env, and --developer-space-id arguments. Input comes from the person running the script locally, not from untrusted content."
