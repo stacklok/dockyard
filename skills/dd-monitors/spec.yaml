@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/datadog-labs/agent-skills"
-  ref: "8925faba5765d1a53a5a5a33a3135105bd130fb9"
+  ref: "ef022309cc6b6296e7574589ac332699b1c9a092"
   path: "dd-monitors"
-  version: "0.6.3"
+  version: "0.6.4"
 
 provenance:
   repository_uri: "https://github.com/datadog-labs/agent-skills"
