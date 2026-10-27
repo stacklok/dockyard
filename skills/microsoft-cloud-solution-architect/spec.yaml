@@ -10,9 +10,9 @@ metadata:
 
 spec:
   repository: "https://github.com/microsoft/skills"
-  ref: "8850874f66fb4d905bfcfcb923a18883bb70d1cd"  # main as of 2026-10-08
+  ref: "2130750147dee0311215099ddf36647ba1e0f006"  # main as of 2026-10-08
   path: ".github/skills/cloud-solution-architect"
-  version: "0.1.1"
+  version: "0.1.2"
 
 provenance:
   repository_uri: "https://github.com/microsoft/skills"
