@@ -386,6 +386,17 @@ security:
 
 See [Security Overview](security.md) for more details on what we scan for.
 
+When the scanner needs different CLI arguments from the container, use
+`security.scan_args`. This list replaces `spec.args` during scanning only. For
+example, the filesystem server receives its allowed directories at runtime, but
+the scanner needs an existing host directory to initialize:
+
+```yaml
+security:
+  scan_args:
+    - "/tmp"
+```
+
 ### Servers Requiring Environment Variables at Runtime
 
 `security.mock_env` above only affects scanning. If your server actually needs an environment variable set in the **shipped, running container** - for example, to select a non-default backend when a dependency assumes capabilities the container doesn't have - use `spec.env` instead:
