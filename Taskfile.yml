@@ -8,7 +8,7 @@ tasks:
 
       Usage:
         task scan -- npx/playwright-mcp
-        task scan -- uvx/blender-mcp
+        task scan -- uvx/redis-mcp-server
         task scan -- npx/sentry-mcp-server
 
       The server path should be relative to the project root and contain a spec.yaml file.
@@ -137,7 +137,7 @@ tasks:
         echo ""
         echo "Examples:"
         echo "  task scan -- npx/playwright-mcp"
-        echo "  task scan -- uvx/blender-mcp"
+        echo "  task scan -- uvx/redis-mcp-server"
         echo "  task scan-all"
         echo "  task scan-setup"
         echo ""
