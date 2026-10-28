@@ -1,0 +1,82 @@
+# Postman MCP Server Configuration
+# Postman's first-party MCP server for managing collections, workspaces,
+# environments, and specs through the Postman API.
+# Package: https://www.npmjs.com/package/@postman/postman-mcp-server
+# Repository: https://github.com/postmanlabs/postman-mcp-server
+# License: Apache-2.0
+# Will build as: ghcr.io/stacklok/dockyard/npx/postman-mcp-server:2.14.0
+#
+# Toolset selection: the default (no args) is Minimal. Pass --code or --full
+# as runtime arguments to select Code or Full mode, for example
+# `thv run ... -- --full`. Authentication uses the POSTMAN_API_KEY env var.
+# For the EU region pass --region eu or set POSTMAN_API_BASE_URL.
+#
+# Network and mounts (ToolHive network isolation):
+# - Outbound allow list: api.postman.com:443 (api.eu.postman.com for EU).
+#   POSTMAN_MCP_TELEMETRY is off by default; enabling it needs more egress.
+# - No file mounts are required. Collections and environments are fetched
+#   from the Postman API by ID.
+# - runCollection executes the collection with newman inside the container,
+#   so every host the collection's requests call must also be allowed. To
+#   reach a service on the host machine, allow host.docker.internal and its
+#   port in the permission profile and pass --allow-docker-gateway to
+#   `thv run`. Only mount files if a collection references local files
+#   (for example form-data uploads).
+
+metadata:
+  name: postman-mcp-server
+  description: "Postman MCP server for managing collections, workspaces, environments, and specs"
+  version: "2.14.0"
+  protocol: npx
+
+spec:
+  package: "@postman/postman-mcp-server"
+  version: "2.14.0"
+  # The runtime image is node:24-alpine (ToolHive npx template default).
+  # Node's built-in fetch only honors HTTP_PROXY/HTTPS_PROXY/NO_PROXY when
+  # NODE_USE_ENV_PROXY=1 is set (supported for fetch since Node 22.21.0 and
+  # 24.0.0). Without it, API calls fail under ToolHive network isolation.
+  env:
+    NODE_USE_ENV_PROXY: "1"
+
+provenance:
+  repository_uri: "https://github.com/postmanlabs/postman-mcp-server"
+  repository_ref: "refs/tags/v2.14.0"
+  # npm publishes a SLSA v1 attestation for 2.14.0 built from
+  # .github/workflows/pkg-release.yml at commit 94efe91 (the v2.14.0 tag).
+  # dockhand verify-provenance currently fails to parse the bundle, so the
+  # attestation was checked by hand rather than cryptographically.
+  attestations:
+    available: true
+    verified: false
+    publisher:
+      kind: "GitHub"
+      repository: "postmanlabs/postman-mcp-server"
+      workflow: "pkg-release.yml"
+
+security:
+  # Mock env vars allow security scanning without real credentials
+  mock_env:
+    - name: POSTMAN_API_KEY
+      value: "PMAK-mock-api-key-for-security-scanning"
+      description: "Postman API key - mock value for security scanning"
+  allowed_issues:
+    - code: "AITech-12.1"
+      reason: |
+        YARA tool-poisoning hit on createCollection and putCollection (v2.14.0, Minimal mode).
+        The descriptions only explain the Postman Collection v2.1.0 schema, the optional
+        workspace parameter, async update behavior, and that putCollection replaces collection
+        contents. No instructions aimed at the model, no hidden directives. Replacing collection
+        contents is the documented purpose of the PUT endpoint, not tool tampering.
+    - code: "AITech-1.1"
+      reason: |
+        YARA coercive-injection hit on getTaggedEntities (v2.14.0, Minimal mode). The description
+        is a bold "Requires an Enterprise plan" availability note plus a one-line explanation of
+        tags. It does not attempt to override system instructions or alter model behavior.
+    - code: "AITech-9.1"
+      reason: |
+        YARA script-injection hit on runCollection (v2.14.0, Minimal mode). The tool runs a
+        Postman collection by ID, which can execute the collection's own pre-request and test
+        scripts and send requests to the collection's targets. That is the intended function.
+        The risk is bounded by the container sandbox and by ToolHive network isolation, which
+        restricts egress to allowed hosts; the description itself contains no injected payload.
