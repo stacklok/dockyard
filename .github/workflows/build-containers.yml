@@ -363,7 +363,14 @@ jobs:
           print(spec['package'] + '@' + spec.get('version', 'latest'))
           ")
           echo "Pre-installing $package..."
-          npm install --global "$package"
+          # Some packages ship a preinstall guard such as "npx only-allow pnpm"
+          # (e.g. @postman/postman-mcp-server) that fails under a global npm
+          # install. Retry without lifecycle scripts so the warm-up still
+          # populates the cache; the guard only blocks non-pnpm installs.
+          if ! npm install --global "$package"; then
+            echo "::warning::npm install --global failed for $package, retrying with --ignore-scripts"
+            npm install --global --ignore-scripts "$package"
+          fi
 
       - name: Run MCP Security Scan
         id: scan
