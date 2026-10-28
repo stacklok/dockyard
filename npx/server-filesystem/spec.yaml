@@ -11,12 +11,11 @@ metadata:
 spec:
   package: "@modelcontextprotocol/server-filesystem"
   version: "2.0.1"
-  # Mount directories under /projects, matching upstream's container examples.
-  args:
-    - "/projects"
+  # Allowed directories are supplied at runtime. The ToolHive catalog defaults
+  # to /projects; keeping it out of ENTRYPOINT lets explicit arguments replace it.
 
 security:
-  # The scanner runs the npm package on the host, where /projects is absent.
+  # The scanner has no catalog defaults or MCP roots, so supply a host directory.
   scan_args:
     - "/tmp"
 

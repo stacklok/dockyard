@@ -348,6 +348,12 @@ jobs:
           echo "protocol=$protocol" >> $GITHUB_OUTPUT
           echo "server_name=$server_name" >> $GITHUB_OUTPUT
 
+      - name: Set up Node.js for npm servers
+        if: steps.meta.outputs.protocol == 'npx'
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: '24'
+
       - name: Pre-install npm package
         if: steps.meta.outputs.protocol == 'npx'
         env:

@@ -388,8 +388,8 @@ See [Security Overview](security.md) for more details on what we scan for.
 
 When the scanner needs different CLI arguments from the container, use
 `security.scan_args`. This list replaces `spec.args` during scanning only. For
-example, the filesystem server uses `/projects` in the container, but the scanner
-runs the npm package on the host and needs an existing host directory:
+example, the filesystem server receives its allowed directories at runtime, but
+the scanner needs an existing host directory to initialize:
 
 ```yaml
 security:
