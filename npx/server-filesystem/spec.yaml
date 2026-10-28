@@ -1,0 +1,34 @@
+# Filesystem MCP Server Configuration
+# Package: https://www.npmjs.com/package/@modelcontextprotocol/server-filesystem
+# Repository: https://github.com/modelcontextprotocol/servers
+# Will build as: ghcr.io/stacklok/dockyard/npx/server-filesystem:2.0.1
+
+metadata:
+  name: server-filesystem
+  description: "MCP reference server for filesystem operations within allowed directories"
+  protocol: npx
+
+spec:
+  package: "@modelcontextprotocol/server-filesystem"
+  version: "2.0.1"
+  # Mount directories under /projects, matching upstream's container examples.
+  args:
+    - "/projects"
+
+security:
+  # The scanner runs the npm package on the host, where /projects is absent.
+  scan_args:
+    - "/tmp"
+
+provenance:
+  repository_uri: "https://github.com/modelcontextprotocol/servers"
+  # The monorepo release tag differs from the filesystem package version.
+  repository_ref: "refs/tags/v2.1.0"
+  attestations:
+    available: true
+    # Dockhand detects the attestations but cannot parse npm's bundle wrapper.
+    verified: false
+    publisher:
+      kind: "GitHub"
+      repository: "modelcontextprotocol/servers"
+      workflow: "release.yml"

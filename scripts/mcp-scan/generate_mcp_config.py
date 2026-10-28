@@ -26,8 +26,11 @@ def main():
         # Extract mock_env from security section (for MCP servers requiring env vars)
         mock_env = data.get('security', {}).get('mock_env', [])
 
-        # Extract additional args from spec (e.g., ["start"] for LaunchDarkly)
-        spec_args = data['spec'].get('args', [])
+        # Scanner-only arguments replace runtime arguments when the host needs
+        # different paths or other fixtures than the shipped container.
+        spec_args = data.get('security', {}).get('scan_args', data['spec'].get('args', []))
+        if not isinstance(spec_args, list) or not all(isinstance(arg, str) for arg in spec_args):
+            raise ValueError('security.scan_args / spec.args must be a list of strings')
         spec_args_str = ' '.join(spec_args) if spec_args else ''
 
         # Dependency overrides (see docs/adding-servers.md). The scan runs the package
