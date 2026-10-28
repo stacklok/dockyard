@@ -33,10 +33,10 @@ For servers with `security.mock_env` defined in spec.yaml:
 ```json
 {
   "command": "npx",
-  "args": "mcp-searxng@0.8.0",
-  "server_name": "mcp-searxng",
+  "args": "@perplexity-ai/mcp-server@1.3.0",
+  "server_name": "perplexity-ask",
   "mock_env": [
-    {"name": "SEARXNG_URL", "value": "https://mock-searxng.example.com", "description": "..."}
+    {"name": "PERPLEXITY_API_KEY", "value": "mock-perplexity-api-key-for-scanning", "description": "Perplexity API key - mock value for security scanning"}
   ]
 }
 ```
@@ -67,9 +67,9 @@ python3 run_scan.py npx "@upstash/context7-mcp@2.1.0"
 ```json
 {
   "command": "npx",
-  "args": "mcp-searxng@0.8.0",
+  "args": "@perplexity-ai/mcp-server@1.3.0",
   "mock_env": [
-    {"name": "SEARXNG_URL", "value": "https://mock.example.com"}
+    {"name": "PERPLEXITY_API_KEY", "value": "mock-perplexity-api-key-for-scanning"}
   ]
 }
 ```
@@ -173,7 +173,7 @@ For servers that require environment variables:
 
 ```bash
 # Generate config (will include mock_env if defined in spec.yaml)
-python3 scripts/mcp-scan/generate_mcp_config.py npx/mcp-searxng/spec.yaml npx mcp-searxng > /tmp/scan-config.json
+python3 scripts/mcp-scan/generate_mcp_config.py npx/perplexity-ask/spec.yaml npx perplexity-ask > /tmp/scan-config.json
 
 # Verify mock_env is in the config
 cat /tmp/scan-config.json | jq '.mock_env'

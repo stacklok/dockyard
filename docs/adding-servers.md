@@ -364,17 +364,29 @@ security:
 
 ### Servers Requiring Environment Variables During Scanning
 
-Some MCP servers require environment variables to start (e.g., API URLs, tokens). Since the security scanner needs to start the server to discover its tools, you can provide mock values that allow the server to start without functional credentials:
+Some MCP servers require environment variables to start (e.g., API URLs, tokens). Since the security scanner needs to start the server to discover its tools, you can provide mock values that allow the server to start without functional credentials.
+
+Most servers only need a token. Match the vendor's real token format (here, Notion's `ntn_` prefix) in case the server checks it at startup:
 
 ```yaml
 security:
   mock_env:
-    - name: SEARXNG_URL
-      value: "https://mock-searxng.example.com"
-      description: "SearXNG instance URL - mock for scanning"
-    - name: API_TOKEN
-      value: "mock-token-for-scanning-00000000"
-      description: "API token - mock value, not a real credential"
+    - name: NOTION_TOKEN
+      value: "ntn_mock_token_for_security_scanning_00000000000"
+      description: "Notion API token - mock value for security scanning"
+```
+
+Some also need an endpoint URL, as with Astra DB:
+
+```yaml
+security:
+  mock_env:
+    - name: ASTRA_DB_API_ENDPOINT
+      value: "https://mock-db-id.apps.astra.datastax.com"
+      description: "Astra DB endpoint - mock value for security scanning"
+    - name: ASTRA_DB_APPLICATION_TOKEN
+      value: "AstraCS:mock-token-for-scanning:0000000000000000"
+      description: "Astra DB token - mock value for security scanning"
 ```
 
 **Important notes about mock_env:**
