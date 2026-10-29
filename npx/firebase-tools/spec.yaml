@@ -1,0 +1,21 @@
+# Firebase MCP Server Configuration
+# Official Firebase MCP server, shipped as the `firebase mcp` command of firebase-tools
+# Package: https://www.npmjs.com/package/firebase-tools
+# Repository: https://github.com/firebase/firebase-tools
+# Will build as: ghcr.io/stacklok/dockyard/npx/firebase-tools:15.34.1
+
+metadata:
+  name: firebase-tools
+  description: "Official Firebase MCP server (firebase mcp) for managing Firebase projects and services"
+  version: "15.34.1"
+  protocol: npx
+
+spec:
+  package: "firebase-tools"
+  version: "15.34.1"
+  args:
+    - "mcp"
+
+provenance:
+  repository_uri: "https://github.com/firebase/firebase-tools"
+  repository_ref: "refs/tags/v15.34.1"
