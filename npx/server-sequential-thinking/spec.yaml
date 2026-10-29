@@ -2,7 +2,7 @@
 # Dynamic and reflective problem-solving through structured thinking sequences
 # Package: https://www.npmjs.com/package/@modelcontextprotocol/server-sequential-thinking
 # Repository: https://github.com/modelcontextprotocol/servers
-# Will build as: ghcr.io/stacklok/dockyard/npx/server-sequential-thinking:2025.12.18
+# Will build as: ghcr.io/stacklok/dockyard/npx/server-sequential-thinking:2.0.0
 
 metadata:
   name: server-sequential-thinking
@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@modelcontextprotocol/server-sequential-thinking"
-  version: "2026.8.31"
+  version: "2.0.0"
 
 provenance:
   repository_uri: "https://github.com/modelcontextprotocol/servers"
