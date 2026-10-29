@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/atlassian/forge-skills"
-  ref: "1b89cbd61844471264a7d4dce8eed44402f7f77f"  # main as of 2026-04-19
+  ref: "ccef03b209ae0c4235ba80c22546010ed81a04dd"  # main as of 2026-04-19
   path: "skills/forge-app-builder"
-  version: "0.3.2"
+  version: "0.4.0"
 
 provenance:
   repository_uri: "https://github.com/atlassian/forge-skills"
@@ -27,3 +27,5 @@ security:
     # longer filters them (see #1047).
     - rule_id: COMMAND_INJECTION_SHELL_TRUE
       reason: "Accepted risk: scripts/deploy_forge_app.py:68 runs `forge` CLI commands with shell=True, interpolating the operator's own --site, --env, and --developer-space-id arguments. Input comes from the person running the script locally, not from untrusted content."
+    - rule_id: LLM_COMMAND_INJECTION
+      reason: "Accepted risk: LLM-analyzer duplicate of COMMAND_INJECTION_SHELL_TRUE above. scripts/deploy_forge_app.py:68 runs `forge` CLI commands with shell=True, interpolating the operator's own --site, --env, and --developer-space-id arguments. Input comes from the person running the script locally, not from untrusted content."
