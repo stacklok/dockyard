@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/elastic/agent-skills"
   ref: "09d879dfe23436684e11391a5e5a74a2aedd6b04"  # main as of 2026-10-08
   path: "skills/elasticsearch/elasticsearch-esql"
-  version: "0.1.0"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/elastic/agent-skills"
