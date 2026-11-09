@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/hashicorp/agent-skills"
-  ref: "f706481af9b8fedb66de909f6243ad29601afa0c"  # main as of 2026-08-10
+  ref: "5e30fa5c867ba6777c37e4206babfd08049c396f"  # main as of 2026-08-10
   path: "plugins/packer/skills/windows-builder"
   version: "0.3.0"
 
