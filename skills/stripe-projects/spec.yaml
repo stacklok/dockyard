@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/stripe/ai"
   ref: "43d4af6847eebf4987576e074d7052d750e8750d"  # main as of 2026-04-16
   path: "skills/stripe-projects"
-  version: "0.3.4"
+  version: "0.3.5"
 
 provenance:
   repository_uri: "https://github.com/stripe/ai"
