@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "d12f250460ffd961f549dbebf7eeb0cf4afd4c2e"
+  ref: "e94f22214528d69899d09c627b3315ddc3544816"
   path: "skills/gha-security-review"
   version: "0.6.0"
 
