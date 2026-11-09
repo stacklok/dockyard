@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@stripe/mcp"
-  version: "0.3.3"
+  version: "0.3.4"
 
 provenance:
   repository_uri: "https://github.com/stripe/ai"
