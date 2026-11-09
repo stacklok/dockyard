@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/firebase/agent-skills"
-  ref: "92eed24c0976a79a66d5b8038e9eda8b441ef92d"
+  ref: "b76be96aaf5f152a5fb3112dde85c723c45539e7"
   path: "skills/firebase-auth-basics"
-  version: "0.5.1"
+  version: "0.5.2"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
