@@ -12,7 +12,7 @@ spec:
   repository: "https://github.com/vercel-labs/agent-skills"
   ref: "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62"  # main as of 2026-04-30
   path: "skills/composition-patterns"
-  version: "0.2.3"
+  version: "0.2.4"
 
 provenance:
   repository_uri: "https://github.com/vercel-labs/agent-skills"

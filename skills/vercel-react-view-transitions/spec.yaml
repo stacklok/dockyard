@@ -13,7 +13,7 @@ spec:
   repository: "https://github.com/vercel-labs/agent-skills"
   ref: "1a2c79d4e6c4a2283dc2c614b6538cbe1ed5ca62"  # main as of 2026-04-30
   path: "skills/react-view-transitions"
-  version: "0.5.0"
+  version: "0.5.1"
 
 provenance:
   repository_uri: "https://github.com/vercel-labs/agent-skills"
