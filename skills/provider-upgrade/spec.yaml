@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/pulumi/agent-skills"
-  ref: "2517e28e4bc029424e9c9ee48016394296be0f6a"
+  ref: "82f222a529a499e8005a820000148cc5e28c934c"
   path: "pulumi/skills/provider-upgrade"
-  version: "0.2.1"
+  version: "0.2.2"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
