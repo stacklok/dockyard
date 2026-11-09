@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/pulumi/agent-skills"
   ref: "82f222a529a499e8005a820000148cc5e28c934c"
   path: "package-maintenance/skills/pulumi-upgrade-provider"
-  version: "0.2.8"
+  version: "0.2.9"
 
 provenance:
   repository_uri: "https://github.com/pulumi/agent-skills"
