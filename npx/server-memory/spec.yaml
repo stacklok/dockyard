@@ -11,7 +11,7 @@ metadata:
 
 spec:
   package: "@modelcontextprotocol/server-memory"
-  version: "2.0.1"
+  version: "2.1.1"
 
 provenance:
   repository_uri: "https://github.com/modelcontextprotocol/servers"
