@@ -10,7 +10,7 @@ metadata:
 
 spec:
   package: "@modelcontextprotocol/server-filesystem"
-  version: "2.0.1"
+  version: "2.3.0"
   # Allowed directories are supplied at runtime. The ToolHive catalog defaults
   # to /projects; keeping it out of ENTRYPOINT lets explicit arguments replace it.
 
