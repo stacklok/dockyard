@@ -12,7 +12,7 @@ metadata:
 
 spec:
   package: "firebase-tools"
-  version: "15.34.1"
+  version: "15.36.0"
   args:
     - "mcp"
 
