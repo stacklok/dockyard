@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/atlassian/forge-skills"
   ref: "ed1b87e1356392b3489f79ad648fac16ae06be5e"  # main as of 2026-04-19
   path: "skills/forge-app-builder"
-  version: "0.4.0"
+  version: "0.4.1"
 
 provenance:
   repository_uri: "https://github.com/atlassian/forge-skills"
