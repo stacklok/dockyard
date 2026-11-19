@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/github/gh-stack"
-  ref: "f63271237b45fb121affa4ae69e4dd0b2785a37b"  # main as of 2026-08-05
+  ref: "bd0a32504f9ae9f795875a9e6bb90ff7408fda08"  # main as of 2026-08-05
   path: "skills/gh-stack"
-  version: "0.1.6"
+  version: "0.1.7"
 
 provenance:
   repository_uri: "https://github.com/github/gh-stack"
