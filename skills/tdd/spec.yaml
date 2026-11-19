@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/mattpocock/skills"
-  ref: "5beb35b040e3de97e54fa9e386d7e42d15c295c2"  # main as of 2026-08-06
+  ref: "4ae2317ddb22b046e26455e4f9c9b3aaaf62212d"  # main as of 2026-08-06
   path: "skills/engineering/tdd"
-  version: "0.5.4"
+  version: "0.5.5"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
