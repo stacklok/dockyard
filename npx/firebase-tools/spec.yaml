@@ -2,12 +2,12 @@
 # Official Firebase MCP server, shipped as the `firebase mcp` command of firebase-tools
 # Package: https://www.npmjs.com/package/firebase-tools
 # Repository: https://github.com/firebase/firebase-tools
-# Will build as: ghcr.io/stacklok/dockyard/npx/firebase-tools:15.34.1
+# Will build as: ghcr.io/stacklok/dockyard/npx/firebase-tools:15.37.0
 
 metadata:
   name: firebase-tools
   description: "Official Firebase MCP server (firebase mcp) for managing Firebase projects and services"
-  version: "15.34.1"
+  version: "15.37.0"
   protocol: npx
 
 spec:
@@ -18,4 +18,22 @@ spec:
 
 provenance:
   repository_uri: "https://github.com/firebase/firebase-tools"
-  repository_ref: "refs/tags/v15.34.1"
+  repository_ref: "refs/tags/v15.37.0"
+
+security:
+  allowed_issues:
+    - code: "AITech-1.1"
+      tool: "developerknowledge_search_documents"
+      reason: |
+        False positive. YARA and the LLM analyzer flag the description's
+        "Always use this tool (or `answer_query`) to ground answers ... rather
+        than relying on unverified model memory or generic web search" and its
+        instructions to stop searching and cite sources. This is tool-usage
+        guidance for a read-only documentation search, not an attempt to
+        override agent instructions. The description is not in the npm
+        package: firebase-tools fetches it at runtime, unauthenticated, from
+        https://developerknowledge.googleapis.com/mcp
+        (lib/mcp/onemcp/onemcp_server.js listTools), so Google can change it
+        without a firebase-tools release. Note that allowlist entries match
+        by code for the whole server. Verified in v15.37.0 against the live
+        description on 2026-11-19.
