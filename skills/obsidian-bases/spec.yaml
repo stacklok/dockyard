@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/kepano/obsidian-skills"
-  ref: "3ccff5338ea700537839b21900aa5358a0402c98"  # main as of 2026-04-02
-  path: "skills/obsidian-bases"
-  version: "0.1.4"
+  ref: "398127736bd4ba42d767b1419fee1a927508370b"  # main as of 2026-04-02
+  path: "plugins/obsidian/skills/obsidian-bases"
+  version: "0.2.0"
 
 provenance:
   repository_uri: "https://github.com/kepano/obsidian-skills"
