@@ -58,8 +58,10 @@ jobs:
 
           if grep -qE '^(cmd/dockhand/|internal/skills/)' <<<"$changed_files"; then
             configs_to_build="$all_configs"
+          # Not grep -q: it exits on the first match, git diff then gets
+          # SIGPIPE (141), and pipefail makes the condition false on large diffs.
           elif grep -qE '^go\.(mod|sum)$' <<<"$changed_files" \
-            && git diff "$diff_range" -- go.mod go.sum | grep -qE '^[+-].*stacklok/toolhive'; then
+            && git diff "$diff_range" -- go.mod go.sum | grep -E '^[+-].*stacklok/toolhive' >/dev/null; then
             configs_to_build="$all_configs"
           fi
 
@@ -73,7 +75,9 @@ jobs:
             scanner_smoke=true
           fi
 
-          configs_json=$(grep -v '^$' <<<"$configs_to_build" | jq -R -s -c 'split("\n")[:-1]')
+          # grep exits 1 on no matches, which pipefail would turn into a step
+          # failure when no skills are selected (e.g. a non-toolhive go.mod bump).
+          configs_json=$( { grep -v '^$' <<<"$configs_to_build" || true; } | jq -R -s -c 'split("\n")[:-1]')
           echo "changed-configs=$configs_json" >> "$GITHUB_OUTPUT"
           echo "scanner-smoke=$scanner_smoke" >> "$GITHUB_OUTPUT"
           echo "Skill configurations to check: $configs_json"
