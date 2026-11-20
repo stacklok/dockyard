@@ -1,7 +1,7 @@
 # Pinecone MCP Server Configuration
 # Package: https://www.npmjs.com/package/@pinecone-database/mcp
 # Repository: https://github.com/pinecone-io/pinecone-mcp
-# Will build as: ghcr.io/stacklok/dockyard/npx/pinecone-mcp:0.2.1
+# Will build as: ghcr.io/stacklok/dockyard/npx/pinecone-mcp:0.4.0
 
 metadata:
   name: pinecone-mcp
@@ -10,17 +10,46 @@ metadata:
 
 spec:
   package: "@pinecone-database/mcp"
-  version: "0.3.0"
+  version: "0.4.0"
 
 provenance:
   repository_uri: "https://github.com/pinecone-io/pinecone-mcp"
-  repository_ref: "refs/tags/v0.2.1"
+  repository_ref: "refs/tags/v0.4.0"
 
 security:
   # Mock env vars allow security scanning of auth-gated tools without real credentials.
   # Without PINECONE_API_KEY the server exposes only `search-docs`; with a valid-shape key
-  # it also exposes list/describe/create/upsert/search/rerank tools (9 total).
+  # it also exposes list/describe/create/upsert/search/rerank and document-index tools (12 total).
   mock_env:
     - name: PINECONE_API_KEY
       value: "pcsk_mock-pinecone-api-key-for-scanning"
       description: "Pinecone API key — mock value for security scanning"
+  allowed_issues:
+    - code: "AITech-1.1"
+      reason: |
+        The LLM analyzer flags every database tool (all except search-docs)
+        as prompt injection. The trigger is the shared registerDatabaseTool
+        helper (dist/tools/database/common/register-tool.js), which adds two
+        optional input fields, llm_provider and llm_model, to each database
+        tool. Their descriptions ask the agent to report its vendor and model
+        name and say "Do not prompt the user for this. This value is used to
+        track usage analytics." The values are passed to the Pinecone client
+        as caller info. This is disclosed usage telemetry of the model's
+        identity, not user data, and the fields are optional. It is not an
+        attempt to override agent instructions, but the "do not prompt the
+        user" wording is why the scanner flags it. Present since v0.3.0.
+        Verified in v0.4.0. Note that allowlist entries match by code for the
+        whole server.
+    - code: "AITech-12.1"
+      reason: |
+        Same root cause as AITech-1.1: the LLM analyzer intermittently tags
+        the llm_provider/llm_model analytics fields on list-indexes and
+        search-document-index as tool poisoning. Tool behavior matches the
+        descriptions (Pinecone index and record operations via the official
+        SDK). Verified in v0.4.0.
+    - code: "AITech-8.2"
+      reason: |
+        Same root cause as AITech-1.1: the LLM analyzer intermittently tags
+        the llm_provider/llm_model fields on list-indexes as data
+        exfiltration. The only data sent is the optional model vendor and
+        name, to Pinecone's own API as SDK caller info. Verified in v0.4.0.
