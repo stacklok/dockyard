@@ -10,7 +10,7 @@ metadata:
 spec:
   repository: "https://github.com/kepano/obsidian-skills"
   ref: "398127736bd4ba42d767b1419fee1a927508370b"  # main as of 2026-04-02
-  path: "skills/json-canvas"
+  path: "plugins/obsidian/skills/json-canvas"
   version: "0.1.5"
 
 provenance:
