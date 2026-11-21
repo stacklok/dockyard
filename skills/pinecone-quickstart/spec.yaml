@@ -10,10 +10,17 @@ metadata:
 
 spec:
   repository: "https://github.com/pinecone-io/skills"
-  ref: "885dc539fbc2c777dee9764a5b05656663b43c5f"  # main as of 2026-03-11
+  ref: "34f25f3eb4fd0fe1e2da6c6c4cfe84bb0c6a7273"  # main as of 2026-03-11
   path: "skills/pinecone-quickstart"
-  version: "0.2.2"
+  version: "0.3.0"
 
 provenance:
   repository_uri: "https://github.com/pinecone-io/skills"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: PG_PII_CREDENTIAL_HARVESTING
+      reason: "FP: SKILL.md:108 is prose describing the five sample documents the quickstart upserts (a refund policy, an error log, a password reset, an order). 'password reset' is the topic of a sample support document; the skill never requests or collects credentials. Verified at digest 34f25f3eb4fd0fe1e2da6c6c4cfe84bb0c6a7273."
+    - rule_id: RESOURCE_ABUSE_INFINITE_LOOP
+      reason: "FP: scripts/upsert.py:69 is a bounded polling loop in wait_until_searchable(). It returns once the document is searchable or once a time.monotonic() deadline (60s default) passes, sleeping 2s between polls. Verified at digest 34f25f3eb4fd0fe1e2da6c6c4cfe84bb0c6a7273."
