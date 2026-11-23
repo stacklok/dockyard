@@ -2,4 +2,4 @@
 # Pinned for reproducible builds and supply chain security
 
 cisco-ai-skill-scanner==2.3.2
-pyyaml==6.0.3
+pyyaml==6.0.4
