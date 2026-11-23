@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/trailofbits/skills"
-  ref: "e4dd0bb5b15535f7c5a0834187dffba6ac37e4ff"  # main as of 2026-04-17
+  ref: "149d7b21f4067765b82e67029730b42d228ef4b4"  # main as of 2026-04-17
   path: "plugins/zeroize-audit/skills/zeroize-audit"
   version: "0.3.2"
 
