@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/google-gemini/gemini-skills"
-  ref: "7cfc690ba9c8efe36a5316e6d4000e2b6aa25dbf"  # main as of 2026-03-27
+  ref: "c4d0c62c1240e08a90546186bf320600ab6a039a"  # main as of 2026-03-27
   path: "skills/gemini-live-api-dev"
   version: "0.5.0"
 
