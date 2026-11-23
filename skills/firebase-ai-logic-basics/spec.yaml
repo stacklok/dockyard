@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/firebase/agent-skills"
   ref: "99954a30898bb5ddc8152ee10e124dc3b4106bf7"
   path: "skills/firebase-ai-logic-basics"
-  version: "0.5.2"
+  version: "0.5.3"
 
 provenance:
   repository_uri: "https://github.com/firebase/agent-skills"
