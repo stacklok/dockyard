@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/ClickHouse/agent-skills"
-  ref: "d3b2b5ba43a8b80c2d08858b68d53edc701b5ace"  # main as of 2026-04-20
+  ref: "1008fd74c0912e2f4819d52324af8a2fac2b74c1"  # main as of 2026-04-20
   path: "skills/chdb-datastore"
   version: "0.1.11"
 
