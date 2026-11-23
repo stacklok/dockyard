@@ -9,7 +9,7 @@ metadata:
 
 spec:
   repository: "https://github.com/getsentry/skills"
-  ref: "e94f22214528d69899d09c627b3315ddc3544816"  # main as of 2026-04-20
+  ref: "a582c51ee29d0f35e6ac321340796f77d43da733"  # main as of 2026-04-20
   path: "skills/iterate-pr"
   version: "0.6.0"
 
