@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/entireio/skills"
   ref: "af6cd3fce1852a7214c43bbf64315900196ad4ee"  # main as of 2026-05-07
   path: "skills/session-to-skill"
-  version: "0.2.5"
+  version: "0.2.6"
 
 provenance:
   repository_uri: "https://github.com/entireio/skills"
