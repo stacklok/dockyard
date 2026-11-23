@@ -11,7 +11,7 @@ spec:
   repository: "https://github.com/mattpocock/skills"
   ref: "abeeaf95660ba9e8b7c753eb38f441ca707a8823"  # main as of 2026-08-06
   path: "skills/productivity/grill-me"
-  version: "0.5.5"
+  version: "0.5.6"
 
 provenance:
   repository_uri: "https://github.com/mattpocock/skills"
