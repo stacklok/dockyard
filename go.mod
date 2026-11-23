@@ -3,7 +3,7 @@ module github.com/stacklok/dockyard
 go 1.27.0
 
 require (
-	github.com/sigstore/sigstore-go v1.4.0
+	github.com/sigstore/sigstore-go v1.4.1
 	github.com/spf13/cobra v1.10.2
 	github.com/stacklok/toolhive v0.67.0
 	github.com/stacklok/toolhive-core v0.0.61
@@ -14,6 +14,7 @@ require (
 	cel.dev/cel-go v0.33.4 // indirect
 	cel.dev/expr v0.26.0 // indirect
 	dario.cat/mergo v1.0.2 // indirect
+	filippo.io/edwards25519 v1.2.0 // indirect
 	github.com/1password/onepassword-sdk-go v0.4.1 // indirect
 	github.com/Microsoft/go-winio v0.6.4 // indirect
 	github.com/ProtonMail/go-crypto v1.5.2 // indirect
@@ -180,10 +181,10 @@ require (
 	github.com/sergi/go-diff v1.4.0 // indirect
 	github.com/shibumi/go-pathspec v1.3.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.10 // indirect
-	github.com/sigstore/protobuf-specs v0.5.2 // indirect
+	github.com/sigstore/protobuf-specs v0.5.3-0.20261112181914-a84bc5ff572a // indirect
 	github.com/sigstore/rekor v1.6.2 // indirect
-	github.com/sigstore/rekor-tiles/v2 v2.4.0 // indirect
-	github.com/sigstore/sigstore v1.11.3 // indirect
+	github.com/sigstore/rekor-tiles/v2 v2.4.2 // indirect
+	github.com/sigstore/sigstore v1.11.4 // indirect
 	github.com/sigstore/timestamp-authority/v2 v2.2.1 // indirect
 	github.com/sirupsen/logrus v1.10.2 // indirect
 	github.com/skeema/knownhosts v1.3.2 // indirect
