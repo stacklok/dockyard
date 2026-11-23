@@ -2,4 +2,4 @@
 # These are pinned for reproducible builds and supply chain security
 
 cisco-ai-mcp-scanner==4.8.7
-pyyaml==6.0.3
+pyyaml==6.0.4
