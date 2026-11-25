@@ -10,9 +10,9 @@ metadata:
 
 spec:
   repository: "https://github.com/upstash/context7"
-  ref: "078c0c731d19eb88d2391b236ab82a127dbabac3"  # master as of 2026-08-11
+  ref: "b1e3611e32a8b1369ae526cacdf335ddfd6e5fbb"  # master as of 2026-08-11
   path: "skills/context7-mcp"
-  version: "0.3.7"
+  version: "0.3.8"
 
 provenance:
   repository_uri: "https://github.com/upstash/context7"
