@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/pinecone-io/skills"
-  ref: "885dc539fbc2c777dee9764a5b05656663b43c5f"  # main as of 2026-03-11
+  ref: "34f25f3eb4fd0fe1e2da6c6c4cfe84bb0c6a7273"  # main as of 2026-03-11
   path: "skills/pinecone-assistant"
-  version: "0.2.2"
+  version: "0.2.3"
 
 provenance:
   repository_uri: "https://github.com/pinecone-io/skills"
