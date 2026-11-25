@@ -3,7 +3,7 @@
 # recordings, and behavior insights via the Clarity Data Export API
 # Package: https://www.npmjs.com/package/@microsoft/clarity-mcp-server
 # Repository: https://github.com/microsoft/clarity-mcp-server
-# Will build as: ghcr.io/stacklok/dockyard/npx/clarity-mcp-server:2.0.1
+# Will build as: ghcr.io/stacklok/dockyard/npx/clarity-mcp-server:3.0.0
 
 metadata:
   name: clarity-mcp-server
@@ -12,11 +12,38 @@ metadata:
 
 spec:
   package: "@microsoft/clarity-mcp-server"
-  version: "2.0.1"
+  version: "3.0.0"
+  overrides:
+    - package: "zod"
+      version: "4.6.7"
+      reason: |
+        @microsoft/clarity-mcp-server depends on zod ^3.25.76, and
+        GHSA-mrhx-c7xc-m3w5 (memory exhaustion on oversized constrained
+        collections, High) affects every zod release below 4.6.6, so no 3.x
+        fix exists. The server uses only basic schema builders (string, array,
+        enum, object, nativeEnum) that zod 4 still supports; verified that all
+        30 tools enumerate with the override applied.
 
 provenance:
   repository_uri: "https://github.com/microsoft/clarity-mcp-server"
   repository_ref: "refs/heads/main"
 
 security:
-  allowed_issues: []
+  allowed_issues:
+    - code: "AITech-8.2"
+      reason: |
+        False positive. The analyzer flags nearly every tool (analytics
+        queries, session recordings, AI Visibility citations, Bot Activity,
+        Topic Insights, project and sign-in tools) because they return data
+        from the user's own Clarity projects. Reading that data is the
+        server's purpose, and each request is scoped to projects the signed-in
+        user or Data Export token can access. No tool sends data to any
+        destination other than clarity.microsoft.com.
+    - code: "AITech-1.1"
+      reason: |
+        False positive. Flagged descriptions on query-analytics-dashboard and
+        login contain ordinary routing and polling guidance: ask the user for
+        a time range, use the Bot Activity tools for crawler questions, and
+        poll login-status while sign-in is pending instead of asking the user
+        to confirm. None of it overrides system instructions or redirects the
+        agent to attacker-controlled behavior.
