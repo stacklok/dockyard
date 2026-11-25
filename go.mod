@@ -5,8 +5,8 @@ go 1.27.0
 require (
 	github.com/sigstore/sigstore-go v1.4.1
 	github.com/spf13/cobra v1.10.2
-	github.com/stacklok/toolhive v0.67.0
-	github.com/stacklok/toolhive-core v0.0.61
+	github.com/stacklok/toolhive v0.69.1
+	github.com/stacklok/toolhive-core v0.0.62
 	gopkg.in/yaml.v3 v3.0.1
 )
 
@@ -129,7 +129,7 @@ require (
 	github.com/json-iterator/go v1.1.12 // indirect
 	github.com/jwx-go/jwkfetch/v4 v4.0.4 // indirect
 	github.com/kevinburke/ssh_config v1.6.0 // indirect
-	github.com/klauspost/compress v1.20.4 // indirect
+	github.com/klauspost/compress v1.20.5 // indirect
 	github.com/lestrrat-go/blackmagic v1.0.4 // indirect
 	github.com/lestrrat-go/httpcc v1.0.1 // indirect
 	github.com/lestrrat-go/httprc/v3 v3.0.6 // indirect
@@ -144,7 +144,7 @@ require (
 	github.com/moby/moby/client v0.6.3 // indirect
 	github.com/moby/spdystream v0.5.1 // indirect
 	github.com/modelcontextprotocol/go-sdk v1.8.0 // indirect
-	github.com/modelcontextprotocol/registry v1.8.10 // indirect
+	github.com/modelcontextprotocol/registry v1.8.11 // indirect
 	github.com/modern-go/concurrent v0.0.0-20180306012644-bacd9c7ef1dd // indirect
 	github.com/modern-go/reflect2 v1.0.3-0.20250322232337-35a7c28c31ee // indirect
 	github.com/mohae/deepcopy v0.0.0-20170929034955-c48cc78d4826 // indirect
@@ -182,7 +182,7 @@ require (
 	github.com/shibumi/go-pathspec v1.3.0 // indirect
 	github.com/shirou/gopsutil/v4 v4.26.10 // indirect
 	github.com/sigstore/protobuf-specs v0.5.3-0.20261112181914-a84bc5ff572a // indirect
-	github.com/sigstore/rekor v1.6.2 // indirect
+	github.com/sigstore/rekor v1.6.3 // indirect
 	github.com/sigstore/rekor-tiles/v2 v2.4.2 // indirect
 	github.com/sigstore/sigstore v1.11.4 // indirect
 	github.com/sigstore/timestamp-authority/v2 v2.2.1 // indirect
@@ -217,7 +217,7 @@ require (
 	github.com/yuin/goldmark v1.8.7 // indirect
 	github.com/yusufpapurcu/wmi v1.2.4 // indirect
 	github.com/zalando/go-keyring v0.2.8 // indirect
-	go.opentelemetry.io/auto/sdk v1.2.1 // indirect
+	go.opentelemetry.io/auto/sdk v1.2.2 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/httptrace/otelhttptrace v0.60.0 // indirect
 	go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp v0.72.0 // indirect
 	go.opentelemetry.io/contrib/propagators/b3 v1.40.0 // indirect
@@ -248,9 +248,9 @@ require (
 	golang.ngrok.com/muxado/v2 v2.0.1 // indirect
 	golang.ngrok.com/ngrok/v2 v2.5.0 // indirect
 	golang.org/x/crypto v0.59.0 // indirect
-	golang.org/x/exp v0.0.0-20261119141654-b15d094f3610 // indirect
-	golang.org/x/exp/event v0.0.0-20261009195045-ca0d7ba23607 // indirect
-	golang.org/x/exp/jsonrpc2 v0.0.0-20261113113407-e3970619a1a4 // indirect
+	golang.org/x/exp v0.0.0-20261121134650-e1094eeca1b5 // indirect
+	golang.org/x/exp/event v0.0.0-20261113113407-e3970619a1a4 // indirect
+	golang.org/x/exp/jsonrpc2 v0.0.0-20261121134650-e1094eeca1b5 // indirect
 	golang.org/x/mod v0.43.0 // indirect
 	golang.org/x/net v0.63.0 // indirect
 	golang.org/x/oauth2 v0.38.0 // indirect
