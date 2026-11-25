@@ -1,7 +1,7 @@
 # Stripe stripe-projects Skill
 # Set up a new app with Stripe Projects CLI for software-stack provisioning.
 # Source: https://github.com/stripe/ai
-# Will publish as: ghcr.io/stacklok/dockyard/skills/stripe-projects:0.1.0
+# Will publish as: ghcr.io/stacklok/dockyard/skills/stripe-projects:0.3.6
 
 metadata:
   name: stripe-projects
@@ -9,10 +9,17 @@ metadata:
 
 spec:
   repository: "https://github.com/stripe/ai"
-  ref: "43d4af6847eebf4987576e074d7052d750e8750d"  # main as of 2026-04-16
+  ref: "2815b93e2c54a87bd9b146df62704a0e84930929"  # main as of 2026-11-23
   path: "skills/stripe-projects"
-  version: "0.3.5"
+  version: "0.3.6"
 
 provenance:
   repository_uri: "https://github.com/stripe/ai"
   repository_ref: "refs/heads/main"
+
+security:
+  allowed_issues:
+    - rule_id: LLM_SUPPLY_CHAIN_ATTACK
+      reason: "Risk accepted by maintainer (danbarr, 2026-11-25): SKILL.md:58 installs or upgrades the Stripe CLI with Stripe's official documented installer (`curl -fsSL https://cli.stripe.com/install.sh | sh`) only when the CLI is missing or outdated. The script comes from Stripe's own HTTPS domain and has no integrity check beyond TLS, which is accepted as Stripe's first-party install path."
+    - rule_id: ACTIVE_REMOTE_ACQUIRE_EXECUTE
+      reason: "Risk accepted by maintainer (danbarr, 2026-11-25): SKILL.md:31-37 has the agent fetch https://docs.stripe.com/projects/mcp.md at runtime and follow its Stripe MCP provisioning workflow. The document is first-party Stripe documentation served over HTTPS and was reviewed on 2026-11-25 (benign, instructs the agent never to handle secret values), but it is live content that can change without Dockyard review."
