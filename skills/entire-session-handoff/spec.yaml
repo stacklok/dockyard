@@ -9,9 +9,9 @@ metadata:
 
 spec:
   repository: "https://github.com/entireio/skills"
-  ref: "11902e22deddf7b867ea1cf958c0220288be4d63"  # main as of 2026-05-07
+  ref: "af6cd3fce1852a7214c43bbf64315900196ad4ee"  # main as of 2026-05-07
   path: "skills/session-handoff"
-  version: "0.3.0"
+  version: "0.3.1"
 
 provenance:
   repository_uri: "https://github.com/entireio/skills"
