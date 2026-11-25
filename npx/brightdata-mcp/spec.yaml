@@ -2,7 +2,7 @@
 # An MCP interface into the Bright Data toolset
 # Package: https://www.npmjs.com/package/@brightdata/mcp
 # Repository: https://github.com/brightdata/brightdata-mcp
-# Will build as: ghcr.io/stacklok/dockyard/npx/brightdata-mcp:2.4.2
+# Will build as: ghcr.io/stacklok/dockyard/npx/brightdata-mcp:4.9.0
 
 metadata:
   name: brightdata-mcp
@@ -11,18 +11,26 @@ metadata:
 
 spec:
   package: "@brightdata/mcp"
-  version: "4.1.0"
+  version: "4.9.0"
   overrides:
     - package: "@modelcontextprotocol/sdk"
-      version: "1.32.1"
+      version: "1.32.2"
       reason: |
         @brightdata/mcp exact-pins @modelcontextprotocol/sdk 1.21.2, which carries
-        GHSA-w48q-cv73-mx4w (DNS rebinding, fixed 1.24.0), GHSA-8r9q-7v3j-jr4g
-        (ReDoS, fixed 1.25.2) and GHSA-345p-7cg4-v4c7 (affects >=1.10.0,<=1.25.3,
-        fixed 1.26.0). GHSA-6qxp-vccf-f47h (OAuth client credential disclosure)
-        also affects >=1.12.0,<1.31.0. 1.32.1 clears all four advisories and
-        matches the newer transitive SDK version, avoiding a downgrade while
-        staying within the same major version.
+        GHSA-w48q-cv73-mx4w, GHSA-345p-7cg4-v4c7, GHSA-6qxp-vccf-f47h and several
+        advisories fixed only in 1.32.0 (e.g. GHSA-6prh-2h8m-c8cw). fastmcp pulls
+        in 1.32.2 transitively, so pinning 1.32.2 clears every advisory without
+        downgrading that copy, and stays within the same major version.
+    - package: "zod"
+      version: "4.6.7"
+      reason: |
+        @brightdata/mcp depends on zod ^3.24.2, and GHSA-mrhx-c7xc-m3w5 (memory
+        exhaustion on oversized constrained collections, High) affects every
+        zod release below 4.6.6, so no 3.x fix exists. fastmcp already ships
+        zod 4.6.7. Verified that the server enumerates all tools under zod 4 and
+        that its single-argument z.record schema still validates. Only side
+        effect: zod 4 ignores the search tool's custom errorMap, so unknown-key
+        errors use zod's default wording.
 
 provenance:
   repository_uri: "https://github.com/brightdata/brightdata-mcp"
